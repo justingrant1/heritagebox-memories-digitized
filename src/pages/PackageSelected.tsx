@@ -1,4 +1,3 @@
-
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -255,8 +254,13 @@ const PackageSelected = () => {
             </div>
             
             <div className="text-center">
-              <Button className={`px-8 py-6 text-lg ${getButtonClass()}`}>
-                Complete Your Order
+              <Button 
+                className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                asChild
+              >
+                <Link to={`/checkout?package=${encodeURIComponent(packageType)}`}>
+                  Complete Your Order
+                </Link>
               </Button>
               
               <p className="mt-6 text-gray-500">
