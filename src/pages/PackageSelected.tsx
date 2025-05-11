@@ -3,75 +3,77 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const PackageSelected = () => {
   const [searchParams] = useSearchParams();
   const packageType = searchParams.get('package') || 'Popular';
   
-  // Define package details based on the selected package
-  const getPackageDetails = () => {
-    switch(packageType) {
-      case 'Starter':
-        return {
-          name: "Starter",
-          price: "$69",
-          description: "Perfect for a small collection of memories",
-          color: "primary",
-          features: [
-            "Digitize up to 2 media items",
-            "Online access to digital files",
-            "Free shipping both ways",
-            "Free media organizing"
-          ]
-        };
-      case 'Dusty Rose':
-        return {
-          name: "Dusty Rose",
-          price: "$279",
-          description: "Great for larger collections",
-          color: "rose-dark",
-          features: [
-            "Digitize up to 20 media items",
-            "Online access to digital files",
-            "Free shipping both ways",
-            "Free media organizing",
-            "Custom USB drive included",
-            "Digital photo frame included"
-          ]
-        };
-      case 'Eternal':
-        return {
-          name: "Eternal",
-          price: "$399",
-          description: "For preserving a lifetime of memories",
-          color: "primary-light",
-          features: [
-            "Digitize up to 40 media items",
-            "Online access to digital files",
-            "Free shipping both ways",
-            "Free media organizing",
-            "Custom USB drive included",
-            "Digital photo frame included",
-            "Premium storage box for originals"
-          ]
-        };
-      case 'Popular':
-      default:
-        return {
-          name: "Popular",
-          price: "$159",
-          description: "Our most popular package for families",
-          color: "secondary",
-          features: [
-            "Digitize up to 10 media items",
-            "Online access to digital files",
-            "Free shipping both ways",
-            "Free media organizing",
-            "Custom USB drive included"
-          ]
-        };
+  // Define all packages
+  const allPackages = [
+    {
+      name: "Starter",
+      price: "$69",
+      description: "Perfect for a small collection of memories",
+      color: "primary",
+      features: [
+        "Digitize up to 2 media items",
+        "Online access to digital files",
+        "Free shipping both ways",
+        "Free media organizing"
+      ]
+    },
+    {
+      name: "Popular",
+      price: "$159",
+      description: "Our most popular package for families",
+      color: "secondary",
+      popular: true,
+      features: [
+        "Digitize up to 10 media items",
+        "Online access to digital files",
+        "Free shipping both ways",
+        "Free media organizing",
+        "Custom USB drive included"
+      ]
+    },
+    {
+      name: "Dusty Rose",
+      price: "$279",
+      description: "Great for larger collections",
+      color: "rose-dark",
+      features: [
+        "Digitize up to 20 media items",
+        "Online access to digital files",
+        "Free shipping both ways",
+        "Free media organizing",
+        "Custom USB drive included",
+        "Digital photo frame included"
+      ]
+    },
+    {
+      name: "Eternal",
+      price: "$399",
+      description: "For preserving a lifetime of memories",
+      color: "primary-light",
+      features: [
+        "Digitize up to 40 media items",
+        "Online access to digital files",
+        "Free shipping both ways",
+        "Free media organizing",
+        "Custom USB drive included",
+        "Digital photo frame included",
+        "Premium storage box for originals"
+      ]
     }
+  ];
+  
+  // Function to get the currently selected package details
+  const getPackageDetails = () => {
+    const selectedPackage = allPackages.find(pkg => pkg.name === packageType);
+    return selectedPackage || allPackages[1]; // Default to Popular if not found
   };
 
   const packageDetails = getPackageDetails();
@@ -106,6 +108,29 @@ const PackageSelected = () => {
       default:
         return 'text-gray-900';
     }
+  };
+
+  // Get button color class based on package type
+  const getButtonClass = () => {
+    switch(packageDetails.color) {
+      case 'primary':
+        return 'bg-primary hover:bg-primary/90 text-white';
+      case 'rose-dark':
+        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
+      case 'primary-light':
+        return 'bg-primary-light hover:bg-primary-light/90 text-white';
+      case 'secondary':
+        return 'bg-secondary hover:bg-secondary/90 text-primary';
+      default:
+        return 'bg-primary hover:bg-primary/90 text-white';
+    }
+  };
+
+  const handlePackageSwitch = (newPackage: string) => {
+    toast(`You've switched to the ${newPackage} package!`, {
+      description: "Your new selection has been updated.",
+      position: "top-center",
+    });
   };
 
   return (
@@ -154,6 +179,43 @@ const PackageSelected = () => {
                 </ul>
               </div>
             </div>
+
+            {/* Package Change Section */}
+            <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">
+              <h2 className="text-2xl font-bold mb-4">Change Your Package</h2>
+              <p className="text-gray-600 mb-6">Not sure if this is the right package for you? You can change your selection below:</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {allPackages.map((pkg) => (
+                  <Link
+                    key={pkg.name}
+                    to={`/package-selected?package=${encodeURIComponent(pkg.name)}`}
+                    onClick={() => handlePackageSwitch(pkg.name)}
+                    className={`block ${pkg.name === packageType ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                  >
+                    <Card className={`h-full transition-all duration-300 hover:shadow-md ${pkg.name === packageType ? 'border-2 border-gray-300' : 'hover:border-gray-300'}`}>
+                      <CardHeader className="pb-2">
+                        <h3 className={`text-lg font-bold ${pkg.popular ? 'text-secondary' : `text-${pkg.color}`}`}>
+                          {pkg.name}
+                          {pkg.name === packageType && <span className="ml-2 text-gray-500 text-sm">(Current)</span>}
+                        </h3>
+                        <p className="text-2xl font-bold">{pkg.price}</p>
+                      </CardHeader>
+                      <CardContent className="pt-2">
+                        <p className="text-sm text-gray-600 mb-2">{pkg.description}</p>
+                        <div className={`text-sm ${pkg.name !== packageType ? 'text-blue-600' : 'text-gray-400'} mt-2 flex items-center justify-end`}>
+                          {pkg.name !== packageType ? (
+                            <>Select <ArrowRight size={16} className="ml-1" /></>
+                          ) : (
+                            'Current selection'
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
             
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">
               <h2 className="text-2xl font-bold mb-6">Next Steps</h2>
@@ -193,7 +255,7 @@ const PackageSelected = () => {
             </div>
             
             <div className="text-center">
-              <Button className={`px-8 py-6 text-lg ${getTextColorClass() === 'text-secondary' ? 'bg-secondary hover:bg-secondary/90 text-primary' : getTextColorClass() === 'text-primary' ? 'bg-primary hover:bg-primary/90 text-white' : getTextColorClass() === 'text-rose-dark' ? 'bg-rose-dark hover:bg-rose-dark/90 text-white' : 'bg-primary-light hover:bg-primary-light/90 text-white'}`}>
+              <Button className={`px-8 py-6 text-lg ${getButtonClass()}`}>
                 Complete Your Order
               </Button>
               
