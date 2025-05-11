@@ -1,6 +1,7 @@
 
 import { Check } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 interface PackageProps {
   name: string;
@@ -13,27 +14,41 @@ interface PackageProps {
 
 const Package = ({ name, price, description, features, popular, color }: PackageProps) => {
   return (
-    <div className={`package-card border-${color} ${popular ? 'scale-105 shadow-xl' : ''}`}>
+    <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${popular ? 'transform-gpu scale-105 shadow-xl border-secondary' : 'hover:border-primary-light'}`}>
       {popular && (
-        <div className="absolute top-0 right-0 bg-secondary text-primary px-4 py-1 text-sm font-medium rounded-bl-lg rounded-tr-lg">
+        <div className="absolute top-0 right-0 bg-secondary text-primary px-4 py-1 text-sm font-semibold rounded-bl-lg">
           Most Popular
         </div>
       )}
-      <h3 className={`text-xl font-bold text-${color} mb-2`}>{name}</h3>
-      <div className="mb-4">
-        <span className="text-3xl font-bold">{price}</span>
-      </div>
-      <p className="text-gray-600 mb-6">{description}</p>
-      <ul className="space-y-3 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start">
-            <span className={`text-${color} mr-2 mt-1`}><Check size={16} /></span>
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <Button className={`w-full bg-${color} hover:bg-${color}/90 text-white`}>Choose {name}</Button>
-    </div>
+      <CardHeader className={`pb-0 ${popular ? 'bg-secondary/10' : ''}`}>
+        <h3 className={`text-xl font-bold mb-1 ${popular ? 'text-secondary' : `text-${color}`}`}>{name}</h3>
+        <div className="mb-2">
+          <span className="text-4xl font-bold">{price}</span>
+        </div>
+        <p className="text-gray-600">{description}</p>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <ul className="space-y-4 mb-8">
+          {features.map((feature, index) => (
+            <li key={index} className="flex items-start">
+              <span className={`${popular ? 'text-secondary' : `text-${color}`} mr-3 mt-0.5 shrink-0`}>
+                <Check size={18} className="stroke-[2.5]" />
+              </span>
+              <span className="text-gray-700">{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <Button 
+          className={`w-full ${
+            popular 
+              ? 'bg-secondary hover:bg-secondary-light text-primary font-semibold' 
+              : `bg-${color} hover:bg-${color}/90 text-white`
+          }`}
+        >
+          Choose {name}
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -97,16 +112,16 @@ const PackageComparison = () => {
   ];
 
   return (
-    <section id="packages" className="bg-cream section-padding">
-      <div className="container mx-auto container-padding">
+    <section id="packages" className="bg-cream py-20 md:py-32">
+      <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Package</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4">Choose Your Package</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Select the perfect package to preserve your cherished memories for generations to come.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative">
           {packages.map((pkg, index) => (
             <Package
               key={index}
