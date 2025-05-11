@@ -1,0 +1,72 @@
+
+import { Facebook, Instagram, Twitter } from 'lucide-react';
+
+const Footer = () => {
+  const currentYear = new Date().getFullYear();
+  
+  return (
+    <footer className="bg-primary text-white">
+      <div className="container mx-auto section-padding">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 container-padding">
+          {/* Company Info */}
+          <div>
+            <h3 className="text-xl font-bold mb-4">HeritageBox</h3>
+            <p className="text-gray-300 mb-4">
+              Preserving your precious memories for generations to come.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Facebook">
+                <Facebook size={20} />
+              </a>
+              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Instagram">
+                <Instagram size={20} />
+              </a>
+              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Twitter">
+                <Twitter size={20} />
+              </a>
+            </div>
+          </div>
+          
+          {/* Quick Links */}
+          <div>
+            <h4 className="text-lg font-bold mb-4">Quick Links</h4>
+            <ul className="space-y-2">
+              <li><a href="#how-it-works" className="text-gray-300 hover:text-secondary transition-colors">How It Works</a></li>
+              <li><a href="#packages" className="text-gray-300 hover:text-secondary transition-colors">Packages</a></li>
+              <li><a href="#about" className="text-gray-300 hover:text-secondary transition-colors">About Us</a></li>
+              <li><a href="#faq" className="text-gray-300 hover:text-secondary transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+          
+          {/* Support */}
+          <div>
+            <h4 className="text-lg font-bold mb-4">Support</h4>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Contact Us</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Shipping Policy</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Terms of Service</a></li>
+            </ul>
+          </div>
+          
+          {/* Contact Info */}
+          <div>
+            <h4 className="text-lg font-bold mb-4">Contact Us</h4>
+            <address className="not-italic text-gray-300 space-y-2">
+              <p>123 Memory Lane</p>
+              <p>Heritage City, HC 12345</p>
+              <p className="pt-2">Email: <a href="mailto:info@heritagebox.com" className="hover:text-secondary transition-colors">info@heritagebox.com</a></p>
+              <p>Phone: <a href="tel:+11234567890" className="hover:text-secondary transition-colors">(123) 456-7890</a></p>
+            </address>
+          </div>
+        </div>
+        
+        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 container-padding">
+          <p>&copy; {currentYear} HeritageBox. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
