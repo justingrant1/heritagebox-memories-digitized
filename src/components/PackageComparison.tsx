@@ -13,6 +13,25 @@ interface PackageProps {
 }
 
 const Package = ({ name, price, description, features, popular, color }: PackageProps) => {
+  // Create a button class based on the package type
+  const getButtonClass = () => {
+    if (popular) {
+      return 'bg-secondary hover:bg-secondary-light text-primary font-semibold';
+    }
+    
+    // Custom handling for each color
+    switch (color) {
+      case 'primary':
+        return 'bg-primary hover:bg-primary-light text-white';
+      case 'rose-dark':
+        return 'bg-rose-dark hover:bg-rose/90 text-white';
+      case 'primary-light':
+        return 'bg-primary-light hover:bg-primary-light/90 text-white';
+      default:
+        return `bg-${color} hover:bg-${color}/90 text-white`;
+    }
+  };
+
   return (
     <Card className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${popular ? 'transform-gpu scale-105 shadow-xl border-secondary' : 'hover:border-primary-light'}`}>
       {popular && (
@@ -39,11 +58,7 @@ const Package = ({ name, price, description, features, popular, color }: Package
           ))}
         </ul>
         <Button 
-          className={`w-full ${
-            popular 
-              ? 'bg-secondary hover:bg-secondary-light text-primary font-semibold' 
-              : `bg-${color} hover:bg-${color}/90 text-white`
-          }`}
+          className={`w-full ${getButtonClass()}`}
         >
           Choose {name}
         </Button>
