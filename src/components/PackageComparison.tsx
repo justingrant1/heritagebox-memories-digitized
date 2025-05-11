@@ -1,7 +1,7 @@
-
 import { Check } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 interface PackageProps {
   name: string;
@@ -59,8 +59,11 @@ const Package = ({ name, price, description, features, popular, color }: Package
         </ul>
         <Button 
           className={`w-full ${getButtonClass()}`}
+          asChild
         >
-          Choose {name}
+          <Link to={`/package-selected?package=${encodeURIComponent(name)}`}>
+            Choose {name}
+          </Link>
         </Button>
       </CardContent>
     </Card>
