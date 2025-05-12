@@ -53,9 +53,33 @@ const Hero = () => {
                 </AspectRatio>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <div className="aspect-square bg-rose rounded-lg"></div>
-                <div className="aspect-square bg-secondary/30 rounded-lg"></div>
-                <div className="aspect-square bg-primary/20 rounded-lg"></div>
+                <div className="overflow-hidden rounded-lg">
+                  <AspectRatio ratio={1/1}>
+                    <img 
+                      src="/lovable-uploads/2d60a6ef-6368-475b-9e4f-86789351e721.png" 
+                      alt="VHS tape labeled Summer '94" 
+                      className="object-cover w-full h-full"
+                    />
+                  </AspectRatio>
+                </div>
+                <div className="overflow-hidden rounded-lg">
+                  <AspectRatio ratio={1/1}>
+                    <img 
+                      src="/lovable-uploads/f857465b-320f-4fe1-b778-9a8b0e233ce3.png" 
+                      alt="Stack of old photographs" 
+                      className="object-cover w-full h-full"
+                    />
+                  </AspectRatio>
+                </div>
+                <div className="overflow-hidden rounded-lg">
+                  <AspectRatio ratio={1/1}>
+                    <img 
+                      src="/lovable-uploads/f089a63b-496c-42fc-97d1-fd43f38c9525.png" 
+                      alt="Digitizing process with VHS tape and computer" 
+                      className="object-cover w-full h-full"
+                    />
+                  </AspectRatio>
+                </div>
               </div>
             </div>
           </div>
