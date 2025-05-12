@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const Hero = () => {
   return (
@@ -42,7 +43,15 @@ const Hero = () => {
             <div className="bg-secondary/20 absolute inset-0 rounded-3xl transform rotate-3"></div>
             <div className="bg-primary/10 absolute inset-0 rounded-3xl transform -rotate-3"></div>
             <div className="relative bg-white p-6 rounded-3xl shadow-xl">
-              <div className="aspect-video bg-gray-200 rounded-lg mb-4"></div>
+              <div className="rounded-lg mb-4 overflow-hidden">
+                <AspectRatio ratio={16/9} className="bg-gray-100">
+                  <img 
+                    src="/lovable-uploads/ad279416-58a2-4b0d-8d54-d7ef25d60e52.png" 
+                    alt="Family watching old memories on TV with photos and VHS tapes" 
+                    className="object-cover w-full h-full"
+                  />
+                </AspectRatio>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="aspect-square bg-rose rounded-lg"></div>
                 <div className="aspect-square bg-secondary/30 rounded-lg"></div>
