@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pathname, hash } = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,24 +18,57 @@ const NavBar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle smooth scrolling for hash links only when on the homepage
+  useEffect(() => {
+    if (hash && pathname === '/') {
+      const element = document.querySelector(hash);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [pathname, hash]);
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Handle anchor links on the homepage
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, target: string) => {
+    if (pathname === '/') {
+      // We're on the homepage, use smooth scrolling
+      e.preventDefault();
+      const element = document.querySelector(target);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // We're not on homepage, let normal navigation happen
+      // The ScrollToTop component will handle scrolling to top
+    }
+    
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
+  };
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
       <div className="container mx-auto flex justify-between items-center container-padding">
-        <a href="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <h1 className={`text-primary font-serif font-bold text-2xl`}>
             Heritage<span className="text-secondary">Box</span>
           </h1>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-primary hover:text-secondary transition-colors">How It Works</a>
-          <a href="#packages" className="text-primary hover:text-secondary transition-colors">Packages</a>
-          <a href="#about" className="text-primary hover:text-secondary transition-colors">About Us</a>
-          <a href="#faq" className="text-primary hover:text-secondary transition-colors">FAQ</a>
-          <Button className="btn-secondary">Get Started</Button>
+          <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors">How It Works</a>
+          <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors">Packages</a>
+          <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors">About Us</a>
+          <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors">FAQ</a>
+          <Link to="/package-selected?package=Popular">
+            <Button className="btn-secondary">Get Started</Button>
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -46,11 +81,13 @@ const NavBar = () => {
       {isMenuOpen && (
         <nav className="md:hidden bg-white w-full shadow-lg animate-fade-in">
           <div className="container mx-auto py-4 flex flex-col space-y-4 container-padding">
-            <a href="#how-it-works" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100" onClick={toggleMenu}>How It Works</a>
-            <a href="#packages" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100" onClick={toggleMenu}>Packages</a>
-            <a href="#about" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100" onClick={toggleMenu}>About Us</a>
-            <a href="#faq" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100" onClick={toggleMenu}>FAQ</a>
-            <Button className="btn-secondary w-full">Get Started</Button>
+            <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</a>
+            <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</a>
+            <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</a>
+            <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</a>
+            <Link to="/package-selected?package=Popular" onClick={() => setIsMenuOpen(false)}>
+              <Button className="btn-secondary w-full">Get Started</Button>
+            </Link>
           </div>
         </nav>
       )}
