@@ -46,8 +46,8 @@ const Hero = () => {
               <div className="rounded-lg mb-4 overflow-hidden">
                 <AspectRatio ratio={16/9} className="bg-gray-100">
                   <img 
-                    src="/lovable-uploads/fbd7faa9-1409-4b8f-83d0-890cfea5a337.png" 
-                    alt="Family looking at photo album together" 
+                    src="/lovable-uploads/ad279416-58a2-4b0d-8d54-d7ef25d60e52.png" 
+                    alt="Family watching old memories on TV with photos and VHS tapes" 
                     className="object-cover w-full h-full"
                   />
                 </AspectRatio>
@@ -56,8 +56,8 @@ const Hero = () => {
                 <div className="overflow-hidden rounded-lg">
                   <AspectRatio ratio={1/1}>
                     <img 
-                      src="/lovable-uploads/2c601208-3e17-4e1e-8999-5fab5c96ed24.png" 
-                      alt="Protected family photos with shield" 
+                      src="/lovable-uploads/2d60a6ef-6368-475b-9e4f-86789351e721.png" 
+                      alt="VHS tape labeled Summer '94" 
                       className="object-cover w-full h-full"
                     />
                   </AspectRatio>
@@ -65,8 +65,8 @@ const Hero = () => {
                 <div className="overflow-hidden rounded-lg">
                   <AspectRatio ratio={1/1}>
                     <img 
-                      src="/lovable-uploads/99117b25-0237-44c1-b6d2-561f1b5a37ef.png" 
-                      alt="VHS tape and photographs" 
+                      src="/lovable-uploads/f857465b-320f-4fe1-b778-9a8b0e233ce3.png" 
+                      alt="Stack of old photographs" 
                       className="object-cover w-full h-full"
                     />
                   </AspectRatio>
@@ -74,8 +74,8 @@ const Hero = () => {
                 <div className="overflow-hidden rounded-lg">
                   <AspectRatio ratio={1/1}>
                     <img 
-                      src="/lovable-uploads/0d217c0f-0b4f-40fc-b400-5ec460102ee3.png" 
-                      alt="Technician digitizing media" 
+                      src="/lovable-uploads/f089a63b-496c-42fc-97d1-fd43f38c9525.png" 
+                      alt="Digitizing process with VHS tape and computer" 
                       className="object-cover w-full h-full"
                     />
                   </AspectRatio>
