@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus } from 'lucide-react';
+import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 
 const Checkout = () => {
@@ -27,7 +28,8 @@ const Checkout = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
-  const [usbDrives, setUsbDrives] = useState(0);
+  const [usbDrives, setUsbDrives] = useState(1);
+  const [cloudBackup, setCloudBackup] = useState(1);
 
   // Define all packages (updated with new prices)
   const allPackages = [
@@ -98,12 +100,14 @@ const Checkout = () => {
 
   // USB drive price
   const USB_DRIVE_PRICE = 24.95;
+  const CLOUD_BACKUP_PRICE = 19.95;
 
   // Calculate total price
   const calculateTotal = () => {
     const packagePrice = packageDetails.numericPrice || parseFloat(packageDetails.price.replace('$', ''));
     const usbTotal = usbDrives * USB_DRIVE_PRICE;
-    return (packagePrice + usbTotal).toFixed(2);
+    const cloudTotal = cloudBackup * CLOUD_BACKUP_PRICE;
+    return (packagePrice + usbTotal + cloudTotal).toFixed(2);
   };
 
   // Get text color class based on package type
@@ -140,6 +144,13 @@ const Checkout = () => {
 
   const handleUsbChange = (change: number) => {
     setUsbDrives(prev => {
+      const newValue = prev + change;
+      return newValue >= 0 ? newValue : 0;
+    });
+  };
+
+  const handleCloudChange = (change: number) => {
+    setCloudBackup(prev => {
       const newValue = prev + change;
       return newValue >= 0 ? newValue : 0;
     });
@@ -185,6 +196,7 @@ const Checkout = () => {
     console.log("Payment token received:", token);
     console.log("Card details:", details);
     console.log("USB drives added:", usbDrives);
+    console.log("Cloud backup years:", cloudBackup);
     
     setTimeout(() => {
       setIsProcessing(false);
@@ -198,6 +210,9 @@ const Checkout = () => {
       params.append('package', packageType);
       if (usbDrives > 0) {
         params.append('usbDrives', usbDrives.toString());
+      }
+      if (cloudBackup > 0) {
+        params.append('cloudBackup', cloudBackup.toString());
       }
       
       navigate('/order-confirmation?' + params.toString());
@@ -374,12 +389,17 @@ const Checkout = () => {
                     ))}
                   </div>
                   
-                  {/* USB Drive Add-on */}
+                  {/* Add-ons Section */}
                   <div className="border-t border-gray-100 py-4 mb-4">
                     <h3 className="font-medium mb-3">Add-ons</h3>
-                    <div className="flex items-center justify-between mb-2">
+                    
+                    {/* USB Drive Add-on */}
+                    <div className="flex items-center justify-between mb-4">
                       <div>
-                        <p className="font-medium">Additional USB Drive</p>
+                        <p className="font-medium flex items-center">
+                          <Usb className="mr-2 h-4 w-4" />
+                          Custom USB Drive
+                        </p>
                         <p className="text-sm text-gray-500">Store your memories safely</p>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -408,9 +428,50 @@ const Checkout = () => {
                       </div>
                     </div>
                     {usbDrives > 0 && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-sm mb-4">
                         <span className="text-gray-600">{usbDrives} × $24.95</span>
                         <span className="font-medium">${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    {/* Cloud Backup Add-on */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="font-medium flex items-center">
+                          <Cloud className="mr-2 h-4 w-4" />
+                          Online Media Gallery & Cloud Backup
+                        </p>
+                        <p className="text-sm text-gray-500">1 year included</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full"
+                          onClick={() => handleCloudChange(-1)}
+                          disabled={cloudBackup === 0}
+                        >
+                          <Minus className="h-4 w-4" />
+                          <span className="sr-only">Decrease</span>
+                        </Button>
+                        <span className="w-8 text-center">{cloudBackup}</span>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full"
+                          onClick={() => handleCloudChange(1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span className="sr-only">Increase</span>
+                        </Button>
+                      </div>
+                    </div>
+                    {cloudBackup > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{cloudBackup} × $19.95</span>
+                        <span className="font-medium">${(cloudBackup * CLOUD_BACKUP_PRICE).toFixed(2)}</span>
                       </div>
                     )}
                   </div>
