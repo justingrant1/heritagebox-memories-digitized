@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Loader2 } from 'lucide-react';
 
 // Define types for the Square SDK
 interface Square {
   payments: {
-    Payments: new (applicationId: string) => SquarePayments;
+    Payments: new (applicationId: string, options?: any) => SquarePayments;
   };
 }
 
@@ -41,19 +42,34 @@ declare global {
   interface Window { Square: Square; }
 }
 
+// Square application ID (sandbox for development, production for live)
 const SQUARE_APP_ID = 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
-// Note: Replace 'sq0idp-YOUR-PRODUCTION-APP-ID' with your actual production Square application ID
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
   const [card, setCard] = useState<SquareCard | null>(null);
-
+  const [cardLoading, setCardLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
-    // Load the Square Web Payments SDK (production URL)
+    // Clean up any previous script instances to prevent conflicts
+    const existingScript = document.getElementById('square-script');
+    if (existingScript) {
+      document.body.removeChild(existingScript);
+    }
+
+    // Load the Square Web Payments SDK
     const script = document.createElement('script');
+    script.id = 'square-script';
     script.src = 'https://web.squarecdn.com/v1/square.js';
-    script.onload = () => setLoaded(true);
-    script.onerror = () => {
+    script.async = true;
+    script.onload = () => {
+      console.log("Square SDK loaded successfully");
+      setLoaded(true);
+    };
+    script.onerror = (e) => {
+      console.error("Failed to load Square SDK:", e);
+      setError("Failed to load payment processor");
       toast.error("Failed to load payment processor", {
         description: "Please refresh the page and try again",
       });
@@ -61,7 +77,10 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      const scriptToRemove = document.getElementById('square-script');
+      if (scriptToRemove) {
+        document.body.removeChild(scriptToRemove);
+      }
     };
   }, []);
 
@@ -70,6 +89,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
     async function initializeCard() {
       if (!window.Square) {
+        console.error("Square SDK not available");
+        setError("Payment processor not available");
         toast.error("Payment processor not available", {
           description: "Please refresh the page and try again",
         });
@@ -77,15 +98,37 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
       }
 
       try {
-        const payments = new window.Square.payments.Payments(SQUARE_APP_ID);
+        setCardLoading(true);
+        console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID);
+        
+        // Initialize with proper configuration including location ID
+        const payments = new window.Square.payments.Payments(SQUARE_APP_ID, {
+          environment: 'production'
+        });
+        
+        console.log("Creating card instance");
         const cardInstance = await payments.card();
+        
+        // Make sure the container is ready before attaching
+        const container = document.getElementById('card-container');
+        if (!container) {
+          throw new Error('Card container not found in DOM');
+        }
+        
+        console.log("Attaching card to container");
         await cardInstance.attach('#card-container');
+        console.log("Card attached successfully");
+        
         setCard(cardInstance);
+        setError(null);
       } catch (e) {
+        console.error("Square initialization error:", e);
+        setError("Failed to initialize payment form");
         toast.error("Failed to initialize payment form", {
           description: "Please try again or use a different payment method",
         });
-        console.error("Square initialization error:", e);
+      } finally {
+        setCardLoading(false);
       }
     }
 
@@ -110,25 +153,60 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         });
       }
     } catch (e) {
+      console.error("Square payment error:", e);
       toast.error("Payment processing error", {
         description: "Please try again or use a different card",
       });
-      console.error("Square payment error:", e);
     }
+  };
+
+  const renderCardContainer = () => {
+    if (cardLoading) {
+      return (
+        <div className="min-h-[100px] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+          <span className="ml-2 text-gray-500">Loading payment form...</span>
+        </div>
+      );
+    }
+    
+    if (error) {
+      return (
+        <div className="min-h-[100px] flex flex-col items-center justify-center text-red-500 p-4">
+          <p className="font-medium">{error}</p>
+          <p className="text-sm mt-2">Please refresh the page or try a different browser</p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline" 
+            className="mt-4"
+          >
+            Refresh Page
+          </Button>
+        </div>
+      );
+    }
+    
+    if (!loaded) {
+      return (
+        <div className="min-h-[100px] flex items-center justify-center">
+          <p className="text-gray-500">Loading payment form...</p>
+        </div>
+      );
+    }
+    
+    return <div id="card-container" className="min-h-[100px]"></div>;
   };
 
   return (
     <div className="space-y-4">
       <div className="p-4 border rounded-md bg-white">
-        <div id="card-container" className="min-h-[100px] flex items-center justify-center">
-          {!loaded && <p className="text-gray-500">Loading payment form...</p>}
-        </div>
+        {renderCardContainer()}
       </div>
       <div className="text-center md:text-left">
         <Button 
           onClick={handlePaymentSubmit}
           className={`px-8 py-6 text-lg ${buttonColorClass}`}
-          disabled={isProcessing || !card}
+          disabled={isProcessing || !card || !!error}
         >
           {isProcessing ? "Processing..." : `Pay ${amount}`}
         </Button>
