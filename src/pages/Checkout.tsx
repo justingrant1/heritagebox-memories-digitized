@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -149,10 +148,15 @@ const Checkout = () => {
     });
   };
 
+  // Updated to toggle cloud backup between 0 and 1 only
   const handleCloudChange = (change: number) => {
     setCloudBackup(prev => {
-      const newValue = prev + change;
-      return newValue >= 0 ? newValue : 0;
+      // If current is 0 and change is positive, set to 1
+      if (prev === 0 && change > 0) return 1;
+      // If current is 1 and change is negative, set to 0
+      if (prev === 1 && change < 0) return 0;
+      // Otherwise keep the same value
+      return prev;
     });
   };
 
@@ -434,7 +438,7 @@ const Checkout = () => {
                       </div>
                     )}
                     
-                    {/* Cloud Backup Add-on */}
+                    {/* Cloud Backup Add-on - Modified to limit to 0 or 1 */}
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="font-medium flex items-center">
@@ -462,6 +466,7 @@ const Checkout = () => {
                           size="icon" 
                           className="h-8 w-8 rounded-full"
                           onClick={() => handleCloudChange(1)}
+                          disabled={cloudBackup === 1} // Disable the plus button when quantity is 1
                         >
                           <Plus className="h-4 w-4" />
                           <span className="sr-only">Increase</span>
