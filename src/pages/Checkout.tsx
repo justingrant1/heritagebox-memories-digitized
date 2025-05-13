@@ -41,8 +41,7 @@ const Checkout = () => {
         "Digitize up to 3 media items OR up to 75 photos",
         "1 media item = 25 photos",
         "Online access to digital files",
-        "Free shipping both ways",
-        "Free media organizing"
+        "Free shipping both ways"
       ]
     },
     {
@@ -57,8 +56,7 @@ const Checkout = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Free media organizing",
-        "Custom USB drive included"
+        "Online Backup (1 Year Free)"
       ]
     },
     {
@@ -72,9 +70,7 @@ const Checkout = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Free media organizing",
-        "Custom USB drive included",
-        "Digital photo frame included"
+        "Online Backup (1 Year Free)"
       ]
     },
     {
@@ -88,10 +84,7 @@ const Checkout = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Free media organizing",
-        "Custom USB drive included",
-        "Digital photo frame included",
-        "Premium storage box for originals"
+        "Online Backup (1 Year Free)"
       ]
     }
   ];

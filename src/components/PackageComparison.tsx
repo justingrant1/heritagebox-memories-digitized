@@ -96,7 +96,7 @@ const PackageComparison = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Custom USB drive included"
+        "Online Backup (1 Year Free)"
       ]
     },
     {
@@ -109,7 +109,7 @@ const PackageComparison = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Custom USB drive included"
+        "Online Backup (1 Year Free)"
       ]
     },
     {
@@ -122,7 +122,7 @@ const PackageComparison = () => {
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
-        "Custom USB drive included"
+        "Online Backup (1 Year Free)"
       ]
     }
   ];
