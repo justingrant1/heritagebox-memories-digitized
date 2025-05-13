@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
@@ -18,33 +19,15 @@ const About = () => {
             <p className="mb-8 text-base font-light">
               With decades of combined experience in media preservation and digital conversion, we've helped thousands of families across America save their memories from deterioration and make them accessible for future generations.
             </p>
-            <Button className="bg-secondary text-primary hover:bg-secondary-light font-medium px-8 py-6 h-auto text-base">
-              Learn More About Us
-            </Button>
+            <Link to="/about-us">
+              <Button className="bg-secondary text-primary hover:bg-secondary-light font-medium px-8 py-6 h-auto text-base">
+                Learn More About Us
+              </Button>
+            </Link>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
-              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
-                <AspectRatio ratio={4/3}>
-                  <img 
-                    src="/lovable-uploads/ddab1909-1056-4ba3-b659-01c0cd97369f.png" 
-                    alt="VHS tape and photographs" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
-              </div>
-              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
-                <AspectRatio ratio={4/3}>
-                  <img 
-                    src="/lovable-uploads/b448b3fc-ae42-4ba5-b66a-caecc548b7dc.png" 
-                    alt="Technician digitizing media" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
-              </div>
-            </div>
-            <div className="space-y-4 mt-8">
               <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
                 <AspectRatio ratio={4/3}>
                   <img 
@@ -59,6 +42,26 @@ const About = () => {
                   <img 
                     src="/lovable-uploads/c9c3910b-c1ef-4cb5-9a7e-e1df6afdf7f3.png" 
                     alt="Family looking at photo album together" 
+                    className="object-cover w-full h-full"
+                  />
+                </AspectRatio>
+              </div>
+            </div>
+            <div className="space-y-4 mt-8">
+              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
+                <AspectRatio ratio={4/3}>
+                  <img 
+                    src="/lovable-uploads/ddab1909-1056-4ba3-b659-01c0cd97369f.png" 
+                    alt="VHS tape and photographs" 
+                    className="object-cover w-full h-full"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
+                <AspectRatio ratio={4/3}>
+                  <img 
+                    src="/lovable-uploads/b448b3fc-ae42-4ba5-b66a-caecc548b7dc.png" 
+                    alt="Technician digitizing media" 
                     className="object-cover w-full h-full"
                   />
                 </AspectRatio>
