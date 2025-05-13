@@ -41,17 +41,17 @@ declare global {
   interface Window { Square: Square; }
 }
 
-const SQUARE_APP_ID = 'sandbox-sq0idb-YOUR-SANDBOX-APP-ID';
-// Note: In production, you would want to store this in a server environment variable
+const SQUARE_APP_ID = 'sq0idp-YOUR-PRODUCTION-APP-ID';
+// Note: Replace 'sq0idp-YOUR-PRODUCTION-APP-ID' with your actual production Square application ID
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
   const [card, setCard] = useState<SquareCard | null>(null);
 
   useEffect(() => {
-    // Load the Square Web Payments SDK
+    // Load the Square Web Payments SDK (production URL)
     const script = document.createElement('script');
-    script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
+    script.src = 'https://web.squarecdn.com/v1/square.js';
     script.onload = () => setLoaded(true);
     script.onerror = () => {
       toast.error("Failed to load payment processor", {
