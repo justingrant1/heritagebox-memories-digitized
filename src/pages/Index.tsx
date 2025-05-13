@@ -8,10 +8,13 @@ import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
 import CTA from '@/components/CTA';
 import Footer from '@/components/Footer';
+import EmailPopup from '@/components/EmailPopup';
+import EmailSignup from '@/components/EmailSignup';
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <EmailPopup />
       <NavBar />
       <main>
         <Hero />
@@ -19,6 +22,7 @@ const Index = () => {
         <PackageComparison />
         <About />
         <Testimonials />
+        <EmailSignup />
         <FAQ />
         <CTA />
       </main>
