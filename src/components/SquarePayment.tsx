@@ -41,7 +41,7 @@ declare global {
   interface Window { Square: Square; }
 }
 
-const SQUARE_APP_ID = 'sq0idp-YOUR-PRODUCTION-APP-ID';
+const SQUARE_APP_ID = 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
 // Note: Replace 'sq0idp-YOUR-PRODUCTION-APP-ID' with your actual production Square application ID
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
