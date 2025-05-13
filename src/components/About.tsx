@@ -28,26 +28,6 @@ const About = () => {
               <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
                 <AspectRatio ratio={4/3}>
                   <img 
-                    src="/lovable-uploads/49950c00-87a9-4b47-ab2b-ac89e4f79cb3.png" 
-                    alt="Photo collection protected by security shield" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
-              </div>
-              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
-                <AspectRatio ratio={4/3}>
-                  <img 
-                    src="/lovable-uploads/c9c3910b-c1ef-4cb5-9a7e-e1df6afdf7f3.png" 
-                    alt="Family looking at photo album together" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
-              </div>
-            </div>
-            <div className="space-y-4 mt-8">
-              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
-                <AspectRatio ratio={4/3}>
-                  <img 
                     src="/lovable-uploads/ddab1909-1056-4ba3-b659-01c0cd97369f.png" 
                     alt="VHS tape and photographs" 
                     className="object-cover w-full h-full"
@@ -59,6 +39,26 @@ const About = () => {
                   <img 
                     src="/lovable-uploads/b448b3fc-ae42-4ba5-b66a-caecc548b7dc.png" 
                     alt="Technician digitizing media" 
+                    className="object-cover w-full h-full"
+                  />
+                </AspectRatio>
+              </div>
+            </div>
+            <div className="space-y-4 mt-8">
+              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
+                <AspectRatio ratio={4/3}>
+                  <img 
+                    src="/lovable-uploads/49950c00-87a9-4b47-ab2b-ac89e4f79cb3.png" 
+                    alt="Photo collection protected by security shield" 
+                    className="object-cover w-full h-full"
+                  />
+                </AspectRatio>
+              </div>
+              <div className="rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 duration-300">
+                <AspectRatio ratio={4/3}>
+                  <img 
+                    src="/lovable-uploads/c9c3910b-c1ef-4cb5-9a7e-e1df6afdf7f3.png" 
+                    alt="Family looking at photo album together" 
                     className="object-cover w-full h-full"
                   />
                 </AspectRatio>
