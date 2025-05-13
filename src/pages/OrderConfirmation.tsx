@@ -8,6 +8,7 @@ import { Check, Package } from 'lucide-react';
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const packageType = searchParams.get('package') || 'Popular';
+  const usbDrives = parseInt(searchParams.get('usbDrives') || '0', 10);
   
   // Get button color class based on package type
   const getButtonClass = () => {
@@ -80,6 +81,12 @@ const OrderConfirmation = () => {
                   <p className="text-gray-500 mb-1">Shipping:</p>
                   <p className="font-semibold">Free Shipping</p>
                 </div>
+                {usbDrives > 0 && (
+                  <div className="md:col-span-2">
+                    <p className="text-gray-500 mb-1">Add-ons:</p>
+                    <p className="font-semibold">{usbDrives} Additional USB Drive{usbDrives > 1 ? 's' : ''}</p>
+                  </div>
+                )}
               </div>
               
               <div className="border-t border-gray-200 my-6 pt-6">
@@ -114,7 +121,7 @@ const OrderConfirmation = () => {
                       <Package size={18} />
                     </span>
                     <span>
-                      <strong>Delivery:</strong> We'll send back your original items along with your digital copies.
+                      <strong>Delivery:</strong> We'll send back your original items along with your digital copies{usbDrives > 0 ? ` and ${usbDrives} USB drive${usbDrives > 1 ? 's' : ''}` : ''}.
                     </span>
                   </li>
                 </ul>

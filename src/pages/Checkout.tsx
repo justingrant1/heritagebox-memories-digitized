@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check, ShoppingBag, CreditCard, Truck, Lock } from 'lucide-react';
+import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 
 const Checkout = () => {
@@ -27,12 +28,14 @@ const Checkout = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
+  const [usbDrives, setUsbDrives] = useState(0);
 
   // Define all packages (same as in PackageSelected)
   const allPackages = [
     {
       name: "Starter",
       price: "$69",
+      numericPrice: 69,
       description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
@@ -45,6 +48,7 @@ const Checkout = () => {
     {
       name: "Popular",
       price: "$159",
+      numericPrice: 159,
       description: "Our most popular package for families",
       color: "secondary",
       popular: true,
@@ -59,6 +63,7 @@ const Checkout = () => {
     {
       name: "Dusty Rose",
       price: "$279",
+      numericPrice: 279,
       description: "Great for larger collections",
       color: "rose-dark",
       features: [
@@ -73,6 +78,7 @@ const Checkout = () => {
     {
       name: "Eternal",
       price: "$399",
+      numericPrice: 399,
       description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
@@ -93,6 +99,16 @@ const Checkout = () => {
   };
 
   const packageDetails = getPackageDetails();
+
+  // USB drive price
+  const USB_DRIVE_PRICE = 24.95;
+
+  // Calculate total price
+  const calculateTotal = () => {
+    const packagePrice = packageDetails.numericPrice || parseFloat(packageDetails.price.replace('$', ''));
+    const usbTotal = usbDrives * USB_DRIVE_PRICE;
+    return (packagePrice + usbTotal).toFixed(2);
+  };
 
   // Get text color class based on package type
   const getTextColorClass = () => {
@@ -124,6 +140,13 @@ const Checkout = () => {
       default:
         return 'bg-primary hover:bg-primary/90 text-white';
     }
+  };
+
+  const handleUsbChange = (change: number) => {
+    setUsbDrives(prev => {
+      const newValue = prev + change;
+      return newValue >= 0 ? newValue : 0;
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,6 +188,7 @@ const Checkout = () => {
     // For demo purposes, we'll simulate a successful payment after a short delay
     console.log("Payment token received:", token);
     console.log("Card details:", details);
+    console.log("USB drives added:", usbDrives);
     
     setTimeout(() => {
       setIsProcessing(false);
@@ -172,7 +196,15 @@ const Checkout = () => {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
         position: "top-center",
       });
-      navigate('/order-confirmation');
+      
+      // Pass USB drive count to order confirmation page if needed
+      const params = new URLSearchParams();
+      params.append('package', packageType);
+      if (usbDrives > 0) {
+        params.append('usbDrives', usbDrives.toString());
+      }
+      
+      navigate('/order-confirmation?' + params.toString());
     }, 2000);
   };
 
@@ -308,7 +340,7 @@ const Checkout = () => {
                         onSuccess={handlePaymentSuccess}
                         buttonColorClass={getButtonClass()}
                         isProcessing={isProcessing}
-                        amount={getPackageDetails().price}
+                        amount={`$${calculateTotal()}`}
                       />
                       
                       <div className="flex items-center text-sm text-gray-500 mt-4">
@@ -346,10 +378,51 @@ const Checkout = () => {
                     ))}
                   </div>
                   
+                  {/* USB Drive Add-on */}
+                  <div className="border-t border-gray-100 py-4 mb-4">
+                    <h3 className="font-medium mb-3">Add-ons</h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium">Additional USB Drive</p>
+                        <p className="text-sm text-gray-500">Store your memories safely</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full"
+                          onClick={() => handleUsbChange(-1)}
+                          disabled={usbDrives === 0}
+                        >
+                          <Minus className="h-4 w-4" />
+                          <span className="sr-only">Decrease</span>
+                        </Button>
+                        <span className="w-8 text-center">{usbDrives}</span>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full"
+                          onClick={() => handleUsbChange(1)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span className="sr-only">Increase</span>
+                        </Button>
+                      </div>
+                    </div>
+                    {usbDrives > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">{usbDrives} × $24.95</span>
+                        <span className="font-medium">${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <div className="flex justify-between mb-2">
                       <span>Subtotal</span>
-                      <span>{packageDetails.price}</span>
+                      <span>${calculateTotal()}</span>
                     </div>
                     <div className="flex justify-between mb-2">
                       <span>Shipping</span>
@@ -360,7 +433,7 @@ const Checkout = () => {
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between">
                       <span className="font-bold">Total</span>
-                      <span className="font-bold">{packageDetails.price}</span>
+                      <span className="font-bold">${calculateTotal()}</span>
                     </div>
                   </div>
                 </div>
