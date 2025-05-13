@@ -32,10 +32,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#how-it-works" className="text-gray-300 hover:text-secondary transition-colors">How It Works</a></li>
-              <li><a href="#packages" className="text-gray-300 hover:text-secondary transition-colors">Packages</a></li>
+              <li><Link to="/#how-it-works" className="text-gray-300 hover:text-secondary transition-colors">How It Works</Link></li>
+              <li><Link to="/#packages" className="text-gray-300 hover:text-secondary transition-colors">Packages</Link></li>
               <li><Link to="/about-us" className="text-gray-300 hover:text-secondary transition-colors">About Us</Link></li>
-              <li><a href="#faq" className="text-gray-300 hover:text-secondary transition-colors">FAQ</a></li>
+              <li><Link to="/#faq" className="text-gray-300 hover:text-secondary transition-colors">FAQ</Link></li>
             </ul>
           </div>
           
@@ -44,9 +44,9 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4">Support</h4>
             <ul className="space-y-2">
               <li><Link to="/contact" className="text-gray-300 hover:text-secondary transition-colors">Contact Us</Link></li>
-              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Shipping Policy</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-secondary transition-colors">Terms of Service</a></li>
+              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Shipping Policy</Link></li>
+              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
           

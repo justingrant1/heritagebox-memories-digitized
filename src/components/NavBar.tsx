@@ -42,8 +42,8 @@ const NavBar = () => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     } else {
-      // We're not on homepage, let normal navigation happen
-      // The ScrollToTop component will handle scrolling to top
+      // We're not on homepage, navigate to homepage with hash
+      // No need to prevent default - let normal navigation happen
     }
     
     if (isMenuOpen) {
@@ -62,10 +62,23 @@ const NavBar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors">How It Works</a>
-          <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors">Packages</a>
-          <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors">About Us</a>
-          <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors">FAQ</a>
+          {pathname === '/' ? (
+            // On homepage, use smooth scroll for these sections
+            <>
+              <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors">How It Works</a>
+              <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors">Packages</a>
+              <Link to="/about-us" className="text-primary hover:text-secondary transition-colors">About Us</Link>
+              <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors">FAQ</a>
+            </>
+          ) : (
+            // On other pages, link back to homepage with hash
+            <>
+              <Link to="/#how-it-works" className="text-primary hover:text-secondary transition-colors">How It Works</Link>
+              <Link to="/#packages" className="text-primary hover:text-secondary transition-colors">Packages</Link>
+              <Link to="/about-us" className="text-primary hover:text-secondary transition-colors">About Us</Link>
+              <Link to="/#faq" className="text-primary hover:text-secondary transition-colors">FAQ</Link>
+            </>
+          )}
           <Link to="/contact" className="text-primary hover:text-secondary transition-colors">Contact</Link>
           <Link to="/package-selected?package=Popular">
             <Button className="btn-secondary">Get Started</Button>
@@ -82,11 +95,24 @@ const NavBar = () => {
       {isMenuOpen && (
         <nav className="md:hidden bg-white w-full shadow-lg animate-fade-in">
           <div className="container mx-auto py-4 flex flex-col space-y-4 container-padding">
-            <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</a>
-            <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</a>
-            <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</a>
-            <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</a>
-            <Link to="/contact" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Contact</Link>
+            {pathname === '/' ? (
+              // On homepage, use smooth scroll for these sections
+              <>
+                <a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</a>
+                <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</a>
+                <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</Link>
+                <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</a>
+              </>
+            ) : (
+              // On other pages, link back to homepage with hash
+              <>
+                <Link to="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</Link>
+                <Link to="/#packages" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</Link>
+                <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</Link>
+                <Link to="/#faq" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</Link>
+              </>
+            )}
+            <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Contact</Link>
             <Link to="/package-selected?package=Popular" onClick={() => setIsMenuOpen(false)}>
               <Button className="btn-secondary w-full">Get Started</Button>
             </Link>
