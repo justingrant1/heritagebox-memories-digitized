@@ -29,7 +29,7 @@ const Checkout = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [usbDrives, setUsbDrives] = useState(0);
 
-  // Define all packages (updated with new feature explanations)
+  // Define all packages (updated with new prices)
   const allPackages = [
     {
       name: "Starter",
@@ -38,7 +38,7 @@ const Checkout = () => {
       description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
-        "Digitize up to 2 media items OR up to 50 photos (not both)",
+        "Digitize up to 3 media items OR up to 75 photos",
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
@@ -47,13 +47,13 @@ const Checkout = () => {
     },
     {
       name: "Popular",
-      price: "$159",
-      numericPrice: 159,
+      price: "$179",
+      numericPrice: 179,
       description: "Our most popular package for families",
       color: "secondary",
       popular: true,
       features: [
-        "Digitize up to 10 media items OR up to 250 photos (not both)",
+        "Digitize up to 10 media items OR up to 250 photos",
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
@@ -63,12 +63,12 @@ const Checkout = () => {
     },
     {
       name: "Dusty Rose",
-      price: "$279",
-      numericPrice: 279,
+      price: "$349",
+      numericPrice: 349,
       description: "Great for larger collections",
       color: "rose-dark",
       features: [
-        "Digitize up to 20 media items OR up to 500 photos (not both)",
+        "Digitize up to 20 media items OR up to 500 photos",
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
@@ -79,12 +79,12 @@ const Checkout = () => {
     },
     {
       name: "Eternal",
-      price: "$399",
-      numericPrice: 399,
+      price: "$599",
+      numericPrice: 599,
       description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
-        "Digitize up to 40 media items OR up to 1000 photos (not both)",
+        "Digitize up to 40 media items OR up to 1000 photos",
         "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
