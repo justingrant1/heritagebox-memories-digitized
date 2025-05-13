@@ -6,8 +6,9 @@ import { toast } from "sonner";
 
 const EmailSignup = () => {
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !email.includes('@')) {
@@ -15,12 +16,38 @@ const EmailSignup = () => {
       return;
     }
     
-    // In a real app, you would send this to your backend
-    console.log('Email submitted from main page:', email);
-    toast.success("Thanks for signing up! You'll receive updates about our services.");
+    setIsSubmitting(true);
     
-    // Reset the form
-    setEmail('');
+    try {
+      // Send email to info@heritagebox.com
+      await sendEmailToHeritageBox(email, 'main page');
+      
+      // Show success message
+      toast.success("Thanks for signing up! You'll receive updates about our services.");
+      
+      // Reset the form
+      setEmail('');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error("There was a problem processing your request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Function to send email to HeritageBox
+  const sendEmailToHeritageBox = async (email: string, source: string) => {
+    // In a real app, this would be an API call to your backend
+    console.log(`Sending email ${email} from ${source} to info@heritagebox.com`);
+    
+    // Simulate API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Log the email submission (would be a real API call in production)
+        console.log(`Email submitted to info@heritagebox.com: ${email} (from ${source})`);
+        resolve(true);
+      }, 1000);
+    });
   };
 
   return (
@@ -40,9 +67,14 @@ const EmailSignup = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="flex-grow"
               required
+              disabled={isSubmitting}
             />
-            <Button type="submit" className="bg-primary hover:bg-primary-light whitespace-nowrap">
-              Sign Up
+            <Button 
+              type="submit" 
+              className="bg-primary hover:bg-primary-light whitespace-nowrap"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Sign Up"}
             </Button>
           </form>
         </div>

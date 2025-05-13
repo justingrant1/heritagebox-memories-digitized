@@ -10,6 +10,7 @@ import { toast } from "sonner";
 const EmailPopup = () => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Check if the user has seen the popup before
@@ -25,7 +26,7 @@ const EmailPopup = () => {
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !email.includes('@')) {
@@ -33,20 +34,46 @@ const EmailPopup = () => {
       return;
     }
     
-    // In a real app, you would send this to your backend
-    console.log('Email submitted:', email);
-    toast.success("Thank you! Your 15% discount code has been sent to your email.");
+    setIsSubmitting(true);
     
-    // Mark that the user has seen the popup
-    localStorage.setItem('hasSeenEmailPopup', 'true');
-    
-    // Close the dialog
-    setOpen(false);
+    try {
+      // Send email to info@heritagebox.com
+      await sendEmailToHeritageBox(email, 'popup');
+      
+      // Mark that the user has seen the popup
+      localStorage.setItem('hasSeenEmailPopup', 'true');
+      
+      // Show success message
+      toast.success("Thank you! Your 15% discount code has been sent to your email.");
+      
+      // Close the dialog
+      setOpen(false);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error("There was a problem processing your request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     localStorage.setItem('hasSeenEmailPopup', 'true');
     setOpen(false);
+  };
+
+  // Function to send email to HeritageBox
+  const sendEmailToHeritageBox = async (email: string, source: string) => {
+    // In a real app, this would be an API call to your backend
+    console.log(`Sending email ${email} from ${source} to info@heritagebox.com`);
+    
+    // Simulate API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Log the email submission (would be a real API call in production)
+        console.log(`Email submitted to info@heritagebox.com: ${email} (from ${source})`);
+        resolve(true);
+      }, 1000);
+    });
   };
 
   return (
@@ -69,17 +96,23 @@ const EmailPopup = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full"
+              disabled={isSubmitting}
             />
           </div>
           
           <div className="flex flex-col space-y-2">
-            <Button type="submit" className="w-full bg-secondary text-primary hover:bg-secondary-light">
-              Get My 15% Off
+            <Button 
+              type="submit" 
+              className="w-full bg-secondary text-primary hover:bg-secondary-light"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Get My 15% Off"}
             </Button>
             <button 
               type="button"
               onClick={handleClose}
               className="text-sm text-gray-500 hover:text-gray-700 mt-2"
+              disabled={isSubmitting}
             >
               No thanks, I'll pay full price
             </button>
@@ -89,6 +122,7 @@ const EmailPopup = () => {
         <button 
           onClick={handleClose}
           className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
+          disabled={isSubmitting}
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
