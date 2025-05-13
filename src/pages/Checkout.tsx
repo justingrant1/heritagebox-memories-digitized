@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import { Check, ShoppingBag, CreditCard, Truck, Lock } from 'lucide-react';
+import SquarePayment from '@/components/SquarePayment';
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -23,12 +23,10 @@ const Checkout = () => {
     city: '',
     state: '',
     zipCode: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvc: '',
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
 
   // Define all packages (same as in PackageSelected)
   const allPackages = [
@@ -139,11 +137,10 @@ const Checkout = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple validation
+    // Simple validation for shipping info
     const requiredFields = [
       'firstName', 'lastName', 'email', 
-      'address', 'city', 'state', 'zipCode',
-      'cardNumber', 'cardExpiry', 'cardCvc'
+      'address', 'city', 'state', 'zipCode'
     ];
     
     const missingFields = requiredFields.filter(field => !formState[field as keyof typeof formState]);
@@ -156,12 +153,22 @@ const Checkout = () => {
       return;
     }
     
-    // Mock order processing
+    // Show payment form after shipping info is validated
+    setShowCardForm(true);
+  };
+
+  const handlePaymentSuccess = (token: string, details: any) => {
+    // Process payment with Square token
     setIsProcessing(true);
+    
+    // Here you would typically send this token to your server to complete the payment
+    // For demo purposes, we'll simulate a successful payment after a short delay
+    console.log("Payment token received:", token);
+    console.log("Card details:", details);
     
     setTimeout(() => {
       setIsProcessing(false);
-      toast.success("Order placed successfully!", {
+      toast.success("Payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
         position: "top-center",
       });
@@ -282,69 +289,34 @@ const Checkout = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-xl shadow-md p-6">
-                    <h2 className="text-xl font-bold mb-6 flex items-center">
-                      <CreditCard className="mr-2" /> Payment Information
-                    </h2>
-                    
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="cardNumber">Card Number</Label>
-                        <Input
-                          id="cardNumber"
-                          name="cardNumber"
-                          placeholder="1234 5678 9012 3456"
-                          value={formState.cardNumber}
-                          onChange={handleInputChange}
-                          className="w-full"
-                          required
-                        />
-                      </div>
+                  {!showCardForm ? (
+                    <div className="text-center md:text-left">
+                      <Button 
+                        type="submit" 
+                        className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                      >
+                        Continue to Payment
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl shadow-md p-6">
+                      <h2 className="text-xl font-bold mb-6 flex items-center">
+                        <CreditCard className="mr-2" /> Payment Information
+                      </h2>
                       
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="cardExpiry">Expiration Date (MM/YY)</Label>
-                          <Input
-                            id="cardExpiry"
-                            name="cardExpiry"
-                            placeholder="MM/YY"
-                            value={formState.cardExpiry}
-                            onChange={handleInputChange}
-                            className="w-full"
-                            required
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="cardCvc">CVC</Label>
-                          <Input
-                            id="cardCvc"
-                            name="cardCvc"
-                            placeholder="123"
-                            value={formState.cardCvc}
-                            onChange={handleInputChange}
-                            className="w-full"
-                            required
-                          />
-                        </div>
-                      </div>
+                      <SquarePayment 
+                        onSuccess={handlePaymentSuccess}
+                        buttonColorClass={getButtonClass()}
+                        isProcessing={isProcessing}
+                        amount={getPackageDetails().price}
+                      />
                       
                       <div className="flex items-center text-sm text-gray-500 mt-4">
                         <Lock size={16} className="mr-1" />
                         <span>Your payment information is secure and encrypted</span>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-center md:text-left">
-                    <Button 
-                      type="submit" 
-                      className={`px-8 py-6 text-lg ${getButtonClass()}`}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? "Processing..." : `Complete Order - ${packageDetails.price}`}
-                    </Button>
-                  </div>
+                  )}
                 </form>
               </div>
               
