@@ -1,187 +1,114 @@
 
-import { useState } from "react";
-import { 
-  Form, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormControl, 
-  FormDescription, 
-  FormMessage 
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import React from "react";
+import { Box, Package } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { Mail } from "lucide-react";
-
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." })
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { Link } from "react-router-dom";
 
 const Contact = () => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      subject: "",
-      message: ""
-    }
-  });
-
-  const onSubmit = (data: FormValues) => {
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast({
-        title: "Message Sent",
-        description: "Thank you for reaching out. We'll get back to you shortly!",
-      });
-      form.reset();
-    }, 1500);
-    
-    console.log(data);
-  };
-
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-cream/20">
-      <div className="container mx-auto">
+    <section className="py-16 md:py-24 bg-cream">
+      <div className="container mx-auto container-padding">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">Contact Us</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Have questions about our services or need assistance with your order? 
-              We're here to help preserve your precious memories.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex items-center justify-center gap-2 mb-6 text-primary">
-              <Mail size={24} />
-              <h2 className="text-2xl font-semibold">Get in Touch</h2>
+          <h1 className="text-3xl md:text-5xl font-bold text-primary text-center mb-8">Get In Touch</h1>
+          <p className="text-center text-lg mb-12">Have questions or need assistance with preserving your memories? Our team is here to help!</p>
+
+          {/* Ready to Preserve Banner */}
+          <div className="mb-16 bg-white rounded-xl p-6 md:p-10 shadow-md">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+              <div className="lg:col-span-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-primary mb-4">Ready to Preserve Your Memories?</h2>
+                <p className="text-gray-700 mb-6">Get started today and save 15% on your first order. Let us help you digitize and preserve your irreplaceable memories.</p>
+                <div className="flex flex-wrap gap-4">
+                  <Link to="/package-selected?package=Popular">
+                    <Button className="btn-primary flex items-center gap-2">
+                      <Box size={18} />
+                      Get Your Box
+                    </Button>
+                  </Link>
+                  <Link to="/#packages">
+                    <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                      View Packages
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+              <div className="bg-cream p-4 rounded-lg">
+                <h3 className="font-bold text-xl mb-2">Limited Time Offer</h3>
+                <p className="mb-2">Use code <span className="font-bold text-secondary">HERITAGE15</span> at checkout for 15% off your first order.</p>
+                <p className="text-sm text-gray-500">*Offer valid for new customers only. Expires on December 31, 2025.</p>
+              </div>
             </div>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Your Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="you@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 text-primary">Contact Information</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">Address:</span>
+                  <address className="not-italic">
+                    123 Memory Lane<br />
+                    Heritage City, HC 12345
+                  </address>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">Phone:</span>
+                  <a href="tel:+11234567890" className="text-secondary hover:underline">(123) 456-7890</a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">Email:</span>
+                  <a href="mailto:info@heritagebox.com" className="text-secondary hover:underline">info@heritagebox.com</a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-medium">Hours:</span>
+                  <div>
+                    Monday - Friday: 9am - 6pm EST<br />
+                    Saturday: 10am - 4pm EST<br />
+                    Sunday: Closed
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-xl font-bold mb-4 text-primary">Send Us a Message</h3>
+              <form>
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+                  <input type="text" id="name" className="w-full p-2 border rounded-md" />
                 </div>
-                
-                <FormField
-                  control={form.control}
-                  name="subject"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subject</FormLabel>
-                      <FormControl>
-                        <Input placeholder="How can we help you?" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Tell us more about your inquiry..."
-                          className="min-h-[150px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Please provide as much detail as possible.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit"
-                    className="bg-primary hover:bg-primary-light text-white px-8"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+                  <input type="email" id="email" className="w-full p-2 border rounded-md" />
                 </div>
+                <div className="mb-4">
+                  <label htmlFor="message" className="block text-sm font-medium mb-1">Message</label>
+                  <textarea id="message" rows={4} className="w-full p-2 border rounded-md"></textarea>
+                </div>
+                <Button className="w-full">Send Message</Button>
               </form>
-            </Form>
+            </div>
           </div>
-          
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-xl font-semibold mb-2 text-primary">Email Us</h3>
-              <p className="text-gray-600">
-                <a href="mailto:info@heritagebox.com" className="hover:text-secondary transition-colors">
-                  info@heritagebox.com
-                </a>
-              </p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-xl font-semibold mb-2 text-primary">Call Us</h3>
-              <p className="text-gray-600">
-                <a href="tel:+11234567890" className="hover:text-secondary transition-colors">
-                  (123) 456-7890
-                </a>
-              </p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md text-center">
-              <h3 className="text-xl font-semibold mb-2 text-primary">Visit Us</h3>
-              <p className="text-gray-600">123 Memory Lane<br />Heritage City, HC 12345</p>
-            </div>
+
+          <div className="rounded-lg overflow-hidden">
+            <AspectRatio ratio={16/9}>
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.2062952883845!2d-73.98750652334057!3d40.74881897138627!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b30eac9f%3A0xaca8d8280f1bc7d4!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1682928525392!5m2!1sen!2sus"
+                width="600" 
+                height="450" 
+                style={{ border: 0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="HeritageBox Location"
+                className="w-full h-full"
+              ></iframe>
+            </AspectRatio>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
