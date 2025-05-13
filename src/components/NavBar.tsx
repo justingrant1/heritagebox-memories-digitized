@@ -66,6 +66,7 @@ const NavBar = () => {
           <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors">Packages</a>
           <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors">About Us</a>
           <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors">FAQ</a>
+          <Link to="/contact" className="text-primary hover:text-secondary transition-colors">Contact</Link>
           <Link to="/package-selected?package=Popular">
             <Button className="btn-secondary">Get Started</Button>
           </Link>
@@ -85,6 +86,7 @@ const NavBar = () => {
             <a href="#packages" onClick={(e) => handleAnchorClick(e, "#packages")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</a>
             <a href="#about" onClick={(e) => handleAnchorClick(e, "#about")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</a>
             <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</a>
+            <Link to="/contact" className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Contact</Link>
             <Link to="/package-selected?package=Popular" onClick={() => setIsMenuOpen(false)}>
               <Button className="btn-secondary w-full">Get Started</Button>
             </Link>
