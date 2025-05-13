@@ -16,13 +16,13 @@ const Footer = () => {
               Preserving your precious memories for generations to come.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Facebook">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Instagram">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-white hover:text-secondary transition-colors" aria-label="Twitter">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors" aria-label="Twitter">
                 <Twitter size={20} />
               </a>
             </div>
@@ -44,9 +44,8 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4">Support</h4>
             <ul className="space-y-2">
               <li><Link to="/contact" className="text-gray-300 hover:text-secondary transition-colors">Contact Us</Link></li>
-              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Shipping Policy</Link></li>
-              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/#" className="text-gray-300 hover:text-secondary transition-colors">Terms of Service</Link></li>
+              <li><Link to="/terms-of-service" className="text-gray-300 hover:text-secondary transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy-policy" className="text-gray-300 hover:text-secondary transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
           
@@ -64,6 +63,11 @@ const Footer = () => {
         
         <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 container-padding">
           <p>&copy; {currentYear} HeritageBox. All rights reserved.</p>
+          <div className="mt-2 flex justify-center space-x-4">
+            <Link to="/privacy-policy" className="hover:text-secondary transition-colors">Privacy Policy</Link>
+            <span>|</span>
+            <Link to="/terms-of-service" className="hover:text-secondary transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </div>
     </footer>
