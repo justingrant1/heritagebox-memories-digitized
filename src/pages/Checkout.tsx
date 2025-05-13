@@ -100,7 +100,7 @@ const Checkout = () => {
 
   // USB drive price
   const USB_DRIVE_PRICE = 24.95;
-  const CLOUD_BACKUP_PRICE = 19.95;
+  const CLOUD_BACKUP_PRICE = 0; // Updated price to zero
 
   // Calculate total price
   const calculateTotal = () => {
@@ -470,8 +470,8 @@ const Checkout = () => {
                     </div>
                     {cloudBackup > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">{cloudBackup} × $19.95</span>
-                        <span className="font-medium">${(cloudBackup * CLOUD_BACKUP_PRICE).toFixed(2)}</span>
+                        <span className="text-gray-600">{cloudBackup} × $0.00</span>
+                        <span className="font-medium">$0.00</span>
                       </div>
                     )}
                   </div>
