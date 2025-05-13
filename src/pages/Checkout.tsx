@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -30,7 +29,7 @@ const Checkout = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [usbDrives, setUsbDrives] = useState(0);
 
-  // Define all packages (same as in PackageSelected)
+  // Define all packages (updated with new feature explanations)
   const allPackages = [
     {
       name: "Starter",
@@ -39,7 +38,8 @@ const Checkout = () => {
       description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
-        "Digitize up to 2 media items",
+        "Digitize up to 2 media items OR up to 50 photos (not both)",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Free media organizing"
@@ -53,7 +53,8 @@ const Checkout = () => {
       color: "secondary",
       popular: true,
       features: [
-        "Digitize up to 10 media items",
+        "Digitize up to 10 media items OR up to 250 photos (not both)",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Free media organizing",
@@ -67,7 +68,8 @@ const Checkout = () => {
       description: "Great for larger collections",
       color: "rose-dark",
       features: [
-        "Digitize up to 20 media items",
+        "Digitize up to 20 media items OR up to 500 photos (not both)",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Free media organizing",
@@ -82,7 +84,8 @@ const Checkout = () => {
       description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
-        "Digitize up to 40 media items",
+        "Digitize up to 40 media items OR up to 1000 photos (not both)",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Free media organizing",
