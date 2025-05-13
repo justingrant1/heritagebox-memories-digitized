@@ -10,7 +10,7 @@ const FAQ = () => {
   const faqs = [
     {
       question: "What types of media can HeritageBox digitize?",
-      answer: "We can digitize VHS tapes, VHS-C, Betamax, MiniDV, Hi8, Digital8, 8mm film reels, 16mm film reels, slides, negatives, photos, and audio cassettes."
+      answer: "We can digitize VHS tapes, VHS-C, Betamax, MiniDV, Hi8, Digital8, slides, negatives, photos, and audio cassettes."
     },
     {
       question: "How long does the digitization process take?",
