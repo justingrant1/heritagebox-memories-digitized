@@ -64,13 +64,18 @@ const EmailPopup = () => {
   // Function to send email to HeritageBox
   const sendEmailToHeritageBox = async (email: string, source: string) => {
     // In a real app, this would be an API call to your backend
-    console.log(`Sending email ${email} from ${source} to info@heritagebox.com`);
+    console.log(`Sending signup from ${source} to info@heritagebox.com: ${email}`);
     
-    // Simulate API call
+    // Simulate API call with more robust implementation
     return new Promise((resolve) => {
       setTimeout(() => {
         // Log the email submission (would be a real API call in production)
-        console.log(`Email submitted to info@heritagebox.com: ${email} (from ${source})`);
+        console.log(`Email signup submitted to info@heritagebox.com:
+          Email: ${email}
+          Source: ${source}
+          Date: ${new Date().toISOString()}
+          Page: ${window.location.pathname}
+        `);
         resolve(true);
       }, 1000);
     });
