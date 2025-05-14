@@ -6,9 +6,7 @@ import { Loader2 } from 'lucide-react';
 
 // Define types for the Square SDK
 interface Square {
-  payments: {
-    Payments: new (applicationId: string, options?: any) => SquarePayments;
-  };
+  payments: (applicationId: string, locationId: string) => SquarePayments;
 }
 
 interface SquarePayments {
@@ -44,6 +42,8 @@ declare global {
 
 // Square application ID (sandbox for development, production for live)
 const SQUARE_APP_ID = 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+// Square location ID (replace with your actual location ID from Square dashboard)
+const SQUARE_LOCATION_ID = 'LPFZYDYB5G5GM';
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -101,10 +101,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         setCardLoading(true);
         console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID);
         
-        // Initialize with proper configuration including location ID
-        const payments = new window.Square.payments.Payments(SQUARE_APP_ID, {
-          environment: 'production'
-        });
+        // Initialize with proper configuration using app ID and location ID
+        const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
         
         console.log("Creating card instance");
         const cardInstance = await payments.card();
@@ -161,14 +159,14 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   const renderCardContainer = () => {
-    if (cardLoading) {
+    /*if (cardLoading) {
       return (
         <div className="min-h-[100px] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           <span className="ml-2 text-gray-500">Loading payment form...</span>
         </div>
       );
-    }
+    }*/
     
     if (error) {
       return (
