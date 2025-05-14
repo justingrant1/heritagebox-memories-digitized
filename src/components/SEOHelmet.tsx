@@ -8,6 +8,7 @@ interface SEOProps {
   image?: string;
   article?: boolean;
   keywords?: string;
+  noIndex?: boolean;
 }
 
 export default function SEOHelmet({
@@ -16,6 +17,7 @@ export default function SEOHelmet({
   image = '/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png',
   article = false,
   keywords = '',
+  noIndex = false,
 }: SEOProps) {
   const { pathname } = useLocation();
   
@@ -54,6 +56,9 @@ export default function SEOHelmet({
       <meta name="twitter:title" content={seo.title} />
       <meta name="twitter:description" content={seo.description} />
       <meta name="twitter:image" content={seo.image} />
+      
+      {/* Add robots meta tag for noIndex */}
+      {noIndex && <meta name="robots" content="noindex" />}
     </Helmet>
   );
 }
