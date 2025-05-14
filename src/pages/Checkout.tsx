@@ -257,7 +257,20 @@ const Checkout = () => {
       }
       params.append('digitizingSpeed', digitizingSpeed);
       
-      navigate('/order-confirmation?' + params.toString());
+      // Navigate to confirmation page with customer info in state
+      navigate('/order-confirmation?' + params.toString(), {
+        state: {
+          customerInfo: {
+            firstName: formState.firstName,
+            lastName: formState.lastName,
+            email: formState.email,
+            address: formState.address,
+            city: formState.city,
+            state: formState.state,
+            zipCode: formState.zipCode
+          }
+        }
+      });
     }, 2000);
   };
 
@@ -289,7 +302,20 @@ const Checkout = () => {
       }
       params.append('digitizingSpeed', digitizingSpeed);
       
-      navigate('/order-confirmation?' + params.toString());
+      // Navigate to confirmation page with customer info in state
+      navigate('/order-confirmation?' + params.toString(), {
+        state: {
+          customerInfo: {
+            firstName: formState.firstName,
+            lastName: formState.lastName,
+            email: formState.email,
+            address: formState.address,
+            city: formState.city,
+            state: formState.state,
+            zipCode: formState.zipCode
+          }
+        }
+      });
     }, 2000);
   };
 

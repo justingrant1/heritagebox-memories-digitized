@@ -1,14 +1,28 @@
 
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
 import { Check, Package } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { sendOrderConfirmationToBrevo } from '@/utils/brevoUtils';
+import { getDigitizingOptionById } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const packageType = searchParams.get('package') || 'Popular';
   const usbDrives = parseInt(searchParams.get('usbDrives') || '0', 10);
+  const digitizingSpeed = searchParams.get('digitizingSpeed') || 'standard';
+  const [emailSent, setEmailSent] = useState(false);
+  
+  // Get customer info from state if available (passed from checkout)
+  const customerInfo = location.state?.customerInfo || {
+    firstName: '',
+    lastName: '',
+    email: ''
+  };
   
   // Get button color class based on package type
   const getButtonClass = () => {
@@ -41,6 +55,49 @@ const OrderConfirmation = () => {
 
   // Generate a random order number
   const orderNumber = `MM-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  // Send order data to Brevo
+  useEffect(() => {
+    if (emailSent) return;
+
+    // Get digitizing option details
+    const digitizingOption = getDigitizingOptionById(digitizingSpeed);
+    
+    const sendOrderData = async () => {
+      try {
+        if (!customerInfo.email) {
+          console.log('No customer email available, skipping Brevo notification');
+          return;
+        }
+
+        const orderData = {
+          orderNumber,
+          orderDate: new Date().toLocaleDateString(),
+          packageType,
+          usbDrives,
+          digitizingSpeed: digitizingOption.name,
+          speedTime: digitizingOption.time,
+          speedPrice: digitizingOption.price
+        };
+
+        const customerName = `${customerInfo.firstName} ${customerInfo.lastName}`.trim();
+        
+        await sendOrderConfirmationToBrevo(
+          customerInfo.email,
+          customerName || 'Valued Customer',
+          orderData
+        );
+        
+        setEmailSent(true);
+        console.log('Order confirmation sent to Brevo');
+      } catch (error) {
+        console.error('Failed to send order data to Brevo:', error);
+        toast.error('Could not send order confirmation email');
+      }
+    };
+
+    sendOrderData();
+  }, [packageType, usbDrives, digitizingSpeed, emailSent, customerInfo, orderNumber]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -87,6 +144,14 @@ const OrderConfirmation = () => {
                     <p className="font-semibold">{usbDrives} Additional USB Drive{usbDrives > 1 ? 's' : ''}</p>
                   </div>
                 )}
+                {digitizingSpeed !== 'standard' && (
+                  <div className="md:col-span-2">
+                    <p className="text-gray-500 mb-1">Digitizing Speed:</p>
+                    <p className="font-semibold">
+                      {getDigitizingOptionById(digitizingSpeed).name} ({getDigitizingOptionById(digitizingSpeed).time})
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div className="border-t border-gray-200 my-6 pt-6">
@@ -113,7 +178,7 @@ const OrderConfirmation = () => {
                       <Package size={18} />
                     </span>
                     <span>
-                      <strong>Digitization Process:</strong> Our team will carefully digitize your memories (typically takes 2-3 weeks).
+                      <strong>Digitization Process:</strong> Our team will carefully digitize your memories (typically takes {getDigitizingOptionById(digitizingSpeed).time}).
                     </span>
                   </li>
                   <li className="flex items-start">
