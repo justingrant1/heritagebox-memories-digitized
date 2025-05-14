@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, CreditCard as PaymentIcon } from 'lucide-react';
+import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, CreditCard as PaymentIcon, Calendar } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -30,6 +31,32 @@ const Checkout = () => {
   const [usbDrives, setUsbDrives] = useState(1);
   const [cloudBackup, setCloudBackup] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
+  const [digitizingSpeed, setDigitizingSpeed] = useState('standard'); // 'standard', 'expedited', or 'rush'
+
+  // Define digitizing time options
+  const digitizingOptions = [
+    {
+      id: 'standard',
+      name: 'Standard',
+      price: 0,
+      time: '4-6 weeks',
+      description: 'Our standard digitizing service'
+    },
+    {
+      id: 'expedited',
+      name: 'Expedited',
+      price: 29.99,
+      time: '2-3 weeks',
+      description: 'Faster processing of your memories'
+    },
+    {
+      id: 'rush',
+      name: 'Rush',
+      price: 64.99,
+      time: '10 business days',
+      description: 'Priority handling for urgent projects'
+    }
+  ];
 
   // Define all packages (updated with new prices)
   const allPackages = [
@@ -102,12 +129,20 @@ const Checkout = () => {
   const USB_DRIVE_PRICE = 24.95;
   const CLOUD_BACKUP_PRICE = 0; // Updated price to zero
 
+  // Get selected digitizing option
+  const getSelectedDigitizingOption = () => {
+    return digitizingOptions.find(option => option.id === digitizingSpeed) || digitizingOptions[0];
+  };
+
   // Calculate total price
   const calculateTotal = () => {
     const packagePrice = packageDetails.numericPrice || parseFloat(packageDetails.price.replace('$', ''));
     const usbTotal = usbDrives * USB_DRIVE_PRICE;
     const cloudTotal = cloudBackup * CLOUD_BACKUP_PRICE;
-    return (packagePrice + usbTotal + cloudTotal).toFixed(2);
+    const digitizingOption = getSelectedDigitizingOption();
+    const speedPrice = digitizingOption ? digitizingOption.price : 0;
+    
+    return (packagePrice + usbTotal + cloudTotal + speedPrice).toFixed(2);
   };
 
   // Get text color class based on package type
@@ -202,6 +237,7 @@ const Checkout = () => {
     console.log("Card details:", details);
     console.log("USB drives added:", usbDrives);
     console.log("Cloud backup years:", cloudBackup);
+    console.log("Digitizing speed:", digitizingSpeed);
     
     setTimeout(() => {
       setIsProcessing(false);
@@ -210,7 +246,7 @@ const Checkout = () => {
         position: "top-center",
       });
       
-      // Pass USB drive count to order confirmation page if needed
+      // Pass parameters to order confirmation page
       const params = new URLSearchParams();
       params.append('package', packageType);
       if (usbDrives > 0) {
@@ -219,6 +255,7 @@ const Checkout = () => {
       if (cloudBackup > 0) {
         params.append('cloudBackup', cloudBackup.toString());
       }
+      params.append('digitizingSpeed', digitizingSpeed);
       
       navigate('/order-confirmation?' + params.toString());
     }, 2000);
@@ -232,6 +269,7 @@ const Checkout = () => {
     console.log("Amount:", calculateTotal());
     console.log("USB drives added:", usbDrives);
     console.log("Cloud backup years:", cloudBackup);
+    console.log("Digitizing speed:", digitizingSpeed);
     
     setTimeout(() => {
       setIsProcessing(false);
@@ -249,6 +287,7 @@ const Checkout = () => {
       if (cloudBackup > 0) {
         params.append('cloudBackup', cloudBackup.toString());
       }
+      params.append('digitizingSpeed', digitizingSpeed);
       
       navigate('/order-confirmation?' + params.toString());
     }, 2000);
@@ -365,6 +404,55 @@ const Checkout = () => {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Digitizing Time Selection */}
+                  <div className="bg-white rounded-xl shadow-md p-6">
+                    <h2 className="text-xl font-bold mb-6 flex items-center">
+                      <Calendar className="mr-2" /> Digitizing Time
+                    </h2>
+                    
+                    <RadioGroup 
+                      value={digitizingSpeed} 
+                      onValueChange={setDigitizingSpeed}
+                      className="space-y-4"
+                    >
+                      {digitizingOptions.map((option) => (
+                        <div 
+                          key={option.id}
+                          className={`flex items-center justify-between border rounded-lg p-4 transition-all ${
+                            digitizingSpeed === option.id 
+                              ? 'border-primary bg-primary/5' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <RadioGroupItem 
+                              value={option.id} 
+                              id={`speed-${option.id}`} 
+                              className="mt-1"
+                            />
+                            <div>
+                              <Label 
+                                htmlFor={`speed-${option.id}`} 
+                                className="font-medium cursor-pointer"
+                              >
+                                {option.name} ({option.time})
+                                {option.id === 'standard' && <span className="ml-2 text-green-600 font-medium">Free</span>}
+                              </Label>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {option.description}
+                              </p>
+                            </div>
+                          </div>
+                          {option.id !== 'standard' && (
+                            <span className="font-medium text-gray-900">
+                              ${option.price.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </RadioGroup>
                   </div>
                   
                   {!showCardForm ? (
@@ -521,7 +609,7 @@ const Checkout = () => {
                       </div>
                     )}
                     
-                    {/* Cloud Backup Add-on - Modified to limit to 0 or 1 */}
+                    {/* Cloud Backup Add-on */}
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="font-medium flex items-center">
@@ -557,11 +645,30 @@ const Checkout = () => {
                       </div>
                     </div>
                     {cloudBackup > 0 && (
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-sm mb-4">
                         <span className="text-gray-600">{cloudBackup} × $0.00</span>
                         <span className="font-medium">$0.00</span>
                       </div>
                     )}
+
+                    {/* Digitizing Speed Display in Summary */}
+                    <div className="flex justify-between mb-2">
+                      <div>
+                        <p className="font-medium flex items-center">
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Digitizing Speed
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {getSelectedDigitizingOption().name} ({getSelectedDigitizingOption().time})
+                        </p>
+                      </div>
+                      <span className="font-medium">
+                        {getSelectedDigitizingOption().price === 0 
+                          ? <span className="text-green-600">Free</span> 
+                          : `$${getSelectedDigitizingOption().price.toFixed(2)}`
+                        }
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="border-t border-gray-200 pt-4 mb-4">
