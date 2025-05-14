@@ -56,7 +56,7 @@ const NavBar = () => {
       <div className="container mx-auto flex justify-between items-center container-padding">
         <Link to="/" className="flex items-center gap-2">
           <h1 className={`text-primary font-serif font-bold text-2xl`}>
-            Heritage<span className="text-secondary">Box</span>
+            Heritage<span className="text-secondary">Box</span><sup className="text-xs">®</sup>
           </h1>
         </Link>
 

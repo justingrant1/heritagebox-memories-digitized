@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 container-padding">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">HeritageBox</h3>
+            <h3 className="text-xl font-bold mb-4">HeritageBox<sup className="text-xs">®</sup></h3>
             <p className="text-gray-300 mb-4">
               Preserving your precious memories for generations to come.
             </p>
@@ -62,7 +62,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 container-padding">
-          <p>&copy; {currentYear} HeritageBox. All rights reserved.</p>
+          <p>&copy; {currentYear} HeritageBox<sup className="text-xs">®</sup>. All rights reserved.</p>
           <div className="mt-2 flex justify-center space-x-4">
             <Link to="/privacy-policy" className="hover:text-secondary transition-colors">Privacy Policy</Link>
             <span>|</span>
