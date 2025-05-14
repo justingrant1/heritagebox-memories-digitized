@@ -53,10 +53,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Contact Us</h4>
             <address className="not-italic text-gray-300 space-y-2">
-              <p>123 Memory Lane</p>
-              <p>Heritage City, HC 12345</p>
+              <p>7934 West Drive, Unit 1005</p>
+              <p>North Bay Village, FL 33141</p>
               <p className="pt-2">Email: <a href="mailto:info@heritagebox.com" className="hover:text-secondary transition-colors">info@heritagebox.com</a></p>
-              <p>Phone: <a href="tel:+11234567890" className="hover:text-secondary transition-colors">(123) 456-7890</a></p>
+              <p>Phone: <a href="tel:+19176980202" className="hover:text-secondary transition-colors">(917) 698-0202</a></p>
             </address>
           </div>
         </div>

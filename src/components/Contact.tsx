@@ -49,13 +49,13 @@ const Contact = () => {
                 <li className="flex items-start gap-2">
                   <span className="font-medium">Address:</span>
                   <address className="not-italic">
-                    123 Memory Lane<br />
-                    Heritage City, HC 12345
+                    7934 West Drive, Unit 1005<br />
+                    North Bay Village, FL 33141
                   </address>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-medium">Phone:</span>
-                  <a href="tel:+11234567890" className="text-secondary hover:underline">(123) 456-7890</a>
+                  <a href="tel:+19176980202" className="text-secondary hover:underline">(917) 698-0202</a>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-medium">Email:</span>
@@ -78,7 +78,7 @@ const Contact = () => {
           <div className="rounded-lg overflow-hidden">
             <AspectRatio ratio={16/9}>
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.2062952883845!2d-73.98750652334057!3d40.74881897138627!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b30eac9f%3A0xaca8d8280f1bc7d4!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1682928525392!5m2!1sen!2sus"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3592.281123271683!2d-80.13466122392118!3d25.8469507782247!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d9b3156d0555af%3A0x7f2df8a308031aa9!2s7934%20West%20Dr%20%231005%2C%20North%20Bay%20Village%2C%20FL%2033141!5e0!3m2!1sen!2sus!4v1716442069901!5m2!1sen!2sus"
                 width="600" 
                 height="450" 
                 style={{ border: 0 }} 
