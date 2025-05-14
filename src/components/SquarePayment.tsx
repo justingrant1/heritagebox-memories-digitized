@@ -42,8 +42,9 @@ declare global {
   interface Window { Square: Square; }
 }
 
-// Square application ID (sandbox for development, production for live)
-const SQUARE_APP_ID = 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+// Square application ID - use sandbox for development
+const SQUARE_APP_ID = 'sandbox-sq0idb-jpM9cGaw5kHs1OljyRXnCQ'; // Sandbox app ID for testing
+const SQUARE_LOCATION_ID = 'L7H914LGC5MF8'; // Sandbox location ID for testing
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -61,7 +62,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
     // Load the Square Web Payments SDK
     const script = document.createElement('script');
     script.id = 'square-script';
-    script.src = 'https://web.squarecdn.com/v1/square.js';
+    script.src = 'https://sandbox.web.squarecdn.com/v1/square.js'; // Use sandbox URL for testing
     script.async = true;
     script.onload = () => {
       console.log("Square SDK loaded successfully");
@@ -101,9 +102,10 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         setCardLoading(true);
         console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID);
         
-        // Initialize with proper configuration including location ID
+        // Initialize with sandbox environment and location ID
         const payments = new window.Square.payments.Payments(SQUARE_APP_ID, {
-          environment: 'production'
+          environment: 'sandbox',
+          locationId: SQUARE_LOCATION_ID
         });
         
         console.log("Creating card instance");
