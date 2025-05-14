@@ -5,7 +5,8 @@
 
 // Send email to HeritageBox
 export const sendEmailToHeritageBox = async (data: any, source: string) => {
-  const endpoint = "https://formspree.io/f/info@heritagebox.com";
+  // Formspree requires a specific format for the form ID: "f/{formId}"
+  const endpoint = "https://formspree.io/f/xnqeezve"; // Using a specific Formspree form ID
   
   try {
     // Log the attempt
@@ -34,7 +35,7 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
     });
     
     if (!response.ok) {
-      throw new Error(`Email submission failed: ${response.statusText}`);
+      throw new Error(`Email submission failed: ${response.status} ${response.statusText}`);
     }
     
     // Log the success

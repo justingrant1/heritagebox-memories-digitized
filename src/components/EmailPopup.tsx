@@ -39,7 +39,11 @@ const EmailPopup = () => {
     
     try {
       // Send email to info@heritagebox.com using our utility function
-      await sendEmailToHeritageBox({ email, referrer: document.referrer }, 'welcome-popup');
+      await sendEmailToHeritageBox({ 
+        email, 
+        referrer: document.referrer,
+        pageUrl: window.location.href
+      }, 'welcome-popup');
       
       // Mark that the user has seen the popup
       localStorage.setItem('hasSeenEmailPopup', 'true');
@@ -51,7 +55,7 @@ const EmailPopup = () => {
       setOpen(false);
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error("There was a problem processing your request. Please try again.");
+      toast.error(`Problem sending your request: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
     }

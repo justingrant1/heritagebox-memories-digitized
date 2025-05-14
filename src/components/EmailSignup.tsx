@@ -21,7 +21,11 @@ const EmailSignup = () => {
     
     try {
       // Send email to info@heritagebox.com using our utility function
-      await sendEmailToHeritageBox({ email, page: window.location.pathname }, 'newsletter-signup');
+      await sendEmailToHeritageBox({ 
+        email, 
+        page: window.location.pathname,
+        fullUrl: window.location.href
+      }, 'newsletter-signup');
       
       // Show success message
       toast.success("Thanks for signing up! You'll receive updates about our services.");
@@ -30,7 +34,7 @@ const EmailSignup = () => {
       setEmail('');
     } catch (error) {
       console.error('Error sending email:', error);
-      toast.error("There was a problem processing your request. Please try again.");
+      toast.error(`Problem sending your request: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
     }
