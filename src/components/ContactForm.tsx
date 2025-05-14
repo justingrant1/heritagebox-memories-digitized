@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sendEmailToHeritageBox } from "@/utils/emailUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 type ContactFormData = {
   name: string;
@@ -18,7 +19,6 @@ const ContactForm = () => {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -45,18 +45,15 @@ const ContactForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Store contact form data locally
+      // Send contact form data to HeritageBox email using our utility function
       await sendEmailToHeritageBox({
-        from_name: formData.name,
-        reply_to: formData.email,
-        message: formData.message,
+        ...formData,
         page: window.location.pathname,
         url: window.location.href
       }, 'contact-form');
       
       // Show success message
-      toast.success("Thank you! Your message has been received. We'll be in touch soon.");
-      setEmailSent(true);
+      toast.success("Thank you! Your message has been sent. We'll be in touch soon.");
       
       // Reset form
       setFormData({
@@ -65,8 +62,8 @@ const ContactForm = () => {
         message: ""
       });
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(`Problem submitting your message. Please try again later.`);
+      console.error('Error sending contact form:', error);
+      toast.error(`Problem sending your message: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,15 +72,6 @@ const ContactForm = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-bold mb-4 text-primary">Send Us a Message</h3>
-      
-      {emailSent && (
-        <Alert className="mb-4 bg-green-50 border-green-200">
-          <AlertDescription className="text-green-800">
-            Thank you for your message! We'll get back to you soon.
-          </AlertDescription>
-        </Alert>
-      )}
-      
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>

@@ -20,9 +20,9 @@ const EmailSignup = () => {
     setIsSubmitting(true);
     
     try {
-      // Store newsletter signup data locally
+      // Send email to info@heritagebox.com using our utility function
       await sendEmailToHeritageBox({ 
-        email_to_subscribe: email, 
+        email, 
         page: window.location.pathname,
         fullUrl: window.location.href
       }, 'newsletter-signup');
@@ -33,8 +33,8 @@ const EmailSignup = () => {
       // Reset the form
       setEmail('');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(`Problem sending your request. Please try again.`);
+      console.error('Error sending email:', error);
+      toast.error(`Problem sending your request: ${error instanceof Error ? error.message : 'Please try again'}`);
     } finally {
       setIsSubmitting(false);
     }
