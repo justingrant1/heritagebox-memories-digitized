@@ -5,10 +5,16 @@ import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEOHelmet from "@/components/SEOHelmet";
 
 const AboutUs = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHelmet 
+        title="About Us | HeritageBox® Memory Preservation Specialists"
+        description="Learn about HeritageBox®'s mission to preserve family memories and connect generations through innovative digitization technology."
+        keywords="about heritagebox, memory preservation company, family archiving, digitization experts, photo scanning service, vhs conversion professionals"
+      />
       <NavBar />
       <main className="flex-grow pt-24">
         {/* Hero Section */}

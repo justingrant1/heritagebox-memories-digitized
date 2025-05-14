@@ -1,7 +1,23 @@
+
+User-agent: *
+Allow: /
+Disallow: /checkout
+Disallow: /order-confirmation
+
+# Allow major search engines
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
+Allow: /
+
+User-agent: Yandexbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
 Allow: /
 
 User-agent: Twitterbot
@@ -10,5 +26,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# XML Sitemap location
+Sitemap: https://heritagebox.com/sitemap.xml
