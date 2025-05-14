@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, Paypal } from 'lucide-react';
+import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, CreditCard as PaymentIcon } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 
 const Checkout = () => {
@@ -407,7 +406,7 @@ const Checkout = () => {
                                 : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                             }`}
                           >
-                            <Paypal className="h-5 w-5" />
+                            <PaymentIcon className="h-5 w-5" />
                             <span className="text-lg">PayPal</span>
                           </Button>
                         </div>
@@ -423,7 +422,7 @@ const Checkout = () => {
                           <div className="space-y-4">
                             <div className="p-4 border rounded-md bg-[#f5f7fa]">
                               <div className="flex items-center justify-center">
-                                <Paypal className="h-10 w-10 text-[#0070BA] mr-2" />
+                                <PaymentIcon className="h-10 w-10 text-[#0070BA] mr-2" />
                                 <p className="text-lg font-medium">
                                   Continue to PayPal checkout to complete your purchase
                                 </p>
