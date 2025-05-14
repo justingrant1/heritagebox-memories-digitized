@@ -5,36 +5,31 @@
 
 // Send email to HeritageBox
 export const sendEmailToHeritageBox = async (data: any, source: string) => {
-  // Formspree requires a specific format for the form ID: "f/{formId}"
-  const endpoint = "https://formspree.io/f/xnqeezve"; // Using a specific Formspree form ID
+  // Formspree endpoint for the specific form
+  const endpoint = "https://formspree.io/f/xnqeezve"; 
   
   try {
     // Log the attempt
     console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
     
-    // Prepare the email data
-    const formData = new FormData();
-    
-    // Add common fields
-    formData.append('_subject', `HeritageBox - ${source}`);
-    formData.append('source', source);
-    formData.append('date', new Date().toISOString());
-    
-    // Add all data fields
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value as string);
-    });
-    
-    // Send the form data to the email endpoint
+    // Send the email data as JSON instead of FormData
     const response = await fetch(endpoint, {
       method: 'POST',
-      body: formData,
+      body: JSON.stringify({
+        _subject: `HeritageBox - ${source}`,
+        source: source,
+        date: new Date().toISOString(),
+        ...data
+      }),
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Email submission failed with status: ${response.status}`, errorText);
       throw new Error(`Email submission failed: ${response.status} ${response.statusText}`);
     }
     

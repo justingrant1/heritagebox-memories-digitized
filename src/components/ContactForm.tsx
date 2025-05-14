@@ -49,9 +49,7 @@ const ContactForm = () => {
       await sendEmailToHeritageBox({
         ...formData,
         page: window.location.pathname,
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        url: window.location.href
       }, 'contact-form');
       
       // Show success message
