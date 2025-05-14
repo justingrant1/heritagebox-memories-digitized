@@ -6,7 +6,7 @@
 // Send email to HeritageBox
 export const sendEmailToHeritageBox = async (data: any, source: string) => {
   // Formspree endpoint for the specific form
-  const endpoint = "https://formspree.io/f/xnqeezve"; 
+  const endpoint = "https://formspree.io/f/mqaqgwjg"; 
   
   try {
     // Log the attempt
