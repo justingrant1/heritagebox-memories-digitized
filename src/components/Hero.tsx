@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -15,10 +16,14 @@ const Hero = () => {
               We digitize your VHS tapes, photos, and other media to keep your memories safe for generations to come.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button className="btn-primary text-lg">Get Started</Button>
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white text-lg">
-                Learn More
-              </Button>
+              <Link to="/package-selected?package=Popular">
+                <Button className="btn-primary text-lg">Get Started</Button>
+              </Link>
+              <Link to="/#how-it-works">
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white text-lg">
+                  Learn More
+                </Button>
+              </Link>
             </div>
             
             <div className="mt-12 flex items-center space-x-6">
