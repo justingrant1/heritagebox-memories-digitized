@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { sendEmailToHeritageBox } from '@/utils/emailUtils';
 
 const EmailPopup = () => {
   const [open, setOpen] = useState(false);
@@ -37,8 +38,8 @@ const EmailPopup = () => {
     setIsSubmitting(true);
     
     try {
-      // Send email to info@heritagebox.com
-      await sendEmailToHeritageBox(email, 'popup');
+      // Send email to info@heritagebox.com using our utility function
+      await sendEmailToHeritageBox({ email, referrer: document.referrer }, 'welcome-popup');
       
       // Mark that the user has seen the popup
       localStorage.setItem('hasSeenEmailPopup', 'true');
@@ -59,26 +60,6 @@ const EmailPopup = () => {
   const handleClose = () => {
     localStorage.setItem('hasSeenEmailPopup', 'true');
     setOpen(false);
-  };
-
-  // Function to send email to HeritageBox
-  const sendEmailToHeritageBox = async (email: string, source: string) => {
-    // In a real app, this would be an API call to your backend
-    console.log(`Sending signup from ${source} to info@heritagebox.com: ${email}`);
-    
-    // Simulate API call with more robust implementation
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Log the email submission (would be a real API call in production)
-        console.log(`Email signup submitted to info@heritagebox.com:
-          Email: ${email}
-          Source: ${source}
-          Date: ${new Date().toISOString()}
-          Page: ${window.location.pathname}
-        `);
-        resolve(true);
-      }, 1000);
-    });
   };
 
   return (

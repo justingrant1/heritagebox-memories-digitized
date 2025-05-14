@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { sendEmailToHeritageBox } from '@/utils/emailUtils';
 
 const EmailSignup = () => {
   const [email, setEmail] = useState('');
@@ -19,8 +20,8 @@ const EmailSignup = () => {
     setIsSubmitting(true);
     
     try {
-      // Send email to info@heritagebox.com
-      await sendEmailToHeritageBox(email, 'main page');
+      // Send email to info@heritagebox.com using our utility function
+      await sendEmailToHeritageBox({ email, page: window.location.pathname }, 'newsletter-signup');
       
       // Show success message
       toast.success("Thanks for signing up! You'll receive updates about our services.");
@@ -33,21 +34,6 @@ const EmailSignup = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Function to send email to HeritageBox
-  const sendEmailToHeritageBox = async (email: string, source: string) => {
-    // In a real app, this would be an API call to your backend
-    console.log(`Sending email ${email} from ${source} to info@heritagebox.com`);
-    
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Log the email submission (would be a real API call in production)
-        console.log(`Email submitted to info@heritagebox.com: ${email} (from ${source})`);
-        resolve(true);
-      }, 1000);
-    });
   };
 
   return (

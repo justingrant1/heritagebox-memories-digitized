@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
-import { Box, Package } from "lucide-react";
+import { Box } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { sendEmailToHeritageBox } from "@/utils/emailUtils";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -39,8 +39,11 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      // Send contact form data to HeritageBox email
-      await sendEmailToHeritageBox(formData, 'contact-form');
+      // Send contact form data to HeritageBox email using our utility function
+      await sendEmailToHeritageBox({
+        ...formData,
+        page: window.location.pathname
+      }, 'contact-form');
       
       // Show success message
       toast.success("Thank you! Your message has been sent. We'll be in touch soon.");
@@ -57,26 +60,6 @@ const Contact = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Function to send email to HeritageBox
-  const sendEmailToHeritageBox = async (data: any, source: string) => {
-    // In a real app, this would be an API call to your backend
-    console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
-    
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Log the submission (would be a real API call in production)
-        console.log(`Form submitted to info@heritagebox.com: 
-          Name: ${data.name}
-          Email: ${data.email}
-          Message: ${data.message}
-          (from ${source})
-        `);
-        resolve(true);
-      }, 1000);
-    });
   };
 
   return (
