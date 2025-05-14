@@ -17,7 +17,7 @@ const Index = () => {
     <div className="min-h-screen">
       <SEOHelmet 
         title="HeritageBox® | Professional Memory Digitization Services"
-        description="Transform your VHS tapes, photos, and slides into digital formats with HeritageBox®. Preserve your precious memories for generations to come."
+        description="Don't let your precious memories fade away! HeritageBox® transforms your VHS tapes, photos, and slides into modern digital formats that will last for generations."
         keywords="memory preservation, digitize vhs, photo scanning, family archives, home videos, slide scanning, professional digitization"
         image="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png"
       />

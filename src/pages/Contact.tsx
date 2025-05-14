@@ -9,7 +9,7 @@ const ContactPage = () => {
     <div className="min-h-screen">
       <SEOHelmet 
         title="Contact HeritageBox® | Get Help With Your Memory Preservation"
-        description="Contact our team of memory preservation specialists at HeritageBox®. We're here to answer your questions about digitizing your family photos, videos, and more."
+        description="Have questions about preserving your family memories? Our team of digitization experts is ready to help you transform your VHS tapes, photos, and slides into digital treasures."
         keywords="contact heritagebox, memory digitization help, photo scanning questions, vhs conversion support, digitization customer service"
       />
       <NavBar />

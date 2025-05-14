@@ -21,7 +21,7 @@ export default function SEOHelmet({
   
   // Default values
   const defaultTitle = 'HeritageBox® | Preserve Your Family Memories for Generations';
-  const defaultDescription = 'HeritageBox® digitizes and preserves your VHS tapes, photos, slides and other media to protect your precious family memories for future generations.';
+  const defaultDescription = 'Transform your precious family memories with HeritageBox®. Our professional digitization services convert VHS tapes, photos, slides and more into modern formats that last forever.';
   const defaultKeywords = 'digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization';
   
   // Use defaults if not provided
@@ -46,6 +46,7 @@ export default function SEOHelmet({
       <meta property="og:title" content={seo.title} />
       <meta property="og:description" content={seo.description} />
       <meta property="og:image" content={seo.image} />
+      <meta property="og:site_name" content="HeritageBox®" />
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
