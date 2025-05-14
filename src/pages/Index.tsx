@@ -19,6 +19,7 @@ const Index = () => {
         title="HeritageBox® | Professional Memory Digitization Services"
         description="Transform your VHS tapes, photos, and slides into digital formats with HeritageBox®. Preserve your precious memories for generations to come."
         keywords="memory preservation, digitize vhs, photo scanning, family archives, home videos, slide scanning, professional digitization"
+        image="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png"
       />
       <EmailPopup />
       <NavBar />

@@ -13,7 +13,7 @@ interface SEOProps {
 export default function SEOHelmet({
   title = '',
   description = '',
-  image = 'https://lovable.dev/opengraph-image-p98pqg.png',
+  image = '/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png',
   article = false,
   keywords = '',
 }: SEOProps) {
