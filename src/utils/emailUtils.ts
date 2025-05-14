@@ -1,36 +1,35 @@
 
+import emailjs from 'emailjs-com';
+
 /**
- * Utility functions for sending emails to HeritageBox
+ * Utility functions for sending emails to HeritageBox using EmailJS
  */
 
 // Send email to HeritageBox
 export const sendEmailToHeritageBox = async (data: any, source: string) => {
-  // Formspree endpoint for the specific form
-  const endpoint = "https://formspree.io/f/xnqeezve"; 
+  // EmailJS service information
+  const serviceId = "service_heritagebox"; // You'll need to replace with your actual EmailJS service ID
+  const templateId = "template_heritagebox"; // You'll need to replace with your actual EmailJS template ID
+  const userId = "user_heritagebox"; // You'll need to replace with your actual EmailJS user ID
   
   try {
     // Log the attempt
     console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
     
-    // Send the email data as JSON instead of FormData
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify({
-        _subject: `HeritageBox - ${source}`,
-        source: source,
-        date: new Date().toISOString(),
-        ...data
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    });
+    // Prepare the template parameters
+    const templateParams = {
+      _subject: `HeritageBox - ${source}`,
+      source: source,
+      date: new Date().toISOString(),
+      ...data
+    };
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Email submission failed with status: ${response.status}`, errorText);
-      throw new Error(`Email submission failed: ${response.status} ${response.statusText}`);
+    // Send the email using EmailJS
+    const response = await emailjs.send(serviceId, templateId, templateParams, userId);
+    
+    if (response.status !== 200) {
+      console.error(`Email submission failed with status: ${response.status}`);
+      throw new Error(`Email submission failed: ${response.status} ${response.text}`);
     }
     
     // Log the success

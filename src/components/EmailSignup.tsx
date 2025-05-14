@@ -22,7 +22,7 @@ const EmailSignup = () => {
     try {
       // Send email to info@heritagebox.com using our utility function
       await sendEmailToHeritageBox({ 
-        email, 
+        email_to_subscribe: email, 
         page: window.location.pathname,
         fullUrl: window.location.href
       }, 'newsletter-signup');

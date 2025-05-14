@@ -40,7 +40,7 @@ const EmailPopup = () => {
     try {
       // Send email to info@heritagebox.com using our utility function
       await sendEmailToHeritageBox({ 
-        email, 
+        popup_email: email, 
         referrer: document.referrer,
         pageUrl: window.location.href
       }, 'welcome-popup');
