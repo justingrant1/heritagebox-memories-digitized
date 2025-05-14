@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import NavBar from '@/components/NavBar';
 import Footer from '@/components/Footer';
-import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb } from 'lucide-react';
+import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, Paypal } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 
 const Checkout = () => {
@@ -29,6 +30,7 @@ const Checkout = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [usbDrives, setUsbDrives] = useState(1);
   const [cloudBackup, setCloudBackup] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
 
   // Define all packages (updated with new prices)
   const allPackages = [
@@ -223,6 +225,36 @@ const Checkout = () => {
     }, 2000);
   };
 
+  const handlePayPalPayment = () => {
+    setIsProcessing(true);
+    
+    // For demo purposes, we'll simulate a successful PayPal payment after a short delay
+    console.log("Processing PayPal payment for:", formState.email);
+    console.log("Amount:", calculateTotal());
+    console.log("USB drives added:", usbDrives);
+    console.log("Cloud backup years:", cloudBackup);
+    
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast.success("PayPal payment successful!", {
+        description: "Thank you for your order. You will receive a confirmation email shortly.",
+        position: "top-center",
+      });
+      
+      // Pass parameters to order confirmation page
+      const params = new URLSearchParams();
+      params.append('package', packageType);
+      if (usbDrives > 0) {
+        params.append('usbDrives', usbDrives.toString());
+      }
+      if (cloudBackup > 0) {
+        params.append('cloudBackup', cloudBackup.toString());
+      }
+      
+      navigate('/order-confirmation?' + params.toString());
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
@@ -348,19 +380,71 @@ const Checkout = () => {
                   ) : (
                     <div className="bg-white rounded-xl shadow-md p-6">
                       <h2 className="text-xl font-bold mb-6 flex items-center">
-                        <CreditCard className="mr-2" /> Payment Information
+                        <CreditCard className="mr-2" /> Payment Method
                       </h2>
                       
-                      <SquarePayment 
-                        onSuccess={handlePaymentSuccess}
-                        buttonColorClass={getButtonClass()}
-                        isProcessing={isProcessing}
-                        amount={`$${calculateTotal()}`}
-                      />
-                      
-                      <div className="flex items-center text-sm text-gray-500 mt-4">
-                        <Lock size={16} className="mr-1" />
-                        <span>Your payment information is secure and encrypted</span>
+                      <div className="space-y-6">
+                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                          <Button
+                            type="button"
+                            onClick={() => setPaymentMethod('card')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-6 ${
+                              paymentMethod === 'card' 
+                                ? getButtonClass()
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                            }`}
+                          >
+                            <CreditCard className="h-5 w-5" />
+                            <span className="text-lg">Credit Card</span>
+                          </Button>
+                          
+                          <Button
+                            type="button"
+                            onClick={() => setPaymentMethod('paypal')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-6 ${
+                              paymentMethod === 'paypal' 
+                                ? 'bg-[#0070BA] hover:bg-[#003087] text-white'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                            }`}
+                          >
+                            <Paypal className="h-5 w-5" />
+                            <span className="text-lg">PayPal</span>
+                          </Button>
+                        </div>
+                        
+                        {paymentMethod === 'card' ? (
+                          <SquarePayment 
+                            onSuccess={handlePaymentSuccess}
+                            buttonColorClass={getButtonClass()}
+                            isProcessing={isProcessing}
+                            amount={`$${calculateTotal()}`}
+                          />
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="p-4 border rounded-md bg-[#f5f7fa]">
+                              <div className="flex items-center justify-center">
+                                <Paypal className="h-10 w-10 text-[#0070BA] mr-2" />
+                                <p className="text-lg font-medium">
+                                  Continue to PayPal checkout to complete your purchase
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-center md:text-left">
+                              <Button 
+                                onClick={handlePayPalPayment}
+                                className={`px-8 py-6 text-lg bg-[#0070BA] hover:bg-[#003087] text-white`}
+                                disabled={isProcessing}
+                              >
+                                {isProcessing ? "Processing..." : `Pay with PayPal $${calculateTotal()}`}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center text-sm text-gray-500 mt-4">
+                          <Lock size={16} className="mr-1" />
+                          <span>Your payment information is secure and encrypted</span>
+                        </div>
                       </div>
                     </div>
                   )}
