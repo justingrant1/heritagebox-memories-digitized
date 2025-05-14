@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sendEmailToHeritageBox } from "@/utils/emailUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
 
 type ContactFormData = {
   name: string;
@@ -46,7 +45,7 @@ const ContactForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Send contact form data to HeritageBox email using our utility function
+      // Store contact form data locally
       await sendEmailToHeritageBox({
         from_name: formData.name,
         reply_to: formData.email,
@@ -56,7 +55,7 @@ const ContactForm = () => {
       }, 'contact-form');
       
       // Show success message
-      toast.success("Thank you! Your message has been sent. We'll be in touch soon.");
+      toast.success("Thank you! Your message has been received. We'll be in touch soon.");
       setEmailSent(true);
       
       // Reset form
@@ -66,8 +65,8 @@ const ContactForm = () => {
         message: ""
       });
     } catch (error) {
-      console.error('Error sending contact form:', error);
-      toast.error(`Problem sending your message: ${error instanceof Error ? error.message : 'Please try again later'}`);
+      console.error('Error submitting form:', error);
+      toast.error(`Problem submitting your message. Please try again later.`);
     } finally {
       setIsSubmitting(false);
     }
