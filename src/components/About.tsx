@@ -9,9 +9,9 @@ const About = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-8 text-gradient">About HeritageBox<sup className="text-sm">®</sup></h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-8 text-gradient">About HeritageBox<sup className="text-xs align-super">®</sup></h2>
             <p className="mb-6 text-lg font-light">
-              HeritageBox<sup className="text-xs">®</sup> was founded with a simple mission: to help people preserve and share their most precious memories for generations to come.
+              HeritageBox<sup className="text-xs align-super">®</sup> was founded with a simple mission: to help people preserve and share their most precious memories for generations to come.
             </p>
             <p className="mb-6 text-base font-light">
               We understand that your old photos, VHS tapes, film reels, and slides aren't just media—they're irreplaceable treasures that tell your family's unique story. That's why our team of skilled technicians treats every item with the utmost care and attention.
