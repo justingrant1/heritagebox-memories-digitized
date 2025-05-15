@@ -55,7 +55,7 @@ export default async function handler(request: Request) {
       environment: process.env.NODE_ENV
     });
 
-    const response = await fetch('https://connect.squareup.com/v2/payments', {
+    const response = await fetch('https://connect.squareupsandbox.com/v2/payments', {
       method: 'POST',
       headers: {
         'Square-Version': '2024-02-15',
