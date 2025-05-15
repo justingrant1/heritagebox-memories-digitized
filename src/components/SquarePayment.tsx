@@ -39,9 +39,9 @@ declare global {
   interface Window { Square: Square; }
 }
 
-const SQUARE_APP_ID = process.env.REACT_APP_SQUARE_APP_ID;
-const SQUARE_LOCATION_ID = process.env.REACT_APP_SQUARE_LOCATION_ID;
-const SQUARE_JS_URL = process.env.REACT_APP_SQUARE_JS_URL;
+const SQUARE_APP_ID = process.env.REACT_APP_SQUARE_APP_ID || 'sandbox-sq0idb-3VxVuMl41PGjwRQ8BxdjWg';
+const SQUARE_LOCATION_ID = process.env.REACT_APP_SQUARE_LOCATION_ID || 'L6JKGA1KJ9W89';
+const SQUARE_JS_URL = process.env.REACT_APP_SQUARE_JS_URL || 'https://sandbox.web.squarecdn.com/v1/square.js'
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
