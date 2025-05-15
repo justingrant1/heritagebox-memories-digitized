@@ -8,6 +8,7 @@ interface SEOProps {
   image?: string;
   article?: boolean;
   keywords?: string;
+  canonical?: string; // Added canonical prop to allow specifying a direct canonical URL
 }
 
 export default function SEOHelmet({
@@ -16,6 +17,7 @@ export default function SEOHelmet({
   image = '/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png',
   article = false,
   keywords = '',
+  canonical = '', // Default to empty string
 }: SEOProps) {
   const { pathname } = useLocation();
   
@@ -24,12 +26,16 @@ export default function SEOHelmet({
   const defaultDescription = 'Transform your precious family memories with HeritageBox®. Our professional digitization services convert VHS tapes, photos, slides and more into modern formats that last forever.';
   const defaultKeywords = 'digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization';
   
+  // Use provided canonical URL or build from pathname
+  // Ensure we're using the final destination URL, not a redirecting URL
+  const canonicalUrl = canonical || `https://heritagebox.com${pathname}`;
+  
   // Use defaults if not provided
   const seo = {
     title: title || defaultTitle,
     description: description || defaultDescription,
     image: image,
-    url: `https://heritagebox.com${pathname}`,
+    url: canonicalUrl, // Use the canonical URL for all meta tags
     keywords: keywords || defaultKeywords,
   };
 

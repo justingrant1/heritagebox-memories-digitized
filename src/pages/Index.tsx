@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
@@ -13,6 +14,20 @@ import EmailSignup from '@/components/EmailSignup';
 import SEOHelmet from '@/components/SEOHelmet';
 
 const Index = () => {
+  // Handle scrolling to sections when coming from other pages
+  useEffect(() => {
+    const scrollTarget = window.sessionStorage.getItem('scrollTarget');
+    if (scrollTarget) {
+      setTimeout(() => {
+        const element = document.querySelector(`#${scrollTarget}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+        window.sessionStorage.removeItem('scrollTarget');
+      }, 100);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen">
       <SEOHelmet 
@@ -20,6 +35,7 @@ const Index = () => {
         description="Don't let your precious memories fade away! HeritageBox® transforms your VHS tapes, photos, and slides into modern digital formats that will last for generations."
         keywords="memory preservation, digitize vhs, photo scanning, family archives, home videos, slide scanning, professional digitization"
         image="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png"
+        canonical="https://heritagebox.com/" // Explicitly set canonical URL to prevent redirects
       />
       <EmailPopup />
       <NavBar />
