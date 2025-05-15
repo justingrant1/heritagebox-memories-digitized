@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -6,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 // Define types for the Square SDK
 interface Square {
-  payments: (applicationId: string, locationId: string) => SquarePayments;
+  payments: (applicationId: string, locationId: string, options?: any) => SquarePayments;
 }
 
 interface SquarePayments {
@@ -41,9 +40,9 @@ declare global {
 }
 
 // Square application ID (sandbox for development, production for live)
-const SQUARE_APP_ID = 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+const SQUARE_APP_ID = 'sandbox-sq0idb-3VxVuMl41PGjwRQ8BxdjWg';
 // Square location ID (replace with your actual location ID from Square dashboard)
-const SQUARE_LOCATION_ID = 'LPFZYDYB5G5GM';
+const SQUARE_LOCATION_ID = 'L6JKGA1KJ9W89';
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -61,7 +60,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
     // Load the Square Web Payments SDK
     const script = document.createElement('script');
     script.id = 'square-script';
-    script.src = 'https://web.squarecdn.com/v1/square.js';
+    script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
     script.async = true;
     script.onload = () => {
       console.log("Square SDK loaded successfully");
@@ -99,10 +98,12 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
       try {
         setCardLoading(true);
-        console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID);
+        console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID, SQUARE_LOCATION_ID, process.env.NODE_ENV);
         
         // Initialize with proper configuration using app ID and location ID
-        const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+        const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
+          environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
+        });
         
         console.log("Creating card instance");
         const cardInstance = await payments.card();

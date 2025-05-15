@@ -227,20 +227,34 @@ const Checkout = () => {
     setShowCardForm(true);
   };
 
-  const handlePaymentSuccess = (token: string, details: any) => {
-    // Process payment with Square token
+  const handlePaymentSuccess = async (token: string, details: any) => {
     setIsProcessing(true);
     
-    // Here you would typically send this token to your server to complete the payment
-    // For demo purposes, we'll simulate a successful payment after a short delay
-    console.log("Payment token received:", token);
-    console.log("Card details:", details);
-    console.log("USB drives added:", usbDrives);
-    console.log("Cloud backup years:", cloudBackup);
-    console.log("Digitizing speed:", digitizingSpeed);
-    
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const response = await fetch('/api/process-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          amount: parseFloat(calculateTotal()),
+          orderDetails: {
+            package: packageType,
+            usbDrives,
+            cloudBackup,
+            digitizingSpeed,
+            customerInfo: formState
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Payment failed');
+      }
+
       toast.success("Payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
         position: "top-center",
@@ -258,7 +272,15 @@ const Checkout = () => {
       params.append('digitizingSpeed', digitizingSpeed);
       
       navigate('/order-confirmation?' + params.toString());
-    }, 2000);
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error("Payment failed", {
+        description: error.message || "Please try again or use a different payment method",
+        position: "top-center",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handlePayPalPayment = () => {
