@@ -1,0 +1,10 @@
+
+# Ensure XML files are served with the correct content type
+<Files ~ "\.xml$">
+  Header set Content-Type "application/xml; charset=UTF-8"
+</Files>
+
+# Ensure sitemap.xml is specifically served with the correct content type
+<Files "sitemap.xml">
+  Header set Content-Type "application/xml; charset=UTF-8"
+</Files>
