@@ -39,17 +39,16 @@ declare global {
   interface Window { Square: Square; }
 }
 
-// Square application ID (sandbox for development, production for live)
-const SQUARE_APP_ID = 'sandbox-sq0idb-3VxVuMl41PGjwRQ8BxdjWg';
-// Square location ID (replace with your actual location ID from Square dashboard)
-const SQUARE_LOCATION_ID = 'L6JKGA1KJ9W89';
+const SQUARE_APP_ID = process.env.REACT_APP_SQUARE_APP_ID;
+const SQUARE_LOCATION_ID = process.env.REACT_APP_SQUARE_LOCATION_ID;
+const SQUARE_JS_URL = process.env.REACT_APP_SQUARE_JS_URL;
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
   const [card, setCard] = useState<SquareCard | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     // Clean up any previous script instances to prevent conflicts
     const existingScript = document.getElementById('square-script');
@@ -60,7 +59,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
     // Load the Square Web Payments SDK
     const script = document.createElement('script');
     script.id = 'square-script';
-    script.src = 'https://sandbox.web.squarecdn.com/v1/square.js';
+    script.src = SQUARE_JS_URL;
     script.async = true;
     script.onload = () => {
       console.log("Square SDK loaded successfully");
@@ -99,25 +98,25 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
       try {
         setCardLoading(true);
         console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID, SQUARE_LOCATION_ID, process.env.NODE_ENV);
-        
+
         // Initialize with proper configuration using app ID and location ID
         const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
           environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
         });
-        
+
         console.log("Creating card instance");
         const cardInstance = await payments.card();
-        
+
         // Make sure the container is ready before attaching
         const container = document.getElementById('card-container');
         if (!container) {
           throw new Error('Card container not found in DOM');
         }
-        
+
         console.log("Attaching card to container");
         await cardInstance.attach('#card-container');
         console.log("Card attached successfully");
-        
+
         setCard(cardInstance);
         setError(null);
       } catch (e) {
@@ -168,15 +167,15 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         </div>
       );
     }*/
-    
+
     if (error) {
       return (
         <div className="min-h-[100px] flex flex-col items-center justify-center text-red-500 p-4">
           <p className="font-medium">{error}</p>
           <p className="text-sm mt-2">Please refresh the page or try a different browser</p>
-          <Button 
+          <Button
             onClick={() => window.location.reload()}
-            variant="outline" 
+            variant="outline"
             className="mt-4"
           >
             Refresh Page
@@ -184,7 +183,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         </div>
       );
     }
-    
+
     if (!loaded) {
       return (
         <div className="min-h-[100px] flex items-center justify-center">
@@ -192,7 +191,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         </div>
       );
     }
-    
+
     return <div id="card-container" className="min-h-[100px]"></div>;
   };
 
@@ -202,7 +201,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         {renderCardContainer()}
       </div>
       <div className="text-center md:text-left">
-        <Button 
+        <Button
           onClick={handlePaymentSubmit}
           className={`px-8 py-6 text-lg ${buttonColorClass}`}
           disabled={isProcessing || !card || !!error}
