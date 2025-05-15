@@ -32,10 +32,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><Link to="/#how-it-works" className="text-gray-300 hover:text-secondary transition-colors">How It Works</Link></li>
-              <li><Link to="/#packages" className="text-gray-300 hover:text-secondary transition-colors">Packages</Link></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'how-it-works')} className="text-gray-300 hover:text-secondary transition-colors">How It Works</Link></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'packages')} className="text-gray-300 hover:text-secondary transition-colors">Packages</Link></li>
               <li><Link to="/about-us" className="text-gray-300 hover:text-secondary transition-colors">About Us</Link></li>
-              <li><Link to="/#faq" className="text-gray-300 hover:text-secondary transition-colors">FAQ</Link></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'faq')} className="text-gray-300 hover:text-secondary transition-colors">FAQ</Link></li>
             </ul>
           </div>
           

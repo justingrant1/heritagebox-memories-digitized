@@ -71,12 +71,12 @@ const NavBar = () => {
               <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors">FAQ</a>
             </>
           ) : (
-            // On other pages, link back to homepage with hash
+            // On other pages, use direct links instead of hash links
             <>
-              <Link to="/#how-it-works" className="text-primary hover:text-secondary transition-colors">How It Works</Link>
-              <Link to="/#packages" className="text-primary hover:text-secondary transition-colors">Packages</Link>
+              <Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'how-it-works')} className="text-primary hover:text-secondary transition-colors">How It Works</Link>
+              <Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'packages')} className="text-primary hover:text-secondary transition-colors">Packages</Link>
               <Link to="/about-us" className="text-primary hover:text-secondary transition-colors">About Us</Link>
-              <Link to="/#faq" className="text-primary hover:text-secondary transition-colors">FAQ</Link>
+              <Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'faq')} className="text-primary hover:text-secondary transition-colors">FAQ</Link>
             </>
           )}
           <Link to="/contact" className="text-primary hover:text-secondary transition-colors">Contact</Link>
@@ -104,12 +104,12 @@ const NavBar = () => {
                 <a href="#faq" onClick={(e) => handleAnchorClick(e, "#faq")} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</a>
               </>
             ) : (
-              // On other pages, link back to homepage with hash
+              // On other pages, use direct links instead of hash links
               <>
-                <Link to="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</Link>
-                <Link to="/#packages" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</Link>
+                <Link to="/" onClick={() => {setIsMenuOpen(false); window.sessionStorage.setItem('scrollTarget', 'how-it-works');}} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">How It Works</Link>
+                <Link to="/" onClick={() => {setIsMenuOpen(false); window.sessionStorage.setItem('scrollTarget', 'packages');}} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Packages</Link>
                 <Link to="/about-us" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">About Us</Link>
-                <Link to="/#faq" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</Link>
+                <Link to="/" onClick={() => {setIsMenuOpen(false); window.sessionStorage.setItem('scrollTarget', 'faq');}} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">FAQ</Link>
               </>
             )}
             <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="text-primary hover:text-secondary transition-colors py-2 border-b border-gray-100">Contact</Link>
