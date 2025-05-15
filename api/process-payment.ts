@@ -47,9 +47,7 @@ export default async function handler(request: Request) {
       });
     }
 
-    const squareAccessToken = process.env.NODE_ENV === 'production' 
-      ? process.env.SQUARE_ACCESS_TOKEN 
-      : 'EAAAl1PTt4PYjqbVyX9Ho6eLP156f3tAI8Zoj-KohYWMzZqQJf79Qyq7BkCznxd9';
+    const squareAccessToken = 'EAAAl1PTt4PYjqbVyX9Ho6eLP156f3tAI8Zoj-KohYWMzZqQJf79Qyq7BkCznxd9';
 
     logEvent('square_payment_initiated', {
       amount,
