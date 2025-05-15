@@ -1,122 +1,148 @@
 export const config = {
-  runtime: 'edge',
+    runtime: 'edge',
 };
 
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
-  console.log(JSON.stringify({
-    timestamp: new Date().toISOString(),
-    event,
-    ...data
-  }));
+    console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event,
+        ...data
+    }));
 }
 
 export default async function handler(request: Request) {
-  logEvent('request_received', {
-    method: request.method,
-    url: request.url,
-    headers: Object.fromEntries(request.headers.entries())
-  });
-
-  if (request.method !== 'POST') {
-    logEvent('method_not_allowed', { method: request.method });
-    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  try {
-    const body = await request.json();
-    logEvent('request_body_parsed', { 
-      hasToken: !!body.token,
-      amount: body.amount,
-      orderDetails: body.orderDetails
+    logEvent('request_received', {
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers.entries())
     });
 
-    const { token, amount, orderDetails } = body;
-
-    if (!token || !amount) {
-      logEvent('validation_failed', { 
-        missingToken: !token,
-        missingAmount: !amount
-      });
-      return new Response(JSON.stringify({ success: false, error: 'Missing required fields' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (request.method !== 'POST') {
+        logEvent('method_not_allowed', {method: request.method});
+        return new Response(JSON.stringify({success: false, error: 'Method not allowed'}), {
+            status: 405,
+            headers: {'Content-Type': 'application/json'}
+        });
     }
 
-    const squareAccessToken = 'EAAAl1PTt4PYjqbVyX9Ho6eLP156f3tAI8Zoj-KohYWMzZqQJf79Qyq7BkCznxd9';
+    try {
+        const body = await request.json();
+        logEvent('request_body_parsed', {
+            hasToken: !!body.token,
+            amount: body.amount,
+            orderDetails: body.orderDetails
+        });
 
-    logEvent('square_payment_initiated', {
-      amount,
-      locationId: 'L6JKGA1KJ9W89',
-      environment: process.env.NODE_ENV
-    });
+        const {token, amount, orderDetails} = body;
 
-    const response = await fetch('https://connect.squareupsandbox.com/v2/payments', {
-      method: 'POST',
-      headers: {
-        'Square-Version': '2024-02-15',
-        'Authorization': `Bearer ${squareAccessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        source_id: token,
-        amount_money: {
-          amount: Math.round(amount * 100), // Convert to cents
-          currency: 'USD'
-        },
-        location_id: 'L6JKGA1KJ9W89',
-        idempotency_key: crypto.randomUUID()
-      })
-    });
+        if (!token || !amount) {
+            logEvent('validation_failed', {
+                missingToken: !token,
+                missingAmount: !amount
+            });
+            return new Response(JSON.stringify({success: false, error: 'Missing required fields'}), {
+                status: 400,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
 
-    const result = await response.json();
-    logEvent('square_response_received', {
-      status: response.status,
-      ok: response.ok,
-      hasErrors: !!result.errors,
-      errorDetails: result.errors
-    });
+        const squareAccessToken = process.env.SQUARE_ACCESS_TOKEN;
+        const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
+        const SQUARE_API_URL = process.env.SQUARE_API_URL;
 
-    if (!response.ok) {
-      throw new Error(result.errors?.[0]?.detail || 'Payment failed');
+        if (!squareAccessToken) {
+            logEvent('configuration_error', {error: 'Square access token not configured'});
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+                status: 500,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        if (!SQUARE_LOCATION_ID) {
+            logEvent('configuration_error', {error: 'SQUARE_LOCATION_ID not configured'});
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+                status: 500,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        if (!SQUARE_API_URL) {
+            logEvent('configuration_error', {error: 'SQUARE_API_URL not configured'});
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+                status: 500,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        logEvent('square_payment_initiated', {
+            amount,
+            locationId: SQUARE_LOCATION_ID,
+            environment: process.env.NODE_ENV
+        });
+
+        const response = await fetch(SQUARE_API_URL, {
+            method: 'POST',
+            headers: {
+                'Square-Version': '2024-02-15',
+                'Authorization': `Bearer ${squareAccessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                source_id: token,
+                amount_money: {
+                    amount: Math.round(amount * 100), // Convert to cents
+                    currency: 'USD'
+                },
+                location_id: SQUARE_LOCATION_ID,
+                idempotency_key: crypto.randomUUID()
+            })
+        });
+
+        const result = await response.json();
+        logEvent('square_response_received', {
+            status: response.status,
+            ok: response.ok,
+            hasErrors: !!result.errors,
+            errorDetails: result.errors
+        });
+
+        if (!response.ok) {
+            throw new Error(result.errors?.[0]?.detail || 'Payment failed');
+        }
+
+        logEvent('payment_successful', {
+            paymentId: result.payment?.id,
+            amount: result.payment?.amount_money?.amount,
+            status: result.payment?.status
+        });
+
+        // Here you would typically:
+        // 1. Save the order details to your database
+        // 2. Send confirmation emails
+        // 3. Update inventory
+        // 4. etc.
+
+        return new Response(JSON.stringify({
+            success: true,
+            payment: result.payment
+        }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
+        });
+    } catch (error) {
+        logEvent('payment_error', {
+            error: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+
+        return new Response(JSON.stringify({
+            success: false,
+            error: error.message || 'Internal server error'
+        }), {
+            status: 500,
+            headers: {'Content-Type': 'application/json'}
+        });
     }
-
-    logEvent('payment_successful', {
-      paymentId: result.payment?.id,
-      amount: result.payment?.amount_money?.amount,
-      status: result.payment?.status
-    });
-
-    // Here you would typically:
-    // 1. Save the order details to your database
-    // 2. Send confirmation emails
-    // 3. Update inventory
-    // 4. etc.
-
-    return new Response(JSON.stringify({
-      success: true,
-      payment: result.payment
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    logEvent('payment_error', {
-      error: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message || 'Internal server error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
 } 
