@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { Check, ShoppingBag, CreditCard, Truck, Lock, Plus, Minus, Cloud, Usb, CreditCard as PaymentIcon, Calendar } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { sendEmailToHeritageBox } from '@/utils/emailUtils';
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -227,6 +228,52 @@ const Checkout = () => {
     setShowCardForm(true);
   };
 
+  // Function to send order details to Formspree
+  const sendOrderDetailsToFormspree = async (orderInfo: any, paymentInfo?: string) => {
+    try {
+      const selectedDigitizingOption = getSelectedDigitizingOption();
+      const orderDetails = {
+        customerInfo: {
+          ...formState,
+          fullName: `${formState.firstName} ${formState.lastName}`
+        },
+        orderDetails: {
+          package: packageType,
+          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
+          packageFeatures: packageDetails.features.join(", "),
+          totalAmount: `$${calculateTotal()}`,
+          digitizingSpeed: selectedDigitizingOption.name,
+          digitizingTime: selectedDigitizingOption.time,
+          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
+          addOns: []
+        },
+        paymentMethod: paymentInfo || paymentMethod,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add USB drives to add-ons if any
+      if (usbDrives > 0) {
+        orderDetails.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      
+      // Add cloud backup to add-ons if any
+      if (cloudBackup > 0) {
+        orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+      
+      console.log("Sending order details to Formspree:", orderDetails);
+      
+      // Send the email with order details
+      await sendEmailToHeritageBox(orderDetails, "Order Completed");
+      console.log("Order details sent successfully to Formspree");
+      
+    } catch (error) {
+      console.error("Failed to send order details to Formspree:", error);
+      // We don't want to show an error to the user here as the payment was successful
+      // Just log the error for debugging purposes
+    }
+  };
+
   const handlePaymentSuccess = async (token: string, details: any) => {
     setIsProcessing(true);
     
@@ -254,6 +301,9 @@ const Checkout = () => {
       if (!result.success) {
         throw new Error(result.error || 'Payment failed');
       }
+
+      // Send order details to Formspree
+      await sendOrderDetailsToFormspree(formState, `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`);
 
       toast.success("Payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
@@ -293,7 +343,10 @@ const Checkout = () => {
     console.log("Cloud backup years:", cloudBackup);
     console.log("Digitizing speed:", digitizingSpeed);
     
-    setTimeout(() => {
+    setTimeout(async () => {
+      // Send order details to Formspree
+      await sendOrderDetailsToFormspree(formState, "PayPal");
+      
       setIsProcessing(false);
       toast.success("PayPal payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
