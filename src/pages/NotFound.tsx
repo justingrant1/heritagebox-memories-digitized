@@ -22,6 +22,7 @@ const NotFound = () => {
       <SEOHelmet 
         title="Page Not Found | HeritageBox®"
         description="We couldn't find the page you were looking for. Please return to our homepage to continue preserving your memories."
+        canonical="https://heritagebox.com/404" // Explicit canonical URL for 404 page
       />
       
       <NavBar />
