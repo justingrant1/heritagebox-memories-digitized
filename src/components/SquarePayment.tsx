@@ -196,6 +196,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
     return (
       <div>
+        <div id="card-container" className="min-h-[110px]"></div>
         <div className="mt-2 text-xs text-gray-500 flex items-center">
           <CardIcon size={14} className="mr-1" />
           <span>All major credit cards accepted</span>
