@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2 } from 'lucide-react';
+import { Loader2, CreditCard as CardIcon, ShieldCheck } from 'lucide-react';
 
 // Define types for the Square SDK
 interface Square {
@@ -159,18 +160,18 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   const renderCardContainer = () => {
-    /*if (cardLoading) {
+    if (cardLoading) {
       return (
-        <div className="min-h-[100px] flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+        <div className="min-h-[110px] flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
           <span className="ml-2 text-gray-500">Loading payment form...</span>
         </div>
       );
-    }*/
+    }
 
     if (error) {
       return (
-        <div className="min-h-[100px] flex flex-col items-center justify-center text-red-500 p-4">
+        <div className="min-h-[110px] flex flex-col items-center justify-center text-red-500 p-4">
           <p className="font-medium">{error}</p>
           <p className="text-sm mt-2">Please refresh the page or try a different browser</p>
           <Button
@@ -186,27 +187,51 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
     if (!loaded) {
       return (
-        <div className="min-h-[100px] flex items-center justify-center">
-          <p className="text-gray-500">Loading payment form...</p>
+        <div className="min-h-[110px] flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+          <p className="text-gray-500 ml-2">Loading payment form...</p>
         </div>
       );
     }
 
-    return <div id="card-container" className="min-h-[100px]"></div>;
+    return (
+      <div>
+        <div id="card-container" className="min-h-[110px]"></div>
+        <div className="mt-2 text-xs text-gray-500 flex items-center">
+          <CardIcon size={14} className="mr-1" />
+          <span>All major credit cards accepted</span>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-4">
-      <div className="p-4 border rounded-md bg-white">
+      <div className="p-4 md:p-6 border rounded-md bg-white shadow-sm">
+        <div className="mb-3 pb-2 border-b flex items-center">
+          <CardIcon className="mr-2 text-gray-600" />
+          <h3 className="font-medium">Card Information</h3>
+        </div>
         {renderCardContainer()}
       </div>
-      <div className="text-center md:text-left">
+      <div className="flex justify-between items-center">
+        <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
+          <ShieldCheck size={16} />
+          <span>Secure payment</span>
+        </div>
         <Button
           onClick={handlePaymentSubmit}
-          className={`px-8 py-6 text-lg ${buttonColorClass}`}
+          className={`w-full md:w-auto px-6 py-2.5 ${buttonColorClass}`}
           disabled={isProcessing || !card || !!error}
         >
-          {isProcessing ? "Processing..." : `Pay ${amount}`}
+          {isProcessing ? (
+            <span className="flex items-center">
+              <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              Processing...
+            </span>
+          ) : (
+            `Pay ${amount}`
+          )}
         </Button>
       </div>
     </div>

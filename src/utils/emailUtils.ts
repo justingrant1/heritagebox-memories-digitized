@@ -1,7 +1,39 @@
-
 /**
  * Utility functions for sending emails to HeritageBox
  */
+
+// Format the customer address for better readability
+const formatAddress = (customerInfo: any) => {
+  return `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} ${customerInfo.zipCode}`;
+};
+
+// Format order details for better email presentation
+const formatOrderDetails = (data: any, source: string) => {
+  if (source === "Order Completed" && data.customerInfo && data.orderDetails) {
+    return {
+      _subject: `HeritageBox Order - ${data.customerInfo.fullName}`,
+      customerName: data.customerInfo.fullName,
+      customerEmail: data.customerInfo.email,
+      customerAddress: formatAddress(data.customerInfo),
+      packageSelected: `${data.orderDetails.package} - ${data.orderDetails.packagePrice}`,
+      digitizingSpeed: `${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) - ${data.orderDetails.digitizingPrice}`,
+      addOns: data.orderDetails.addOns.length > 0 ? data.orderDetails.addOns.join(", ") : "None",
+      totalAmount: data.orderDetails.totalAmount,
+      paymentMethod: data.paymentMethod,
+      orderDate: new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      features: data.orderDetails.packageFeatures
+    };
+  }
+  
+  // For other types of emails, keep the original data
+  return data;
+};
 
 // Send email to HeritageBox
 export const sendEmailToHeritageBox = async (data: any, source: string) => {
@@ -13,24 +45,7 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
     console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
     
     // Format rich-text for better email readability
-    let formattedData = data;
-    
-    // If it's an order, format the order details for better readability in email
-    if (source === "Order Completed" && data.customerInfo && data.orderDetails) {
-      formattedData = {
-        _subject: `HeritageBox Order - ${data.customerInfo.fullName}`,
-        customerName: data.customerInfo.fullName,
-        customerEmail: data.customerInfo.email,
-        customerAddress: `${data.customerInfo.address}, ${data.customerInfo.city}, ${data.customerInfo.state} ${data.customerInfo.zipCode}`,
-        packageSelected: `${data.orderDetails.package} - ${data.orderDetails.packagePrice}`,
-        digitizingSpeed: `${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) - ${data.orderDetails.digitizingPrice}`,
-        addOns: data.orderDetails.addOns.length > 0 ? data.orderDetails.addOns.join(", ") : "None",
-        totalAmount: data.orderDetails.totalAmount,
-        paymentMethod: data.paymentMethod,
-        orderDate: new Date().toLocaleString(),
-        features: data.orderDetails.packageFeatures
-      };
-    }
+    const formattedData = formatOrderDetails(data, source);
     
     // Send the email data as JSON instead of FormData
     const response = await fetch(endpoint, {
