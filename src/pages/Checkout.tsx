@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -10,7 +9,8 @@ import Footer from '@/components/Footer';
 import { 
   Check, ShoppingBag, CreditCard, Truck, Lock, 
   Plus, Minus, Cloud, Usb, Calendar, 
-  AlertCircle, ArrowRight, CreditCard as PaymentIcon 
+  AlertCircle, ArrowRight, CreditCard as PaymentIcon,
+  Loader2
 } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -38,6 +38,17 @@ const shippingFormSchema = z.object({
   zipCode: z.string().min(5, "Please enter a valid ZIP code").max(10)
 });
 
+// Define the form state type explicitly to avoid TypeScript errors
+type FormState = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+};
+
 const Checkout = () => {
   const [searchParams] = useSearchParams();
   const packageType = searchParams.get('package') || 'Popular';
@@ -63,7 +74,7 @@ const Checkout = () => {
   const [cloudBackup, setCloudBackup] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
   const [digitizingSpeed, setDigitizingSpeed] = useState('standard'); // 'standard', 'expedited', or 'rush'
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<FormState>({
     firstName: '',
     lastName: '',
     email: '',
@@ -245,7 +256,16 @@ const Checkout = () => {
   };
 
   const handleSubmit = (values: z.infer<typeof shippingFormSchema>) => {
-    setFormState(values);
+    // Fix: Use proper typing to ensure all required fields are present
+    setFormState({
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      address: values.address,
+      city: values.city,
+      state: values.state,
+      zipCode: values.zipCode,
+    });
     setShowCardForm(true);
     
     // Smooth scroll to payment section after a short delay
