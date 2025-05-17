@@ -1,9 +1,25 @@
+
+# Enable rewriting
+RewriteEngine On
+
 # Ensure XML files are served with the correct content type
-<Files ~ "\.xml$">
-  Header set Content-Type "application/xml; charset=UTF-8"
+<FilesMatch "\.xml$">
+    Header set Content-Type "application/xml; charset=utf-8"
+</FilesMatch>
+
+# Specific rule for sitemap.xml
+<Files "sitemap.xml">
+    Header set Content-Type "application/xml; charset=utf-8"
 </Files>
 
-# Ensure sitemap.xml is specifically served with the correct content type
-<Files "sitemap.xml">
-  Header set Content-Type "application/xml; charset=UTF-8"
-</Files>
+# If requested resource is not a file or directory
+# (helps prevent conflicts with static files)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Serve sitemap.xml directly from public directory
+RewriteRule ^sitemap\.xml$ /sitemap.xml [L]
+
+# For all other requests that aren't files or directories, 
+# send to index.html for SPA routing
+RewriteRule ^ index.html [QSA,L]
