@@ -18,8 +18,7 @@ const PackageSelected = () => {
       description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
-        "Digitize up to 3 media items OR up to 75 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 3 tapes OR up to 75 photos",
         "Online access to digital files",
         "Free shipping both ways"
       ]
@@ -31,8 +30,7 @@ const PackageSelected = () => {
       color: "secondary",
       popular: true,
       features: [
-        "Digitize up to 10 media items OR up to 250 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 10 tapes OR up to 250 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -44,8 +42,7 @@ const PackageSelected = () => {
       description: "Great for larger collections",
       color: "rose-dark",
       features: [
-        "Digitize up to 20 media items OR up to 500 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 20 tapes OR up to 500 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -57,8 +54,7 @@ const PackageSelected = () => {
       description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
-        "Digitize up to 40 media items OR up to 1000 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 40 tapes OR up to 1000 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
