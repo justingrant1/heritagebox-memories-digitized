@@ -1,3 +1,4 @@
+
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -17,8 +18,10 @@ const PackageSelected = () => {
       price: "$69",
       description: "Perfect for a small collection of memories",
       color: "primary",
+      tapeCount: "3",
+      photoCount: "75",
       features: [
-        "Digitize up to 3 tapes OR up to 75 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways"
       ]
@@ -28,9 +31,11 @@ const PackageSelected = () => {
       price: "$179",
       description: "Our most popular package for families",
       color: "secondary",
+      tapeCount: "10",
+      photoCount: "250",
       popular: true,
       features: [
-        "Digitize up to 10 tapes OR up to 250 photos",
+        "High-quality digital conversion", 
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -41,8 +46,10 @@ const PackageSelected = () => {
       price: "$349",
       description: "Great for larger collections",
       color: "rose-dark",
+      tapeCount: "20",
+      photoCount: "500",
       features: [
-        "Digitize up to 20 tapes OR up to 500 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -53,8 +60,10 @@ const PackageSelected = () => {
       price: "$599",
       description: "For preserving a lifetime of memories",
       color: "primary-light",
+      tapeCount: "40",
+      photoCount: "1000",
       features: [
-        "Digitize up to 40 tapes OR up to 1000 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -144,12 +153,15 @@ const PackageSelected = () => {
             <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-12">
               <div className={`${getBgColorClass()} p-6 md:p-8`}>
                 <h2 className="text-2xl font-bold mb-2">Your Selected Package</h2>
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
                     <h3 className={`${getTextColorClass()} text-3xl font-bold`}>
                       {packageDetails.name} Package
                     </h3>
                     <p className="text-gray-600 mt-1">{packageDetails.description}</p>
+                    <p className="text-gray-700 mt-2">
+                      <span className="font-semibold">Digitize:</span> Up to {packageDetails.tapeCount} tapes OR up to {packageDetails.photoCount} photos
+                    </p>
                   </div>
                   <div className="mt-4 md:mt-0">
                     <span className="text-4xl font-bold">{packageDetails.price}</span>
@@ -192,6 +204,9 @@ const PackageSelected = () => {
                           {pkg.name === packageType && <span className="ml-2 text-gray-500 text-sm">(Current)</span>}
                         </h3>
                         <p className="text-2xl font-bold">{pkg.price}</p>
+                        <div className="text-xs text-gray-600 mt-1">
+                          Digitize up to {pkg.tapeCount} tapes OR {pkg.photoCount} photos
+                        </div>
                       </CardHeader>
                       <CardContent className="pt-2">
                         <p className="text-sm text-gray-600 mb-2">{pkg.description}</p>

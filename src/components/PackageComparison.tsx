@@ -11,9 +11,11 @@ interface PackageProps {
   features: string[];
   popular?: boolean;
   color: string;
+  tapeCount?: string;
+  photoCount?: string;
 }
 
-const Package = ({ name, price, description, features, popular, color }: PackageProps) => {
+const Package = ({ name, price, description, features, popular, color, tapeCount, photoCount }: PackageProps) => {
   // Create a button class based on the package type
   const getButtonClass = () => {
     if (popular) {
@@ -54,6 +56,11 @@ const Package = ({ name, price, description, features, popular, color }: Package
           <span className="text-4xl font-bold">{price}</span>
         </div>
         <p className="text-gray-600">{description}</p>
+        {(tapeCount || photoCount) && (
+          <div className="mt-2 text-sm text-gray-700">
+            <p><span className="font-semibold">Digitize:</span> {tapeCount && `Up to ${tapeCount} tapes`}{tapeCount && photoCount && ' OR '}{photoCount && `up to ${photoCount} photos`}</p>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-6">
         <ul className="space-y-4 mb-8">
@@ -87,8 +94,10 @@ const PackageComparison = () => {
       price: "$69",
       description: "Perfect for a small collection of memories",
       color: "primary",
+      tapeCount: "3",
+      photoCount: "75",
       features: [
-        "Digitize up to 3 tapes OR up to 75 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways"
       ]
@@ -98,9 +107,11 @@ const PackageComparison = () => {
       price: "$179",
       description: "Our most popular package for families",
       color: "secondary",
+      tapeCount: "10",
+      photoCount: "250",
       popular: true,
       features: [
-        "Digitize up to 10 tapes OR up to 250 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -111,8 +122,10 @@ const PackageComparison = () => {
       price: "$349",
       description: "Great for larger collections",
       color: "rose-dark",
+      tapeCount: "20",
+      photoCount: "500",
       features: [
-        "Digitize up to 20 tapes OR up to 500 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -123,8 +136,10 @@ const PackageComparison = () => {
       price: "$599",
       description: "For preserving a lifetime of memories",
       color: "primary-light",
+      tapeCount: "40",
+      photoCount: "1000",
       features: [
-        "Digitize up to 40 tapes OR up to 1000 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -152,6 +167,8 @@ const PackageComparison = () => {
               features={pkg.features}
               popular={pkg.popular}
               color={pkg.color}
+              tapeCount={pkg.tapeCount}
+              photoCount={pkg.photoCount}
             />
           ))}
         </div>
