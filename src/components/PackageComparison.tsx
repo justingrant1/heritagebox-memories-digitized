@@ -20,17 +20,25 @@ const Package = ({ name, price, description, features, popular, color }: Package
       return 'bg-secondary hover:bg-secondary-light text-primary font-semibold';
     }
     
-    // Custom handling for each color
+    // Map the color to specific button variants
     switch (color) {
       case 'primary':
-        return 'bg-primary hover:bg-primary-light text-white';
+        return 'bg-primary hover:bg-primary/90 text-white';
       case 'rose-dark':
-        return 'bg-rose-dark hover:bg-rose/90 text-white';
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
       case 'primary-light':
-        return 'bg-primary-light hover:bg-primary-light/90 text-white';
+        return 'bg-blue-400 hover:bg-blue-500 text-white';
       default:
         return `bg-${color} hover:bg-${color}/90 text-white`;
     }
+  };
+
+  // Get button variant based on package type
+  const getButtonVariant = () => {
+    if (popular) return "secondary";
+    if (color === "rose-dark") return "rose-dark";
+    if (color === "primary-light") return "primary-light";
+    return "default";
   };
 
   return (
@@ -41,7 +49,7 @@ const Package = ({ name, price, description, features, popular, color }: Package
         </div>
       )}
       <CardHeader className={`pb-0 ${popular ? 'bg-secondary/10' : ''}`}>
-        <h3 className={`text-xl font-bold mb-1 ${popular ? 'text-secondary' : `text-${color}`}`}>{name}</h3>
+        <h3 className={`text-xl font-bold mb-1 ${popular ? 'text-secondary' : color === 'rose-dark' ? 'text-rose-500' : color === 'primary-light' ? 'text-blue-400' : `text-${color}`}`}>{name}</h3>
         <div className="mb-2">
           <span className="text-4xl font-bold">{price}</span>
         </div>
@@ -51,7 +59,7 @@ const Package = ({ name, price, description, features, popular, color }: Package
         <ul className="space-y-4 mb-8">
           {features.map((feature, index) => (
             <li key={index} className="flex items-start">
-              <span className={`${popular ? 'text-secondary' : `text-${color}`} mr-3 mt-0.5 shrink-0`}>
+              <span className={`${popular ? 'text-secondary' : color === 'rose-dark' ? 'text-rose-500' : color === 'primary-light' ? 'text-blue-400' : `text-${color}`} mr-3 mt-0.5 shrink-0`}>
                 <Check size={18} className="stroke-[2.5]" />
               </span>
               <span className="text-gray-700">{feature}</span>
@@ -59,7 +67,8 @@ const Package = ({ name, price, description, features, popular, color }: Package
           ))}
         </ul>
         <Button 
-          className={`w-full ${getButtonClass()}`}
+          variant={getButtonVariant()}
+          className="w-full"
           asChild
         >
           <Link to={`/package-selected?package=${encodeURIComponent(name)}`}>
