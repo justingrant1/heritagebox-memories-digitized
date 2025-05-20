@@ -1,4 +1,3 @@
-
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -184,6 +183,18 @@ const PackageSelected = () => {
               </div>
             </div>
 
+            {/* First Complete Your Order Button */}
+            <div className="text-center mb-8">
+              <Button 
+                className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                asChild
+              >
+                <Link to={`/checkout?package=${encodeURIComponent(packageType)}`}>
+                  Complete Your Order
+                </Link>
+              </Button>
+            </div>
+
             {/* Package Change Section */}
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">
               <h2 className="text-2xl font-bold mb-4">Change Your Package</h2>
@@ -222,6 +233,18 @@ const PackageSelected = () => {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* Second Complete Your Order Button */}
+            <div className="text-center mb-12">
+              <Button 
+                className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                asChild
+              >
+                <Link to={`/checkout?package=${encodeURIComponent(packageType)}`}>
+                  Complete Your Order
+                </Link>
+              </Button>
             </div>
             
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">
