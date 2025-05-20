@@ -30,7 +30,7 @@ const OrderConfirmation = () => {
       case 'Starter':
         return 'bg-primary hover:bg-primary/90 text-white';
       case 'Dusty Rose':
-        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
       case 'Eternal':
         return 'bg-primary-light hover:bg-primary-light/90 text-white';
       case 'Popular':
@@ -44,7 +44,7 @@ const OrderConfirmation = () => {
       case 'Starter':
         return 'text-primary';
       case 'Dusty Rose':
-        return 'text-rose-dark';
+        return 'text-rose-500';
       case 'Eternal':
         return 'text-primary-light';
       case 'Popular':
