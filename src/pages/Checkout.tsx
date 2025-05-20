@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -421,7 +422,7 @@ const Checkout = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <NavBar />
       
-      <main className="flex-grow">
+      <main className="flex-grow pt-24 md:pt-28"> {/* Added padding-top to push content below navbar */}
         <div className="container mx-auto px-4 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-10">
