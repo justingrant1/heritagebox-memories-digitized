@@ -1,4 +1,3 @@
-
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -16,52 +15,48 @@ const PackageSelected = () => {
     {
       name: "Starter",
       price: "$69",
-      description: "Perfect for preserving a small family collection of cherished memories",
+      description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
         "Digitize up to 3 tapes OR up to 75 photos",
-        "High-quality digital conversion (480p for VHS)",
         "Online access to digital files",
-        "Free shipping both ways with tracking"
+        "Free shipping both ways"
       ]
     },
     {
       name: "Popular",
       price: "$179",
-      description: "Our most popular package for families with moderate media collections",
+      description: "Our most popular package for families",
       color: "secondary",
       popular: true,
       features: [
         "Digitize up to 10 tapes OR up to 250 photos",
-        "Enhanced digital conversion (480p for VHS)",
         "Online access to digital files",
-        "Free shipping both ways with tracking",
+        "Free shipping both ways",
         "Online Backup (1 Year Free)"
       ]
     },
     {
       name: "Dusty Rose",
       price: "$349",
-      description: "Ideal for larger collections with extended family memories",
+      description: "Great for larger collections",
       color: "rose-dark",
       features: [
         "Digitize up to 20 tapes OR up to 500 photos",
-        "Premium digital conversion (480p for VHS)",
         "Online access to digital files",
-        "Free priority shipping both ways",
+        "Free shipping both ways",
         "Online Backup (1 Year Free)"
       ]
     },
     {
       name: "Eternal",
       price: "$599",
-      description: "Complete preservation solution for extensive family archives",
+      description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
         "Digitize up to 40 tapes OR up to 1000 photos",
-        "Premium digital conversion (480p for VHS)",
         "Online access to digital files",
-        "Free expedited shipping both ways",
+        "Free shipping both ways",
         "Online Backup (1 Year Free)"
       ]
     }
