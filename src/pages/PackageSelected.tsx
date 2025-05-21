@@ -110,7 +110,7 @@ const PackageSelected = () => {
         return 'text-gray-900';
     }
   };
-
+  
   // Get button color class based on package type
   const getButtonClass = () => {
     switch(packageDetails.color) {

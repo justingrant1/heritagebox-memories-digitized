@@ -198,7 +198,7 @@ const Checkout = () => {
       case 'primary':
         return 'text-primary';
       case 'rose-dark':
-        return 'text-rose-dark';
+        return 'text-rose-500';
       case 'primary-light':
         return 'text-primary-light';
       case 'secondary':
@@ -214,7 +214,7 @@ const Checkout = () => {
       case 'primary':
         return 'bg-primary hover:bg-primary/90 text-white';
       case 'rose-dark':
-        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
       case 'primary-light':
         return 'bg-primary-light hover:bg-primary-light/90 text-white';
       case 'secondary':
