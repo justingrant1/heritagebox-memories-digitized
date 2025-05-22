@@ -17,7 +17,7 @@ const StepCard = ({
       <div className="bg-secondary rounded-full w-16 h-16 flex items-center justify-center mb-4">
         <Icon size={32} className="text-primary" />
       </div>
-      <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center mb-4 -mt-10 ml-8">
+      <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center mb-3 -mt-10 ml-8">
         {number}
       </div>
       <h3 className="text-xl font-bold mb-2">{title}</h3>
