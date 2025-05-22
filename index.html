@@ -16,11 +16,13 @@
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="QdB/1F6znbSHvO4aM5WG+Q" async></script>
     
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HeritageBox® | Preserve Your Family Memories for Generations</title>
-    <meta name="description" content="Transform your VHS tapes, photos, slides and other media into digital treasures. Professional digitization services that preserve your memories forever." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- Core meta tags - these are replaced by SEOHelmet in React but needed for initial load -->
+    <title>HeritageBox® | Professional Memory Digitization Services</title>
+    <meta name="description" content="Transform your precious VHS tapes, photos, slides and more into digital formats with HeritageBox®. Professional digitization services preserving memories for generations." />
     <meta name="author" content="HeritageBox" />
-    <meta name="keywords" content="digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization" />
+    <meta name="keywords" content="digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization, media conversion service" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://heritagebox.com/" />
@@ -28,29 +30,29 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://heritagebox.com/" />
-    <meta property="og:title" content="HeritageBox® | Preserve Your Precious Family Memories" />
-    <meta property="og:description" content="Don't let your family memories fade away. Our professional digitization services transform your old tapes, photos, and slides into modern digital formats." />
-    <meta property="og:image" content="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
+    <meta property="og:title" content="HeritageBox® | Professional Memory Digitization Services" />
+    <meta property="og:description" content="Transform your precious VHS tapes, photos, slides and more into digital formats with HeritageBox®. Professional digitization services preserving memories for generations." />
+    <meta property="og:image" content="https://heritagebox.com/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
     <meta property="og:site_name" content="HeritageBox®" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@heritagebox" />
     <meta name="twitter:url" content="https://heritagebox.com/" />
-    <meta name="twitter:title" content="HeritageBox® | Professional Memory Preservation" />
-    <meta name="twitter:description" content="Your irreplaceable family memories deserve to be preserved. We digitize VHS tapes, photos, slides and more with care and precision." />
-    <meta name="twitter:image" content="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
+    <meta name="twitter:title" content="HeritageBox® | Professional Memory Digitization Services" />
+    <meta name="twitter:description" content="Transform your precious VHS tapes, photos, slides and more into digital formats with HeritageBox®. Professional digitization services preserving memories for generations." />
+    <meta name="twitter:image" content="https://heritagebox.com/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
     
-    <!-- Structured Data / Schema.org -->
+    <!-- Structured Data / Schema.org - Enhanced with more specific types and additional properties -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
         "name": "HeritageBox®",
-        "description": "Professional digitization services for VHS tapes, photos, slides, and other media formats.",
+        "description": "Professional digitization services for VHS tapes, photos, slides, and other legacy media formats.",
         "url": "https://heritagebox.com",
-        "logo": "/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png",
-        "image": "/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png",
+        "logo": "https://heritagebox.com/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png",
+        "image": "https://heritagebox.com/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png",
         "telephone": "+1-800-123-4567",
         "email": "info@heritagebox.com",
         "priceRange": "$$",
@@ -72,7 +74,34 @@
           "https://www.facebook.com/heritagebox",
           "https://www.instagram.com/heritagebox",
           "https://twitter.com/heritagebox"
-        ]
+        ],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Memory Digitization Services",
+          "itemListElement": [
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "VHS to Digital Conversion"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Photo Scanning Service"
+              }
+            },
+            {
+              "@type": "Offer",
+              "itemOffered": {
+                "@type": "Service",
+                "name": "Slide Digitization"
+              }
+            }
+          ]
+        }
       }
     </script>
     
@@ -84,26 +113,80 @@
         "serviceType": "Digitization",
         "provider": {
           "@type": "LocalBusiness",
-          "name": "HeritageBox®"
+          "name": "HeritageBox®",
+          "url": "https://heritagebox.com"
         },
-        "description": "Professional digitization of VHS tapes, photos, slides, and other media formats.",
-        "offers": {
-          "@type": "Offer",
-          "price": "129.99",
-          "priceCurrency": "USD"
+        "description": "Professional digitization of VHS tapes, photos, slides, and other legacy media formats.",
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Essential Package",
+            "price": "129.99",
+            "priceCurrency": "USD",
+            "description": "Basic digitization package for preserving your memories"
+          },
+          {
+            "@type": "Offer",
+            "name": "Popular Package",
+            "price": "199.99",
+            "priceCurrency": "USD",
+            "description": "Our most popular digitization package with added features"
+          },
+          {
+            "@type": "Offer",
+            "name": "Premium Package",
+            "price": "299.99",
+            "priceCurrency": "USD",
+            "description": "Premium digitization with all features and priority service"
+          }
+        ]
+      }
+    </script>
+    
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "https://heritagebox.com",
+        "name": "HeritageBox®",
+        "description": "Professional memory digitization services",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://heritagebox.com/?s={search_term_string}",
+          "query-input": "required name=search_term_string"
         }
       }
     </script>
     
-    <!-- Favicon -->
+    <!-- Breadcrumb Schema for Homepage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://heritagebox.com/"
+          }
+        ]
+      }
+    </script>
+    
+    <!-- Favicon with additional sizes and explicit dimensions -->
     <link rel="apple-touch-icon" sizes="180x180" href="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png" />
     <link rel="manifest" href="/site.webmanifest" />
     
     <!-- Performance optimizations -->
-    <link rel="preconnect" href="https://cdn.gpteng.co" />
+    <link rel="preconnect" href="https://cdn.gpteng.co" crossorigin="anonymous" />
     <link rel="dns-prefetch" href="https://cdn.gpteng.co" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin="anonymous" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://analytics.ahrefs.com" crossorigin="anonymous" />
+    <link rel="dns-prefetch" href="https://analytics.ahrefs.com" />
   </head>
 
   <body>
