@@ -10,29 +10,57 @@ const formatAddress = (customerInfo: any) => {
 // Format order details for better email presentation
 const formatOrderDetails = (data: any, source: string) => {
   if (source === "Order Completed" && data.customerInfo && data.orderDetails) {
+    // Flatten the object structure for better Formspree compatibility
     return {
       _subject: `HeritageBox Order - ${data.customerInfo.fullName}`,
-      customerName: data.customerInfo.fullName,
-      customerEmail: data.customerInfo.email,
-      customerAddress: formatAddress(data.customerInfo),
-      packageSelected: `${data.orderDetails.package} - ${data.orderDetails.packagePrice}`,
-      digitizingSpeed: `${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) - ${data.orderDetails.digitizingPrice}`,
-      addOns: data.orderDetails.addOns.length > 0 ? data.orderDetails.addOns.join(", ") : "None",
-      totalAmount: data.orderDetails.totalAmount,
-      paymentMethod: data.paymentMethod,
-      orderDate: new Date().toLocaleDateString('en-US', {
+      source: source,
+      
+      // Customer Information
+      customer_name: data.customerInfo.fullName,
+      customer_email: data.customerInfo.email,
+      customer_first_name: data.customerInfo.firstName,
+      customer_last_name: data.customerInfo.lastName,
+      customer_address: data.customerInfo.address,
+      customer_city: data.customerInfo.city,
+      customer_state: data.customerInfo.state,
+      customer_zip: data.customerInfo.zipCode,
+      customer_full_address: formatAddress(data.customerInfo),
+      
+      // Order Details
+      package_selected: data.orderDetails.package,
+      package_price: data.orderDetails.packagePrice,
+      package_features: data.orderDetails.packageFeatures,
+      
+      // Digitizing Information
+      digitizing_speed: data.orderDetails.digitizingSpeed,
+      digitizing_time: data.orderDetails.digitizingTime,
+      digitizing_price: data.orderDetails.digitizingPrice,
+      
+      // Add-ons and Total
+      add_ons: data.orderDetails.addOns.length > 0 ? data.orderDetails.addOns.join("; ") : "None",
+      total_amount: data.orderDetails.totalAmount,
+      
+      // Payment and Order Info
+      payment_method: data.paymentMethod,
+      order_date: new Date().toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
       }),
-      features: data.orderDetails.packageFeatures
+      timestamp: data.timestamp,
+      
+      // Additional context
+      order_summary: `Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`
     };
   }
   
-  // For other types of emails, keep the original data
-  return data;
+  // For other types of emails (like welcome popup), keep the original data
+  return {
+    source: source,
+    ...data
+  };
 };
 
 // Send email to HeritageBox
@@ -44,18 +72,15 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
     // Log the attempt
     console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
     
-    // Format rich-text for better email readability
+    // Format the data for better email readability
     const formattedData = formatOrderDetails(data, source);
     
-    // Send the email data as JSON instead of FormData
+    console.log('Formatted data being sent to Formspree:', formattedData);
+    
+    // Send the email data as JSON
     const response = await fetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify({
-        _subject: `HeritageBox - ${source}`,
-        source: source,
-        date: new Date().toISOString(),
-        ...formattedData
-      }),
+      body: JSON.stringify(formattedData),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
