@@ -1,3 +1,4 @@
+
 import Airtable from 'airtable';
 
 // Airtable configuration - you'll need to set these environment variables
@@ -5,8 +6,23 @@ const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || '';
 const AIRTABLE_BASE_ID = import.meta.env.VITE_AIRTABLE_BASE_ID || '';
 const AIRTABLE_TABLE_NAME = import.meta.env.VITE_AIRTABLE_TABLE_NAME || 'Orders';
 
-// Initialize Airtable
-const base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+// Check if Airtable is properly configured
+const isAirtableConfigured = () => {
+  return AIRTABLE_API_KEY && AIRTABLE_BASE_ID;
+};
+
+// Initialize Airtable only if properly configured
+let base: any = null;
+if (isAirtableConfigured()) {
+  try {
+    base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+  } catch (error) {
+    console.warn('⚠️ AIRTABLE WARNING - Failed to initialize Airtable:', error);
+    base = null;
+  }
+} else {
+  console.warn('⚠️ AIRTABLE WARNING - Airtable not configured. Missing API key or Base ID.');
+}
 
 interface OrderData {
   customerInfo: {
@@ -50,6 +66,18 @@ interface OrderData {
 }
 
 export const sendOrderToAirtable = async (orderData: OrderData) => {
+  // Check if Airtable is configured before attempting to send
+  if (!isAirtableConfigured()) {
+    console.warn('⚠️ AIRTABLE WARNING - Airtable not configured. Order will not be sent to Airtable.');
+    console.warn('⚠️ AIRTABLE WARNING - Please set VITE_AIRTABLE_API_KEY and VITE_AIRTABLE_BASE_ID environment variables.');
+    return null;
+  }
+
+  if (!base) {
+    console.warn('⚠️ AIRTABLE WARNING - Airtable base not initialized. Order will not be sent to Airtable.');
+    return null;
+  }
+
   try {
     console.log('📊 AIRTABLE - Sending order data to Airtable:', orderData);
 
@@ -167,6 +195,16 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
 
 // Function to test Airtable connection
 export const testAirtableConnection = async () => {
+  if (!isAirtableConfigured()) {
+    console.warn('⚠️ AIRTABLE TEST - Airtable not configured. Cannot test connection.');
+    return false;
+  }
+
+  if (!base) {
+    console.warn('⚠️ AIRTABLE TEST - Airtable base not initialized. Cannot test connection.');
+    return false;
+  }
+
   try {
     console.log('🧪 AIRTABLE TEST - Testing connection...');
     
