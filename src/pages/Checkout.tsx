@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -317,7 +318,7 @@ const Checkout = () => {
           digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
           addOns: []
         },
-        paymentMethod: paymentInfo || paymentMethod,
+        paymentMethod: paymentInfo || "Credit Card",
         timestamp: new Date().toISOString()
       };
       
