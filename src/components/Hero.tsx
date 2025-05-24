@@ -16,12 +16,14 @@ const Hero = () => {
               We digitize your VHS tapes, photos, and other media to keep your memories safe for generations to come.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/package-selected?package=Popular">
-                <Button className="bg-primary text-white hover:bg-primary/90 text-lg">Get Started</Button>
+              <Link to="/package-selected?package=Popular" className="inline-block">
+                <Button className="bg-primary text-white hover:bg-primary/90 text-lg touch-manipulation select-none active:scale-95 transition-transform duration-75">
+                  Get Started
+                </Button>
               </Link>
-              <Link to="/#how-it-works">
+              <Link to="/#how-it-works" className="inline-block">
                 <Button 
-                  className="border border-primary bg-transparent text-primary hover:bg-primary hover:text-white text-lg"
+                  className="border border-primary bg-transparent text-primary hover:bg-primary hover:text-white text-lg touch-manipulation select-none active:scale-95 transition-transform duration-75"
                 >
                   Learn More
                 </Button>
