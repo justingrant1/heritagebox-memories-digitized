@@ -15,7 +15,7 @@ import {
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { sendEmailToHeritageBox } from '@/utils/emailUtils';
-import { sendOrderToAirtable } from '@/utils/airtableUtils';
+import { sendOrderToAirtable, parseAddOnDetails, parseSpeedDetails } from '@/utils/airtableUtils';
 import { 
   Form,
   FormControl,
@@ -380,6 +380,28 @@ const Checkout = () => {
 
       // Prepare order data for both email and Airtable
       const selectedDigitizingOption = getSelectedDigitizingOption();
+      
+      // Create add-ons array for legacy support
+      const addOnsArray = [];
+      if (usbDrives > 0) {
+        addOnsArray.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      if (cloudBackup > 0) {
+        addOnsArray.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+
+      // Create detailed breakdown for Airtable
+      const addOnDetails = {
+        photoRestoration: { selected: false, cost: 0 },
+        videoEnhancement: { selected: false, cost: 0 },
+        digitalDelivery: { selected: false, cost: 0 },
+        expressShipping: { selected: false, cost: 0 },
+        storageUpgrade: { selected: usbDrives > 0, cost: usbDrives * USB_DRIVE_PRICE },
+        backupCopies: { selected: cloudBackup > 0, cost: 0 } // Cloud backup is included
+      };
+
+      const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
+
       const orderData = {
         customerInfo: {
           firstName: formState.firstName,
@@ -400,21 +422,13 @@ const Checkout = () => {
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
           digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
-          addOns: []
+          addOns: addOnsArray,
+          addOnDetails: addOnDetails,
+          speedDetails: speedDetails
         },
         paymentMethod: `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`,
         timestamp: new Date().toISOString()
       };
-
-      // Add USB drives to add-ons if any
-      if (usbDrives > 0) {
-        orderData.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
-      }
-      
-      // Add cloud backup to add-ons if any
-      if (cloudBackup > 0) {
-        orderData.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
-      }
 
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(orderData, "Order Completed");
@@ -474,6 +488,28 @@ const Checkout = () => {
       
       // Prepare order data for both email and Airtable
       const selectedDigitizingOption = getSelectedDigitizingOption();
+      
+      // Create add-ons array for legacy support
+      const addOnsArray = [];
+      if (usbDrives > 0) {
+        addOnsArray.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      if (cloudBackup > 0) {
+        addOnsArray.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+
+      // Create detailed breakdown for Airtable
+      const addOnDetails = {
+        photoRestoration: { selected: false, cost: 0 },
+        videoEnhancement: { selected: false, cost: 0 },
+        digitalDelivery: { selected: false, cost: 0 },
+        expressShipping: { selected: false, cost: 0 },
+        storageUpgrade: { selected: usbDrives > 0, cost: usbDrives * USB_DRIVE_PRICE },
+        backupCopies: { selected: cloudBackup > 0, cost: 0 } // Cloud backup is included
+      };
+
+      const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
+
       const orderData = {
         customerInfo: {
           firstName: formState.firstName,
@@ -494,21 +530,13 @@ const Checkout = () => {
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
           digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
-          addOns: []
+          addOns: addOnsArray,
+          addOnDetails: addOnDetails,
+          speedDetails: speedDetails
         },
         paymentMethod: "PayPal",
         timestamp: new Date().toISOString()
       };
-
-      // Add USB drives to add-ons if any
-      if (usbDrives > 0) {
-        orderData.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
-      }
-      
-      // Add cloud backup to add-ons if any
-      if (cloudBackup > 0) {
-        orderData.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
-      }
 
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(orderData, "Order Completed");

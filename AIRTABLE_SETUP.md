@@ -1,7 +1,7 @@
 # Airtable Integration Setup Guide
 
 ## Overview
-When customers place orders on your HeritageBox website, all their information will automatically be saved to your Airtable base. This includes customer details, order information, package selected, add-ons, and payment method.
+When customers place orders on your HeritageBox website, all their information will automatically be saved to your Airtable base. This includes customer details, order information, package selected, add-ons, and payment method with detailed breakdowns for each component.
 
 ## Setup Steps
 
@@ -10,9 +10,13 @@ When customers place orders on your HeritageBox website, all their information w
 2. Create a new base called "HeritageBox Orders" (or any name you prefer)
 3. Create a table called "Orders" with the following fields:
 
-#### Required Fields for Your Airtable Table:
+## Required Airtable Table Fields
+
+When creating your "Orders" table in Airtable, you'll need to add the following fields:
+
+### Customer Information
 - **Customer Name** (Single line text)
-- **First Name** (Single line text)  
+- **First Name** (Single line text)
 - **Last Name** (Single line text)
 - **Email** (Email)
 - **Phone** (Phone number)
@@ -21,19 +25,58 @@ When customers place orders on your HeritageBox website, all their information w
 - **State** (Single line text)
 - **ZIP Code** (Single line text)
 - **Full Address** (Long text)
+
+### Order Details
 - **Package** (Single line text)
 - **Package Price** (Currency)
 - **Package Features** (Long text)
 - **Total Amount** (Currency)
+
+### Digitizing Information
 - **Digitizing Speed** (Single line text)
 - **Digitizing Time** (Single line text)
-- **Digitizing Price** (Single line text)
+- **Digitizing Price** (Currency)
+
+### Digitizing Speed Breakdown
+- **Standard Speed Selected** (Checkbox)
+- **Standard Speed Cost** (Currency)
+- **Standard Speed Timeframe** (Single line text)
+- **Express Speed Selected** (Checkbox)
+- **Express Speed Cost** (Currency)
+- **Express Speed Timeframe** (Single line text)
+- **Rush Speed Selected** (Checkbox)
+- **Rush Speed Cost** (Currency)
+- **Rush Speed Timeframe** (Single line text)
+
+### Add-ons Summary
 - **Add Ons** (Long text)
+
+### Individual Add-on Breakdown
+- **Photo Restoration Selected** (Checkbox)
+- **Photo Restoration Cost** (Currency)
+- **Video Enhancement Selected** (Checkbox)
+- **Video Enhancement Cost** (Currency)
+- **Digital Delivery Selected** (Checkbox)
+- **Digital Delivery Cost** (Currency)
+- **Express Shipping Selected** (Checkbox)
+- **Express Shipping Cost** (Currency)
+- **Storage Upgrade Selected** (Checkbox)
+- **Storage Upgrade Cost** (Currency)
+- **Backup Copies Selected** (Checkbox)
+- **Backup Copies Cost** (Currency)
+
+### Calculated Totals
+- **Total Add-on Cost** (Currency)
+- **Total Speed Cost** (Currency)
+
+### Payment and Order Info
 - **Payment Method** (Single line text)
-- **Order Date** (Single line text)
-- **Timestamp** (Single line text)
-- **Order Status** (Single select: New Order, Processing, Completed, etc.)
-- **Processing Status** (Single select: Pending, In Progress, Shipped, etc.)
+- **Order Date** (Date)
+- **Timestamp** (Date)
+
+### Status
+- **Order Status** (Single select: New Order, Processing, Completed, Shipped)
+- **Processing Status** (Single select: Pending, In Progress, Quality Check, Ready)
 
 ### 2. Get Your Airtable Credentials
 
@@ -66,7 +109,7 @@ VITE_AIRTABLE_TABLE_NAME=Orders
 
 ## What Gets Saved to Airtable
 
-For each order, the following information is automatically saved:
+For each order, the following information is automatically saved with detailed breakdown:
 
 ### Customer Information:
 - Full name, first name, last name
@@ -80,11 +123,36 @@ For each order, the following information is automatically saved:
 - Add-ons (USB drives, cloud backup)
 - Total amount
 
+### Enhanced Breakdown Features:
+- **Individual Add-on Tracking**: Each add-on (Photo Restoration, Video Enhancement, Digital Delivery, Express Shipping, Storage Upgrade, Backup Copies) has its own checkbox and cost field
+- **Digitizing Speed Details**: Each speed option (Standard, Express, Rush) has separate fields for selection, cost, and timeframe
+- **Calculated Totals**: Automatic calculation of total add-on costs and speed costs
+- **Legacy Compatibility**: Still maintains the original "Add Ons" summary field for backward compatibility
+
 ### Order Metadata:
 - Payment method (Credit Card details or PayPal)
 - Order date and timestamp
 - Order status (set to "New Order")
 - Processing status (set to "Pending")
+
+## Benefits of the Enhanced Structure
+
+### For Business Analysis:
+- Track which add-ons are most popular
+- Analyze pricing impact of different digitizing speeds
+- Generate reports on average order values by component
+- Identify trends in customer preferences
+
+### For Order Management:
+- Easily filter orders by specific add-ons
+- Sort by digitizing speed for processing priority
+- Calculate revenue breakdown by service type
+- Export detailed cost analysis
+
+### For Customer Service:
+- Quickly see exactly what each customer ordered
+- Understand the cost breakdown for refunds/adjustments
+- Track which services drive the most value
 
 ## Error Handling
 - If Airtable is down or there's a connection issue, the checkout process will still complete successfully
@@ -102,15 +170,27 @@ For each order, the following information is automatically saved:
 1. **Records not appearing**: Check your API key and Base ID are correct
 2. **Field errors**: Ensure all field names in Airtable match exactly (case-sensitive)
 3. **Permission errors**: Make sure your API key has write permissions to the base
+4. **Missing breakdown data**: Verify the new fields are created with correct data types
 
 ### Debug Steps:
 1. Open browser developer tools (F12)
 2. Look for Airtable success/error messages in the console
 3. Check the Network tab for failed requests to Airtable API
+4. Verify all required fields exist in your Airtable table
 
 ## Next Steps
 Once this is working, you can:
 - Set up Airtable automations to send notifications when new orders arrive
-- Create views to filter orders by status, package type, etc.
-- Export order data for accounting or shipping purposes
+- Create views to filter orders by specific add-ons or digitizing speeds
+- Build dashboards to track revenue by service component
+- Export detailed order data for accounting or shipping purposes
 - Set up Zapier integrations to connect to other tools
+- Create reports showing the most profitable add-on combinations
+
+## Advanced Features
+With the enhanced breakdown structure, you can:
+- Create pivot tables showing add-on popularity by package type
+- Track average order value trends over time
+- Analyze which digitizing speeds customers prefer
+- Generate detailed financial reports with cost breakdowns
+- Set up conditional formatting to highlight high-value orders

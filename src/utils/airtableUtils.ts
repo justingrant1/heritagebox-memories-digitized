@@ -29,6 +29,21 @@ interface OrderData {
     digitizingTime: string;
     digitizingPrice: string;
     addOns: string[];
+    // Detailed add-on breakdown
+    addOnDetails?: {
+      photoRestoration?: { selected: boolean; cost: number };
+      videoEnhancement?: { selected: boolean; cost: number };
+      digitalDelivery?: { selected: boolean; cost: number };
+      expressShipping?: { selected: boolean; cost: number };
+      storageUpgrade?: { selected: boolean; cost: number };
+      backupCopies?: { selected: boolean; cost: number };
+    };
+    // Detailed digitizing speed breakdown
+    speedDetails?: {
+      standardSpeed?: { selected: boolean; cost: number; timeframe: string };
+      expressSpeed?: { selected: boolean; cost: number; timeframe: string };
+      rushSpeed?: { selected: boolean; cost: number; timeframe: string };
+    };
   };
   paymentMethod: string;
   timestamp: string;
@@ -38,56 +53,98 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
   try {
     console.log('📊 AIRTABLE - Sending order data to Airtable:', orderData);
 
+    // Calculate add-on costs
+    const addOnDetails = orderData.orderDetails.addOnDetails || {};
+    const photoRestorationCost = addOnDetails.photoRestoration?.selected ? addOnDetails.photoRestoration.cost : 0;
+    const videoEnhancementCost = addOnDetails.videoEnhancement?.selected ? addOnDetails.videoEnhancement.cost : 0;
+    const digitalDeliveryCost = addOnDetails.digitalDelivery?.selected ? addOnDetails.digitalDelivery.cost : 0;
+    const expressShippingCost = addOnDetails.expressShipping?.selected ? addOnDetails.expressShipping.cost : 0;
+    const storageUpgradeCost = addOnDetails.storageUpgrade?.selected ? addOnDetails.storageUpgrade.cost : 0;
+    const backupCopiesCost = addOnDetails.backupCopies?.selected ? addOnDetails.backupCopies.cost : 0;
+
+    // Calculate speed costs
+    const speedDetails = orderData.orderDetails.speedDetails || {};
+    const standardSpeedCost = speedDetails.standardSpeed?.selected ? speedDetails.standardSpeed.cost : 0;
+    const expressSpeedCost = speedDetails.expressSpeed?.selected ? speedDetails.expressSpeed.cost : 0;
+    const rushSpeedCost = speedDetails.rushSpeed?.selected ? speedDetails.rushSpeed.cost : 0;
+
     // Prepare the record data for Airtable
-    const record = {
-      fields: {
-        // Customer Information
-        'Customer Name': orderData.customerInfo.fullName,
-        'First Name': orderData.customerInfo.firstName,
-        'Last Name': orderData.customerInfo.lastName,
-        'Email': orderData.customerInfo.email,
-        'Phone': orderData.customerInfo.phone,
-        'Address': orderData.customerInfo.address,
-        'City': orderData.customerInfo.city,
-        'State': orderData.customerInfo.state,
-        'ZIP Code': orderData.customerInfo.zipCode,
-        'Full Address': `${orderData.customerInfo.address}, ${orderData.customerInfo.city}, ${orderData.customerInfo.state} ${orderData.customerInfo.zipCode}`,
-        
-        // Order Details
-        'Package': orderData.orderDetails.package,
-        'Package Price': orderData.orderDetails.packagePrice,
-        'Package Features': orderData.orderDetails.packageFeatures,
-        'Total Amount': orderData.orderDetails.totalAmount,
-        
-        // Digitizing Information
-        'Digitizing Speed': orderData.orderDetails.digitizingSpeed,
-        'Digitizing Time': orderData.orderDetails.digitizingTime,
-        'Digitizing Price': orderData.orderDetails.digitizingPrice,
-        
-        // Add-ons
-        'Add Ons': orderData.orderDetails.addOns.length > 0 ? orderData.orderDetails.addOns.join(', ') : 'None',
-        
-        // Payment and Order Info
-        'Payment Method': orderData.paymentMethod,
-        'Order Date': new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        'Timestamp': orderData.timestamp,
-        
-        // Status
-        'Order Status': 'New Order',
-        'Processing Status': 'Pending'
-      }
+    const recordFields = {
+      // Customer Information
+      'Customer Name': orderData.customerInfo.fullName,
+      'First Name': orderData.customerInfo.firstName,
+      'Last Name': orderData.customerInfo.lastName,
+      'Email': orderData.customerInfo.email,
+      'Phone': orderData.customerInfo.phone,
+      'Address': orderData.customerInfo.address,
+      'City': orderData.customerInfo.city,
+      'State': orderData.customerInfo.state,
+      'ZIP Code': orderData.customerInfo.zipCode,
+      'Full Address': `${orderData.customerInfo.address}, ${orderData.customerInfo.city}, ${orderData.customerInfo.state} ${orderData.customerInfo.zipCode}`,
+      
+      // Order Details
+      'Package': orderData.orderDetails.package,
+      'Package Price': orderData.orderDetails.packagePrice,
+      'Package Features': orderData.orderDetails.packageFeatures,
+      'Total Amount': orderData.orderDetails.totalAmount,
+      
+      // Digitizing Information
+      'Digitizing Speed': orderData.orderDetails.digitizingSpeed,
+      'Digitizing Time': orderData.orderDetails.digitizingTime,
+      'Digitizing Price': orderData.orderDetails.digitizingPrice,
+      
+      // Digitizing Speed Breakdown
+      'Standard Speed Selected': speedDetails.standardSpeed?.selected || false,
+      'Standard Speed Cost': standardSpeedCost,
+      'Standard Speed Timeframe': speedDetails.standardSpeed?.timeframe || '',
+      'Express Speed Selected': speedDetails.expressSpeed?.selected || false,
+      'Express Speed Cost': expressSpeedCost,
+      'Express Speed Timeframe': speedDetails.expressSpeed?.timeframe || '',
+      'Rush Speed Selected': speedDetails.rushSpeed?.selected || false,
+      'Rush Speed Cost': rushSpeedCost,
+      'Rush Speed Timeframe': speedDetails.rushSpeed?.timeframe || '',
+      
+      // Add-ons Summary
+      'Add Ons': orderData.orderDetails.addOns.length > 0 ? orderData.orderDetails.addOns.join(', ') : 'None',
+      
+      // Individual Add-on Breakdown
+      'Photo Restoration Selected': addOnDetails.photoRestoration?.selected || false,
+      'Photo Restoration Cost': photoRestorationCost,
+      'Video Enhancement Selected': addOnDetails.videoEnhancement?.selected || false,
+      'Video Enhancement Cost': videoEnhancementCost,
+      'Digital Delivery Selected': addOnDetails.digitalDelivery?.selected || false,
+      'Digital Delivery Cost': digitalDeliveryCost,
+      'Express Shipping Selected': addOnDetails.expressShipping?.selected || false,
+      'Express Shipping Cost': expressShippingCost,
+      'Storage Upgrade Selected': addOnDetails.storageUpgrade?.selected || false,
+      'Storage Upgrade Cost': storageUpgradeCost,
+      'Backup Copies Selected': addOnDetails.backupCopies?.selected || false,
+      'Backup Copies Cost': backupCopiesCost,
+      
+      // Calculated Totals
+      'Total Add-on Cost': photoRestorationCost + videoEnhancementCost + digitalDeliveryCost + expressShippingCost + storageUpgradeCost + backupCopiesCost,
+      'Total Speed Cost': standardSpeedCost + expressSpeedCost + rushSpeedCost,
+      
+      // Payment and Order Info
+      'Payment Method': orderData.paymentMethod,
+      'Order Date': new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      'Timestamp': orderData.timestamp,
+      
+      // Status
+      'Order Status': 'New Order',
+      'Processing Status': 'Pending'
     };
 
     // Create the record in Airtable
-    const createdRecord = await base(AIRTABLE_TABLE_NAME).create(record);
+    const createdRecord = await base(AIRTABLE_TABLE_NAME).create([{ fields: recordFields }]);
     
-    console.log('✅ AIRTABLE SUCCESS - Record created:', createdRecord.getId());
+    console.log('✅ AIRTABLE SUCCESS - Record created:', createdRecord[0].getId());
     return createdRecord;
     
   } catch (error) {
@@ -124,4 +181,56 @@ export const testAirtableConnection = async () => {
     console.error('❌ AIRTABLE TEST - Connection failed:', error);
     return false;
   }
+};
+
+// Helper function to parse add-on details from checkout data
+export const parseAddOnDetails = (addOns: string[], packageType: string) => {
+  const addOnPrices = {
+    'Photo Restoration': 15,
+    'Video Enhancement': 25,
+    'Digital Delivery': 10,
+    'Express Shipping': 20,
+    'Storage Upgrade': 35,
+    'Backup Copies': 15
+  };
+
+  const addOnDetails = {
+    photoRestoration: { selected: addOns.includes('Photo Restoration'), cost: addOns.includes('Photo Restoration') ? addOnPrices['Photo Restoration'] : 0 },
+    videoEnhancement: { selected: addOns.includes('Video Enhancement'), cost: addOns.includes('Video Enhancement') ? addOnPrices['Video Enhancement'] : 0 },
+    digitalDelivery: { selected: addOns.includes('Digital Delivery'), cost: addOns.includes('Digital Delivery') ? addOnPrices['Digital Delivery'] : 0 },
+    expressShipping: { selected: addOns.includes('Express Shipping'), cost: addOns.includes('Express Shipping') ? addOnPrices['Express Shipping'] : 0 },
+    storageUpgrade: { selected: addOns.includes('Storage Upgrade'), cost: addOns.includes('Storage Upgrade') ? addOnPrices['Storage Upgrade'] : 0 },
+    backupCopies: { selected: addOns.includes('Backup Copies'), cost: addOns.includes('Backup Copies') ? addOnPrices['Backup Copies'] : 0 }
+  };
+
+  return addOnDetails;
+};
+
+// Helper function to parse speed details
+export const parseSpeedDetails = (digitizingSpeed: string) => {
+  const speedPrices = {
+    'Standard (2-3 weeks)': { cost: 0, timeframe: '2-3 weeks' },
+    'Express (1 week)': { cost: 50, timeframe: '1 week' },
+    'Rush (3-5 days)': { cost: 100, timeframe: '3-5 days' }
+  };
+
+  const speedDetails = {
+    standardSpeed: { 
+      selected: digitizingSpeed.includes('Standard'), 
+      cost: digitizingSpeed.includes('Standard') ? speedPrices['Standard (2-3 weeks)'].cost : 0,
+      timeframe: digitizingSpeed.includes('Standard') ? speedPrices['Standard (2-3 weeks)'].timeframe : ''
+    },
+    expressSpeed: { 
+      selected: digitizingSpeed.includes('Express'), 
+      cost: digitizingSpeed.includes('Express') ? speedPrices['Express (1 week)'].cost : 0,
+      timeframe: digitizingSpeed.includes('Express') ? speedPrices['Express (1 week)'].timeframe : ''
+    },
+    rushSpeed: { 
+      selected: digitizingSpeed.includes('Rush'), 
+      cost: digitizingSpeed.includes('Rush') ? speedPrices['Rush (3-5 days)'].cost : 0,
+      timeframe: digitizingSpeed.includes('Rush') ? speedPrices['Rush (3-5 days)'].timeframe : ''
+    }
+  };
+
+  return speedDetails;
 };
