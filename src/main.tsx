@@ -5,91 +5,53 @@ import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 import './index.css';
 
-// Tawk.to chat widget component
+// Simplified Tawk.to chat widget component
 const TawkToChat = () => {
   useEffect(() => {
+    // Check if script is already loaded
+    if (document.querySelector('script[src*="tawk.to"]')) {
+      console.log('Tawk.to script already exists');
+      return;
+    }
+
     const s1 = document.createElement("script");
     s1.async = true;
     s1.src = 'https://embed.tawk.to/68279c6cc21d9190ec452e3/1irdblvrq';
     s1.charset = 'UTF-8';
     s1.setAttribute('crossorigin', '*');
-    document.body.appendChild(s1);
     
-    // Ensure Tawk.to widget is visible and properly positioned
-    const adjustTawkWidget = () => {
-      const style = document.createElement('style');
-      style.id = 'tawk-custom-styles';
-      style.textContent = `
-        /* Ensure Tawk.to widget is visible and accessible */
-        #tawkchat-container-minimized,
-        #tawkchat-minimized-container,
-        #tawkchat-container {
-          z-index: 10000 !important;
-          pointer-events: auto !important;
-          display: block !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-        
-        /* Ensure the widget iframe is visible */
-        iframe[src*="tawk.to"] {
-          pointer-events: auto !important;
-          z-index: 10000 !important;
-          display: block !important;
-          visibility: visible !important;
-        }
-        
-        /* Prevent page elements from overlapping the widget */
-        body {
-          pointer-events: auto !important;
-        }
-        
-        /* Ensure buttons and other elements don't block the widget */
-        button, a {
-          z-index: auto;
-        }
-      `;
-      
-      // Remove existing style if it exists
-      const existingStyle = document.getElementById('tawk-custom-styles');
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-      
-      document.head.appendChild(style);
-      
-      console.log('Tawk.to widget styles applied');
+    // Add onload handler to confirm script loaded
+    s1.onload = () => {
+      console.log('Tawk.to script loaded successfully');
     };
     
-    // Apply adjustments multiple times to ensure they stick
-    setTimeout(adjustTawkWidget, 500);
-    setTimeout(adjustTawkWidget, 2000);
-    setTimeout(adjustTawkWidget, 5000);
+    s1.onerror = () => {
+      console.error('Failed to load Tawk.to script');
+    };
     
-    // Listen for Tawk API ready event
+    document.body.appendChild(s1);
+    
+    // Simple check for Tawk API without complex styling
     const checkTawkAPI = () => {
       const tawkAPI = (window as any).Tawk_API;
       if (tawkAPI) {
-        console.log('Tawk API loaded');
+        console.log('Tawk API is available');
+        // Set basic widget properties
         tawkAPI.onLoad = () => {
-          console.log('Tawk widget loaded');
-          adjustTawkWidget();
+          console.log('Tawk widget fully loaded');
         };
       } else {
-        setTimeout(checkTawkAPI, 500);
+        setTimeout(checkTawkAPI, 1000);
       }
     };
     
-    checkTawkAPI();
+    setTimeout(checkTawkAPI, 2000);
     
     // Clean up function
     return () => {
-      if (document.body.contains(s1)) {
-        document.body.removeChild(s1);
-      }
-      const customStyles = document.getElementById('tawk-custom-styles');
-      if (customStyles) {
-        customStyles.remove();
+      const existingScript = document.querySelector('script[src*="tawk.to"]');
+      if (existingScript && document.body.contains(existingScript)) {
+        document.body.removeChild(existingScript);
       }
     };
   }, []);
@@ -97,11 +59,24 @@ const TawkToChat = () => {
   return null;
 };
 
-createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <App />
-      <TawkToChat />
-    </HelmetProvider>
-  </React.StrictMode>
-);
+// Check if root already exists to prevent the warning
+const rootElement = document.getElementById("root");
+let root;
+
+if (rootElement && !rootElement._reactRootContainer) {
+  root = createRoot(rootElement);
+} else if (rootElement) {
+  // If root already exists, just render to it
+  root = (rootElement as any)._reactInternalInstance?.fiberNode?.stateNode?.containerInfo?._reactRootContainer || createRoot(rootElement);
+}
+
+if (root) {
+  root.render(
+    <React.StrictMode>
+      <HelmetProvider>
+        <App />
+        <TawkToChat />
+      </HelmetProvider>
+    </React.StrictMode>
+  );
+}
