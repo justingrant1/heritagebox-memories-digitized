@@ -59,18 +59,10 @@ const TawkToChat = () => {
   return null;
 };
 
-// Check if root already exists to prevent the warning
+// Simple root creation without complex checking
 const rootElement = document.getElementById("root");
-let root;
-
-if (rootElement && !rootElement._reactRootContainer) {
-  root = createRoot(rootElement);
-} else if (rootElement) {
-  // If root already exists, just render to it
-  root = (rootElement as any)._reactInternalInstance?.fiberNode?.stateNode?.containerInfo?._reactRootContainer || createRoot(rootElement);
-}
-
-if (root) {
+if (rootElement) {
+  const root = createRoot(rootElement);
   root.render(
     <React.StrictMode>
       <HelmetProvider>
