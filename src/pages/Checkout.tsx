@@ -281,10 +281,20 @@ const Checkout = () => {
   // Function to send order details to Formspree
   const sendOrderDetailsToFormspree = async (orderInfo: any, paymentInfo?: string) => {
     try {
-      console.log('Preparing to send order details to Formspree');
-      console.log('Form state:', formState);
+      console.log('🎯 CHECKOUT DEBUG - sendOrderDetailsToFormspree called');
+      console.log('🎯 CHECKOUT DEBUG - Current formState:', formState);
+      console.log('🎯 CHECKOUT DEBUG - orderInfo param:', orderInfo);
+      console.log('🎯 CHECKOUT DEBUG - paymentInfo param:', paymentInfo);
+      
+      // Ensure we have all required customer info
+      if (!formState.firstName || !formState.lastName || !formState.email) {
+        console.error('❌ CHECKOUT ERROR - Missing required customer information:', formState);
+        throw new Error('Missing required customer information');
+      }
       
       const selectedDigitizingOption = getSelectedDigitizingOption();
+      console.log('🎯 CHECKOUT DEBUG - Selected digitizing option:', selectedDigitizingOption);
+      
       const orderDetails = {
         customerInfo: {
           firstName: formState.firstName,
@@ -321,14 +331,14 @@ const Checkout = () => {
         orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
       }
       
-      console.log("Final order details object:", orderDetails);
+      console.log("🎯 CHECKOUT DEBUG - Final order details object:", JSON.stringify(orderDetails, null, 2));
       
       // Send the email with order details
       await sendEmailToHeritageBox(orderDetails, "Order Completed");
-      console.log("✅ Order details sent successfully to Formspree");
+      console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree");
       
     } catch (error) {
-      console.error("❌ Failed to send order details to Formspree:", error);
+      console.error("❌ CHECKOUT ERROR - Failed to send order details to Formspree:", error);
       // We don't want to show an error to the user here as the payment was successful
       // Just log the error for debugging purposes
     }
@@ -338,6 +348,9 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
+      console.log('💳 PAYMENT SUCCESS - Starting payment processing');
+      console.log('💳 PAYMENT SUCCESS - Current form state:', formState);
+      
       const response = await fetch('/api/process-payment', {
         method: 'POST',
         headers: {
@@ -362,6 +375,8 @@ const Checkout = () => {
         throw new Error(result.error || 'Payment failed');
       }
 
+      console.log('💳 PAYMENT SUCCESS - Payment processed, now sending email');
+
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(formState, `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`);
 
@@ -383,7 +398,7 @@ const Checkout = () => {
       
       navigate('/order-confirmation?' + params.toString());
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('💳 PAYMENT ERROR:', error);
       toast.error("Payment failed", {
         description: error.message || "Please try again or use a different payment method",
         position: "top-center",
@@ -396,6 +411,9 @@ const Checkout = () => {
   const handlePayPalPayment = () => {
     setIsProcessing(true);
     
+    console.log('💰 PAYPAL - Starting PayPal payment processing');
+    console.log('💰 PAYPAL - Current form state:', formState);
+    
     // For demo purposes, we'll simulate a successful PayPal payment after a short delay
     console.log("Processing PayPal payment for:", formState.email);
     console.log("Amount:", calculateTotal());
@@ -404,6 +422,8 @@ const Checkout = () => {
     console.log("Digitizing speed:", digitizingSpeed);
     
     setTimeout(async () => {
+      console.log('💰 PAYPAL - Payment processed, now sending email');
+      
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(formState, "PayPal");
       
