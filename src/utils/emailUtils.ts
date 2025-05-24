@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for sending emails to HeritageBox
  */
@@ -9,9 +10,11 @@ const formatAddress = (customerInfo: any) => {
 
 // Format order details for better email presentation
 const formatOrderDetails = (data: any, source: string) => {
+  console.log('Formatting order details:', { data, source });
+  
   if (source === "Order Completed" && data.customerInfo && data.orderDetails) {
     // Flatten the object structure for better Formspree compatibility
-    return {
+    const formattedData = {
       _subject: `HeritageBox Order - ${data.customerInfo.fullName}`,
       source: source,
       
@@ -20,6 +23,7 @@ const formatOrderDetails = (data: any, source: string) => {
       customer_email: data.customerInfo.email,
       customer_first_name: data.customerInfo.firstName,
       customer_last_name: data.customerInfo.lastName,
+      customer_phone: data.customerInfo.phone,
       customer_address: data.customerInfo.address,
       customer_city: data.customerInfo.city,
       customer_state: data.customerInfo.state,
@@ -54,6 +58,9 @@ const formatOrderDetails = (data: any, source: string) => {
       // Additional context
       order_summary: `Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`
     };
+    
+    console.log('Formatted data for Formspree:', formattedData);
+    return formattedData;
   }
   
   // For other types of emails (like welcome popup), keep the original data
@@ -70,12 +77,13 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
   
   try {
     // Log the attempt
-    console.log(`Sending email from ${source} to info@heritagebox.com:`, data);
+    console.log(`Attempting to send email from ${source} to info@heritagebox.com`);
+    console.log('Raw data received:', data);
     
     // Format the data for better email readability
     const formattedData = formatOrderDetails(data, source);
     
-    console.log('Formatted data being sent to Formspree:', formattedData);
+    console.log('Final formatted data being sent to Formspree:', formattedData);
     
     // Send the email data as JSON
     const response = await fetch(endpoint, {
@@ -87,18 +95,31 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
       }
     });
     
+    console.log('Formspree response status:', response.status);
+    console.log('Formspree response ok:', response.ok);
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Email submission failed with status: ${response.status}`, errorText);
-      throw new Error(`Email submission failed: ${response.status} ${response.statusText}`);
+      console.error('Full response:', response);
+      throw new Error(`Email submission failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
+    const responseData = await response.text();
+    console.log('Formspree response data:', responseData);
+    
     // Log the success
-    console.log(`Email successfully sent to info@heritagebox.com from ${source}`);
+    console.log(`✅ Email successfully sent to info@heritagebox.com from ${source}`);
     
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email to Formspree:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      endpoint,
+      source
+    });
     throw error; // Re-throw to handle in the component
   }
 };

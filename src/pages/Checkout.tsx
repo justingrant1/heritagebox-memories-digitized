@@ -281,10 +281,20 @@ const Checkout = () => {
   // Function to send order details to Formspree
   const sendOrderDetailsToFormspree = async (orderInfo: any, paymentInfo?: string) => {
     try {
+      console.log('Preparing to send order details to Formspree');
+      console.log('Form state:', formState);
+      
       const selectedDigitizingOption = getSelectedDigitizingOption();
       const orderDetails = {
         customerInfo: {
-          ...formState,
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          address: formState.address,
+          city: formState.city,
+          state: formState.state,
+          zipCode: formState.zipCode,
           fullName: `${formState.firstName} ${formState.lastName}`
         },
         orderDetails: {
@@ -311,14 +321,14 @@ const Checkout = () => {
         orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
       }
       
-      console.log("Sending order details to Formspree:", orderDetails);
+      console.log("Final order details object:", orderDetails);
       
       // Send the email with order details
       await sendEmailToHeritageBox(orderDetails, "Order Completed");
-      console.log("Order details sent successfully to Formspree");
+      console.log("✅ Order details sent successfully to Formspree");
       
     } catch (error) {
-      console.error("Failed to send order details to Formspree:", error);
+      console.error("❌ Failed to send order details to Formspree:", error);
       // We don't want to show an error to the user here as the payment was successful
       // Just log the error for debugging purposes
     }
