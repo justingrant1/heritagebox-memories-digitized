@@ -32,6 +32,7 @@ const shippingFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number").regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter your complete address"),
   city: z.string().min(2, "Please enter a valid city"),
   state: z.string().min(2, "Please enter a valid state"),
@@ -43,6 +44,7 @@ type FormState = {
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   address: string;
   city: string;
   state: string;
@@ -61,6 +63,7 @@ const Checkout = () => {
       firstName: '',
       lastName: '',
       email: '',
+      phone: '',
       address: '',
       city: '',
       state: '',
@@ -78,6 +81,7 @@ const Checkout = () => {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     address: '',
     city: '',
     state: '',
@@ -257,6 +261,7 @@ const Checkout = () => {
       firstName: values.firstName,
       lastName: values.lastName,
       email: values.email,
+      phone: values.phone,
       address: values.address,
       city: values.city,
       state: values.state,
@@ -509,6 +514,20 @@ const Checkout = () => {
                           
                           <FormField
                             control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel className="form-label">Phone Number</FormLabel>
+                                <FormControl>
+                                  <Input {...field} type="tel" placeholder="(555) 123-4567" className="form-input" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
                             name="address"
                             render={({ field }) => (
                               <FormItem className="md:col-span-2">
@@ -654,6 +673,10 @@ const Checkout = () => {
                         <div>
                           <div className="text-sm font-medium text-gray-500">Email</div>
                           <div className="font-medium">{formState.email}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-500">Phone</div>
+                          <div className="font-medium">{formState.phone}</div>
                         </div>
                         <div className="sm:col-span-2">
                           <div className="text-sm font-medium text-gray-500">Shipping Address</div>
