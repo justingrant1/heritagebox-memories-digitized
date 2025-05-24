@@ -76,7 +76,6 @@ const Checkout = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [usbDrives, setUsbDrives] = useState(1);
   const [cloudBackup, setCloudBackup] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
   const [digitizingSpeed, setDigitizingSpeed] = useState('standard'); // 'standard', 'expedited', or 'rush'
   const [formState, setFormState] = useState<FormState>({
     firstName: '',
@@ -851,77 +850,16 @@ const Checkout = () => {
                     
                     <div className="checkout-section">
                       <h2 className="checkout-section-title">
-                        <CreditCard className="mr-2 text-gray-600" /> Payment Method
+                        <CreditCard className="mr-2 text-gray-600" /> Payment Information
                       </h2>
                       
                       <div className="space-y-6">
-                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                          <Button
-                            type="button"
-                            onClick={() => setPaymentMethod('card')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 sm:py-3 ${
-                              paymentMethod === 'card' 
-                                ? getButtonClass()
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                            }`}
-                          >
-                            <CreditCard className="h-5 w-5" />
-                            <span className="text-base sm:text-lg">Credit Card</span>
-                          </Button>
-                          
-                          <Button
-                            type="button"
-                            onClick={() => setPaymentMethod('paypal')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 sm:py-3 ${
-                              paymentMethod === 'paypal' 
-                                ? 'bg-[#0070BA] hover:bg-[#003087] text-white'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                            }`}
-                          >
-                            <PaymentIcon className="h-5 w-5" />
-                            <span className="text-base sm:text-lg">PayPal</span>
-                          </Button>
-                        </div>
-                        
-                        {paymentMethod === 'card' ? (
-                          <SquarePayment 
-                            onSuccess={handlePaymentSuccess}
-                            buttonColorClass={getButtonClass()}
-                            isProcessing={isProcessing}
-                            amount={`$${calculateTotal()}`}
-                          />
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="p-4 border rounded-md bg-[#f5f7fa]">
-                              <div className="flex items-center justify-center">
-                                <img 
-                                  src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" 
-                                  alt="PayPal" 
-                                  className="h-6 mr-2" 
-                                />
-                                <p className="text-sm md:text-base font-medium">
-                                  Continue to PayPal checkout to complete your purchase
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <Button 
-                                onClick={handlePayPalPayment}
-                                className="mobile-full px-6 py-2.5 bg-[#0070BA] hover:bg-[#003087] text-white"
-                                disabled={isProcessing}
-                              >
-                                {isProcessing ? (
-                                  <span className="flex items-center">
-                                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                    Processing...
-                                  </span>
-                                ) : (
-                                  `Pay with PayPal $${calculateTotal()}`
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
+                        <SquarePayment 
+                          onSuccess={handlePaymentSuccess}
+                          buttonColorClass={getButtonClass()}
+                          isProcessing={isProcessing}
+                          amount={`$${calculateTotal()}`}
+                        />
                         
                         <div className="flex items-center text-xs md:text-sm text-gray-500 mt-4 justify-center md:justify-start">
                           <Lock size={14} className="mr-1" />
