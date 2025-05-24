@@ -15,6 +15,7 @@ import {
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { sendEmailToHeritageBox } from '@/utils/emailUtils';
+import { sendOrderToAirtable } from '@/utils/airtableUtils';
 import { 
   Form,
   FormControl,
@@ -375,10 +376,57 @@ const Checkout = () => {
         throw new Error(result.error || 'Payment failed');
       }
 
-      console.log('💳 PAYMENT SUCCESS - Payment processed, now sending email');
+      console.log('💳 PAYMENT SUCCESS - Payment processed, now sending email and saving to Airtable');
+
+      // Prepare order data for both email and Airtable
+      const selectedDigitizingOption = getSelectedDigitizingOption();
+      const orderData = {
+        customerInfo: {
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          address: formState.address,
+          city: formState.city,
+          state: formState.state,
+          zipCode: formState.zipCode,
+          fullName: `${formState.firstName} ${formState.lastName}`
+        },
+        orderDetails: {
+          package: packageType,
+          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
+          packageFeatures: packageDetails.features.join(", "),
+          totalAmount: `$${calculateTotal()}`,
+          digitizingSpeed: selectedDigitizingOption.name,
+          digitizingTime: selectedDigitizingOption.time,
+          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
+          addOns: []
+        },
+        paymentMethod: `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`,
+        timestamp: new Date().toISOString()
+      };
+
+      // Add USB drives to add-ons if any
+      if (usbDrives > 0) {
+        orderData.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      
+      // Add cloud backup to add-ons if any
+      if (cloudBackup > 0) {
+        orderData.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
 
       // Send order details to Formspree
-      await sendOrderDetailsToFormspree(formState, `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`);
+      await sendOrderDetailsToFormspree(orderData, "Order Completed");
+
+      // Send order details to Airtable
+      try {
+        await sendOrderToAirtable(orderData);
+        console.log('✅ AIRTABLE SUCCESS - Order saved to Airtable');
+      } catch (airtableError) {
+        console.error('❌ AIRTABLE ERROR - Failed to save to Airtable:', airtableError);
+        // Don't fail the checkout process if Airtable fails
+      }
 
       toast.success("Payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
@@ -422,10 +470,57 @@ const Checkout = () => {
     console.log("Digitizing speed:", digitizingSpeed);
     
     setTimeout(async () => {
-      console.log('💰 PAYPAL - Payment processed, now sending email');
+      console.log('💰 PAYPAL - Payment processed, now sending email and saving to Airtable');
       
+      // Prepare order data for both email and Airtable
+      const selectedDigitizingOption = getSelectedDigitizingOption();
+      const orderData = {
+        customerInfo: {
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          address: formState.address,
+          city: formState.city,
+          state: formState.state,
+          zipCode: formState.zipCode,
+          fullName: `${formState.firstName} ${formState.lastName}`
+        },
+        orderDetails: {
+          package: packageType,
+          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
+          packageFeatures: packageDetails.features.join(", "),
+          totalAmount: `$${calculateTotal()}`,
+          digitizingSpeed: selectedDigitizingOption.name,
+          digitizingTime: selectedDigitizingOption.time,
+          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
+          addOns: []
+        },
+        paymentMethod: "PayPal",
+        timestamp: new Date().toISOString()
+      };
+
+      // Add USB drives to add-ons if any
+      if (usbDrives > 0) {
+        orderData.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      
+      // Add cloud backup to add-ons if any
+      if (cloudBackup > 0) {
+        orderData.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+
       // Send order details to Formspree
-      await sendOrderDetailsToFormspree(formState, "PayPal");
+      await sendOrderDetailsToFormspree(orderData, "Order Completed");
+
+      // Send order details to Airtable
+      try {
+        await sendOrderToAirtable(orderData);
+        console.log('✅ AIRTABLE SUCCESS - PayPal order saved to Airtable');
+      } catch (airtableError) {
+        console.error('❌ AIRTABLE ERROR - Failed to save PayPal order to Airtable:', airtableError);
+        // Don't fail the checkout process if Airtable fails
+      }
       
       setIsProcessing(false);
       toast.success("PayPal payment successful!", {
