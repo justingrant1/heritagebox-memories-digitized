@@ -19,12 +19,12 @@ const TawkToChat = () => {
     const adjustTawkZIndex = () => {
       const tawkWidget = document.querySelector('#tawkchat-chat-container');
       if (tawkWidget) {
-        (tawkWidget as HTMLElement).style.zIndex = '1000';
+        (tawkWidget as HTMLElement).style.zIndex = '999';
       }
       
       const tawkMinimized = document.querySelector('#tawkchat-minimized-container');
       if (tawkMinimized) {
-        (tawkMinimized as HTMLElement).style.zIndex = '1000';
+        (tawkMinimized as HTMLElement).style.zIndex = '999';
       }
     };
     
@@ -32,8 +32,9 @@ const TawkToChat = () => {
     setTimeout(adjustTawkZIndex, 2000);
     
     // Also listen for Tawk API ready event if available
-    if (window.Tawk_API) {
-      window.Tawk_API.onLoad = adjustTawkZIndex;
+    const tawkAPI = (window as any).Tawk_API;
+    if (tawkAPI) {
+      tawkAPI.onLoad = adjustTawkZIndex;
     }
     
     // Clean up function to remove script when component unmounts
