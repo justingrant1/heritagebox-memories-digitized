@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -827,20 +826,13 @@ const Checkout = () => {
                                   ? 'selected-option' 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
-                              onClick={(e) => {
-                                // Only handle click if it's not on the radio button itself
-                                const target = e.target as Element;
-                                if (e.target === e.currentTarget || !target.closest('[data-radio-item]')) {
-                                  setDigitizingSpeed(option.id);
-                                }
-                              }}
+                              onClick={() => setDigitizingSpeed(option.id)}
                             >
                               <div className="flex items-start gap-2 md:gap-3">
                                 <RadioGroupItem 
                                   value={option.id} 
                                   id={`speed-${option.id}`} 
                                   className="mt-1"
-                                  data-radio-item="true"
                                 />
                                 <div>
                                   <Label 
