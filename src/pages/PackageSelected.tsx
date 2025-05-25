@@ -1,4 +1,3 @@
-
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -23,7 +22,8 @@ const PackageSelected = () => {
       features: [
         "High-quality digital conversion",
         "Online access to digital files",
-        "Free shipping both ways"
+        "Free shipping both ways",
+        "Online Backup (1 Year Free)"
       ]
     },
     {

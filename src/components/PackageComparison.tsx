@@ -1,4 +1,3 @@
-
 import { Check } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -99,7 +98,8 @@ const PackageComparison = () => {
       features: [
         "High-quality digital conversion",
         "Online access to digital files",
-        "Free shipping both ways"
+        "Free shipping both ways",
+        "Online Backup (1 Year Free)"
       ]
     },
     {
