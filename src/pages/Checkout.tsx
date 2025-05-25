@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -643,7 +644,7 @@ const Checkout = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <NavBar />
       
-      <main className="flex-grow pt-24 md:pt-28"> {/* Added padding-top to push content below navbar */}
+      <main className="flex-grow pt-24 md:pt-28">
         <div className="container mx-auto px-4 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-10">
@@ -821,11 +822,12 @@ const Checkout = () => {
                           {digitizingOptions.map((option) => (
                             <div 
                               key={option.id}
-                              className={`flex items-center justify-between border rounded-lg p-3 md:p-4 transition-all ${
+                              className={`flex items-center justify-between border rounded-lg p-3 md:p-4 transition-all cursor-pointer ${
                                 digitizingSpeed === option.id 
                                   ? 'selected-option' 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
+                              onClick={() => setDigitizingSpeed(option.id)}
                             >
                               <div className="flex items-start gap-2 md:gap-3">
                                 <RadioGroupItem 
