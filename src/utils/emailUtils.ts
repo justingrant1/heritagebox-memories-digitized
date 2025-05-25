@@ -61,8 +61,16 @@ const formatOrderDetails = (data: any, source: string) => {
       digitizing_time: data.orderDetails.digitizingTime,
       digitizing_price: data.orderDetails.digitizingPrice,
       
-      // Add-ons and Total
+      // Add-ons and Pricing
       add_ons: data.orderDetails.addOns.length > 0 ? data.orderDetails.addOns.join("; ") : "None",
+      subtotal: data.orderDetails.subtotal,
+      
+      // Coupon Information
+      coupon_code: data.orderDetails.couponCode || "None",
+      discount_percent: data.orderDetails.discountPercent || 0,
+      discount_amount: data.orderDetails.discountAmount || "$0.00",
+      
+      // Final Total
       total_amount: data.orderDetails.totalAmount,
       
       // Payment and Order Info
@@ -77,7 +85,7 @@ const formatOrderDetails = (data: any, source: string) => {
       timestamp: data.timestamp,
       
       // Additional context
-      order_summary: `Order ID: ${orderId} | Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`,
+      order_summary: `Order ID: ${orderId} | Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Subtotal: ${data.orderDetails.subtotal} | Coupon: ${data.orderDetails.couponCode || 'None'} | Discount: ${data.orderDetails.discountAmount || '$0.00'} | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`,
       
       // Debug info
       form_source: 'checkout_order_completion',
