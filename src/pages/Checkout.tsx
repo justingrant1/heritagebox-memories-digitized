@@ -829,7 +829,8 @@ const Checkout = () => {
                               }`}
                               onClick={(e) => {
                                 // Only handle click if it's not on the radio button itself
-                                if (e.target === e.currentTarget || !e.target.closest('[data-radio-item]')) {
+                                const target = e.target as Element;
+                                if (e.target === e.currentTarget || !target.closest('[data-radio-item]')) {
                                   setDigitizingSpeed(option.id);
                                 }
                               }}
