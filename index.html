@@ -38,9 +38,15 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Basic configuration - removed problematic mobile CSS
+    // Ensure widget is visible and properly configured
     Tawk_API.onLoad = function(){
-      console.log('Tawk.to widget loaded successfully');
+      console.log('Tawk.to widget loaded and should be visible');
+      // Force show the widget
+      Tawk_API.showWidget();
+    };
+    
+    Tawk_API.onStatusChange = function(status){
+      console.log('Tawk.to status:', status);
     };
     
     (function(){
