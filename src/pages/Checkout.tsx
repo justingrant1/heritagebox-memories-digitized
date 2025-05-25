@@ -813,11 +813,7 @@ const Checkout = () => {
                           <Calendar className="mr-2 text-gray-600" /> Digitizing Time
                         </h2>
                         
-                        <RadioGroup 
-                          value={digitizingSpeed} 
-                          onValueChange={setDigitizingSpeed}
-                          className="space-y-3"
-                        >
+                        <div className="space-y-3">
                           {digitizingOptions.map((option) => (
                             <div 
                               key={option.id}
@@ -829,11 +825,16 @@ const Checkout = () => {
                               onClick={() => setDigitizingSpeed(option.id)}
                             >
                               <div className="flex items-start gap-2 md:gap-3">
-                                <RadioGroupItem 
-                                  value={option.id} 
-                                  id={`speed-${option.id}`} 
-                                  className="mt-1"
-                                />
+                                <div className="flex items-center">
+                                  <input
+                                    type="radio"
+                                    name="digitizing-speed"
+                                    value={option.id}
+                                    checked={digitizingSpeed === option.id}
+                                    onChange={() => setDigitizingSpeed(option.id)}
+                                    className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                                  />
+                                </div>
                                 <div>
                                   <Label 
                                     htmlFor={`speed-${option.id}`} 
@@ -857,7 +858,7 @@ const Checkout = () => {
                               )}
                             </div>
                           ))}
-                        </RadioGroup>
+                        </div>
                       </div>
 
                       {/* Coupon Code Section */}
