@@ -1,40 +1,9 @@
 
 import { Facebook, Instagram, Twitter } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const navigate = useNavigate();
-
-  const handlePackagesClick = () => {
-    navigate("/");
-    setTimeout(() => {
-      const element = document.querySelector("#packages");
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
-
-  const handleHowItWorksClick = () => {
-    navigate("/");
-    setTimeout(() => {
-      const element = document.querySelector("#how-it-works");
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
-
-  const handleFAQClick = () => {
-    navigate("/");
-    setTimeout(() => {
-      const element = document.querySelector("#faq");
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
   
   return (
     <footer className="bg-primary text-white">
@@ -63,10 +32,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><button onClick={handleHowItWorksClick} className="text-gray-300 hover:text-secondary transition-colors text-left">How It Works</button></li>
-              <li><button onClick={handlePackagesClick} className="text-gray-300 hover:text-secondary transition-colors text-left">Packages</button></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'how-it-works')} className="text-gray-300 hover:text-secondary transition-colors">How It Works</Link></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'packages')} className="text-gray-300 hover:text-secondary transition-colors">Packages</Link></li>
               <li><Link to="/about-us" className="text-gray-300 hover:text-secondary transition-colors">About Us</Link></li>
-              <li><button onClick={handleFAQClick} className="text-gray-300 hover:text-secondary transition-colors text-left">FAQ</button></li>
+              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'faq')} className="text-gray-300 hover:text-secondary transition-colors">FAQ</Link></li>
             </ul>
           </div>
           
