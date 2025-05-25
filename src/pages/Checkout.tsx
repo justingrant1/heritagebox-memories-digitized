@@ -827,13 +827,19 @@ const Checkout = () => {
                                   ? 'selected-option' 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
-                              onClick={() => setDigitizingSpeed(option.id)}
+                              onClick={(e) => {
+                                // Only handle click if it's not on the radio button itself
+                                if (e.target === e.currentTarget || !e.target.closest('[data-radio-item]')) {
+                                  setDigitizingSpeed(option.id);
+                                }
+                              }}
                             >
                               <div className="flex items-start gap-2 md:gap-3">
                                 <RadioGroupItem 
                                   value={option.id} 
                                   id={`speed-${option.id}`} 
                                   className="mt-1"
+                                  data-radio-item="true"
                                 />
                                 <div>
                                   <Label 
