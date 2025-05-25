@@ -10,7 +10,7 @@ import {
   Check, ShoppingBag, CreditCard, Truck, Lock, 
   Plus, Minus, Cloud, Usb, Calendar, 
   AlertCircle, ArrowRight, CreditCard as PaymentIcon,
-  Loader2
+  Loader2, Tag
 } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -77,6 +77,9 @@ const Checkout = () => {
   const [usbDrives, setUsbDrives] = useState(1);
   const [cloudBackup, setCloudBackup] = useState(1);
   const [digitizingSpeed, setDigitizingSpeed] = useState('standard'); // 'standard', 'expedited', or 'rush'
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const [formState, setFormState] = useState<FormState>({
     firstName: '',
     lastName: '',
@@ -185,49 +188,57 @@ const Checkout = () => {
     return digitizingOptions.find(option => option.id === digitizingSpeed) || digitizingOptions[0];
   };
 
-  // Calculate total price
-  const calculateTotal = () => {
+  // Calculate subtotal before discount
+  const calculateSubtotal = () => {
     const packagePrice = packageDetails.numericPrice || parseFloat(packageDetails.price.replace('$', ''));
     const usbTotal = usbDrives * USB_DRIVE_PRICE;
     const cloudTotal = cloudBackup * CLOUD_BACKUP_PRICE;
     const digitizingOption = getSelectedDigitizingOption();
     const speedPrice = digitizingOption ? digitizingOption.price : 0;
     
-    return (packagePrice + usbTotal + cloudTotal + speedPrice).toFixed(2);
+    return packagePrice + usbTotal + cloudTotal + speedPrice;
   };
 
-  // Get text color class based on package type
-  const getTextColorClass = () => {
-    switch(packageDetails.color) {
-      case 'primary':
-        return 'text-primary';
-      case 'rose-dark':
-        return 'text-rose-500';
-      case 'primary-light':
-        return 'text-primary-light';
-      case 'secondary':
-        return 'text-secondary';
-      default:
-        return 'text-gray-900';
+  // Calculate total price with coupon discount
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = subtotal * (couponDiscount / 100);
+    return (subtotal - discount).toFixed(2);
+  };
+
+  // Handle coupon code application
+  const applyCouponCode = () => {
+    const trimmedCode = couponCode.trim().toUpperCase();
+    
+    if (trimmedCode === 'SAVE15') {
+      setAppliedCoupon(trimmedCode);
+      setCouponDiscount(15);
+      toast.success("Coupon applied!", {
+        description: "You saved 15% on your order!",
+        position: "top-center",
+      });
+    } else if (trimmedCode === '') {
+      toast.error("Please enter a coupon code", {
+        position: "top-center",
+      });
+    } else {
+      toast.error("Invalid coupon code", {
+        description: "Please check your coupon code and try again.",
+        position: "top-center",
+      });
     }
   };
 
-  // Get button color class based on package type
-  const getButtonClass = () => {
-    switch(packageDetails.color) {
-      case 'primary':
-        return 'bg-primary hover:bg-primary/90 text-white';
-      case 'rose-dark':
-        return 'bg-rose-500 hover:bg-rose-600 text-white';
-      case 'primary-light':
-        return 'bg-primary-light hover:bg-primary-light/90 text-white';
-      case 'secondary':
-        return 'bg-secondary hover:bg-secondary/90 text-primary';
-      default:
-        return 'bg-primary hover:bg-primary/90 text-white';
-    }
+  // Remove applied coupon
+  const removeCoupon = () => {
+    setAppliedCoupon('');
+    setCouponDiscount(0);
+    setCouponCode('');
+    toast.success("Coupon removed", {
+      position: "top-center",
+    });
   };
-
+  
   const handleUsbChange = (change: number) => {
     setUsbDrives(prev => {
       const newValue = prev + change;
@@ -299,6 +310,9 @@ const Checkout = () => {
       const orderId = generateOrderId();
       console.log('🎯 CHECKOUT DEBUG - Generated Order ID:', orderId);
       
+      const subtotal = calculateSubtotal();
+      const discountAmount = subtotal * (couponDiscount / 100);
+      
       const orderDetails = {
         orderId: orderId,
         customerInfo: {
@@ -316,6 +330,10 @@ const Checkout = () => {
           package: packageType,
           packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
           packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${subtotal.toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${discountAmount.toFixed(2)}`,
           totalAmount: `$${calculateTotal()}`,
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
@@ -428,6 +446,10 @@ const Checkout = () => {
           package: packageType,
           packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
           packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${calculateSubtotal().toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}`,
           totalAmount: `$${calculateTotal()}`,
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
@@ -536,6 +558,10 @@ const Checkout = () => {
           package: packageType,
           packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
           packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${calculateSubtotal().toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}`,
           totalAmount: `$${calculateTotal()}`,
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
@@ -579,6 +605,38 @@ const Checkout = () => {
       
       navigate('/order-confirmation?' + params.toString());
     }, 2000);
+  };
+
+  // Get text color class based on package type
+  const getTextColorClass = () => {
+    switch(packageDetails.color) {
+      case 'primary':
+        return 'text-primary';
+      case 'rose-dark':
+        return 'text-rose-500';
+      case 'primary-light':
+        return 'text-primary-light';
+      case 'secondary':
+        return 'text-secondary';
+      default:
+        return 'text-gray-900';
+    }
+  };
+
+  // Get button color class based on package type
+  const getButtonClass = () => {
+    switch(packageDetails.color) {
+      case 'primary':
+        return 'bg-primary hover:bg-primary/90 text-white';
+      case 'rose-dark':
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
+      case 'primary-light':
+        return 'bg-primary-light hover:bg-primary-light/90 text-white';
+      case 'secondary':
+        return 'bg-secondary hover:bg-secondary/90 text-primary';
+      default:
+        return 'bg-primary hover:bg-primary/90 text-white';
+    }
   };
 
   return (
@@ -799,6 +857,52 @@ const Checkout = () => {
                             </div>
                           ))}
                         </RadioGroup>
+                      </div>
+
+                      {/* Coupon Code Section */}
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
+                          <Tag className="mr-2 text-gray-600" /> Coupon Code
+                        </h2>
+                        
+                        {!appliedCoupon ? (
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <Input
+                                type="text"
+                                placeholder="Enter coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="form-input"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={applyCouponCode}
+                              className="px-6"
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center">
+                              <Tag className="h-4 w-4 text-green-600 mr-2" />
+                              <span className="font-medium text-green-700">{appliedCoupon}</span>
+                              <span className="text-sm text-green-600 ml-2">({couponDiscount}% off)</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeCoupon}
+                              className="text-green-700 hover:text-green-800"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex justify-between">
@@ -1023,8 +1127,14 @@ const Checkout = () => {
                   <div className="border-t border-gray-200 pt-3 mb-3">
                     <div className="flex justify-between mb-1 text-sm">
                       <span>Subtotal</span>
-                      <span>${calculateTotal()}</span>
+                      <span>${calculateSubtotal().toFixed(2)}</span>
                     </div>
+                    {appliedCoupon && (
+                      <div className="flex justify-between mb-1 text-sm text-green-600">
+                        <span>Coupon ({appliedCoupon}) - {couponDiscount}% off</span>
+                        <span>-${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between mb-1 text-sm">
                       <span>Shipping</span>
                       <span className="text-green-600">Free</span>
