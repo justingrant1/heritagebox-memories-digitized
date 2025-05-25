@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { sendEmailToHeritageBox } from '@/utils/emailUtils';
+import { sendEmailToHeritageBox, generateOrderId } from '@/utils/emailUtils';
 import { sendOrderToAirtable, parseAddOnDetails, parseSpeedDetails } from '@/utils/airtableUtils';
 import { 
   Form,
@@ -296,7 +295,12 @@ const Checkout = () => {
       const selectedDigitizingOption = getSelectedDigitizingOption();
       console.log('🎯 CHECKOUT DEBUG - Selected digitizing option:', selectedDigitizingOption);
       
+      // Generate unique order ID
+      const orderId = generateOrderId();
+      console.log('🎯 CHECKOUT DEBUG - Generated Order ID:', orderId);
+      
       const orderDetails = {
+        orderId: orderId,
         customerInfo: {
           firstName: formState.firstName,
           lastName: formState.lastName,
@@ -332,11 +336,13 @@ const Checkout = () => {
         orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
       }
       
-      console.log("🎯 CHECKOUT DEBUG - Final order details object:", JSON.stringify(orderDetails, null, 2));
+      console.log("🎯 CHECKOUT DEBUG - Final order details object with Order ID:", JSON.stringify(orderDetails, null, 2));
       
       // Send the email with order details
       await sendEmailToHeritageBox(orderDetails, "Order Completed");
-      console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree");
+      console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree with Order ID:", orderId);
+      
+      return orderId; // Return the order ID for potential use elsewhere
       
     } catch (error) {
       console.error("❌ CHECKOUT ERROR - Failed to send order details to Formspree:", error);
@@ -381,6 +387,9 @@ const Checkout = () => {
       // Prepare order data for both email and Airtable
       const selectedDigitizingOption = getSelectedDigitizingOption();
       
+      // Generate unique order ID
+      const orderId = generateOrderId();
+      
       // Create add-ons array for legacy support
       const addOnsArray = [];
       if (usbDrives > 0) {
@@ -403,6 +412,7 @@ const Checkout = () => {
       const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
 
       const orderData = {
+        orderId: orderId,
         customerInfo: {
           firstName: formState.firstName,
           lastName: formState.lastName,

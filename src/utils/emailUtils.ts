@@ -1,6 +1,14 @@
+
 /**
  * Utility functions for sending emails to HeritageBox
  */
+
+// Generate a unique order ID
+const generateOrderId = () => {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `HB-${timestamp}-${random}`;
+};
 
 // Format the customer address for better readability
 const formatAddress = (customerInfo: any) => {
@@ -19,10 +27,17 @@ const formatOrderDetails = (data: any, source: string) => {
     console.log('📧 FORMSPREE DEBUG - Customer Info received:', data.customerInfo);
     console.log('📧 FORMSPREE DEBUG - Order Details received:', data.orderDetails);
     
+    // Generate order ID if not provided
+    const orderId = data.orderId || generateOrderId();
+    console.log('📧 FORMSPREE DEBUG - Order ID:', orderId);
+    
     // Flatten the object structure for better Formspree compatibility
     const formattedData = {
-      _subject: `🎯 NEW HERITAGEBOX ORDER - ${data.customerInfo.fullName}`,
+      _subject: `🎯 NEW HERITAGEBOX ORDER - ${orderId} - ${data.customerInfo.fullName}`,
       source: source,
+      
+      // Order Identification
+      order_id: orderId,
       
       // Customer Information
       customer_name: data.customerInfo.fullName,
@@ -62,14 +77,14 @@ const formatOrderDetails = (data: any, source: string) => {
       timestamp: data.timestamp,
       
       // Additional context
-      order_summary: `Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`,
+      order_summary: `Order ID: ${orderId} | Package: ${data.orderDetails.package} (${data.orderDetails.packagePrice}) | Speed: ${data.orderDetails.digitizingSpeed} (${data.orderDetails.digitizingTime}) | Total: ${data.orderDetails.totalAmount} | Payment: ${data.paymentMethod}`,
       
       // Debug info
       form_source: 'checkout_order_completion',
       debug_timestamp: new Date().toISOString()
     };
     
-    console.log('📧 FORMSPREE DEBUG - Final formatted data:', formattedData);
+    console.log('📧 FORMSPREE DEBUG - Final formatted data with Order ID:', formattedData);
     return formattedData;
   }
   
@@ -143,3 +158,6 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
     throw error; // Re-throw to handle in the component
   }
 };
+
+// Export the generateOrderId function for use in other modules
+export { generateOrderId };
