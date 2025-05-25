@@ -38,37 +38,9 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Mobile-friendly configuration
+    // Basic configuration - removed problematic mobile CSS
     Tawk_API.onLoad = function(){
-      // Ensure chat widget doesn't interfere with mobile interactions
-      if (window.innerWidth <= 768) {
-        // Add mobile-specific styling to prevent interaction blocking
-        const style = document.createElement('style');
-        style.textContent = `
-          #tawk-bubble-container {
-            pointer-events: auto !important;
-            z-index: 9999 !important;
-          }
-          .tawk-flex-center {
-            pointer-events: none !important;
-          }
-          .tawk-flex-center > * {
-            pointer-events: auto !important;
-          }
-          .tawk-min-container {
-            pointer-events: auto !important;
-          }
-          body {
-            pointer-events: auto !important;
-          }
-          button, a, input, textarea, select {
-            pointer-events: auto !important;
-            z-index: 10000 !important;
-            position: relative !important;
-          }
-        `;
-        document.head.appendChild(style);
-      }
+      console.log('Tawk.to widget loaded successfully');
     };
     
     (function(){
