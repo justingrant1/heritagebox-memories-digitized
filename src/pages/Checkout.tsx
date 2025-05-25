@@ -823,17 +823,15 @@ const Checkout = () => {
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                             >
-                              <div className="flex items-start gap-2 md:gap-3">
-                                <div className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name="digitizing-speed"
-                                    value={option.id}
-                                    checked={digitizingSpeed === option.id}
-                                    onChange={(e) => setDigitizingSpeed(e.target.value)}
-                                    className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                                  />
-                                </div>
+                              <div className="flex items-center gap-2 md:gap-3">
+                                <input
+                                  type="radio"
+                                  name="digitizing-speed"
+                                  value={option.id}
+                                  checked={digitizingSpeed === option.id}
+                                  onChange={(e) => setDigitizingSpeed(e.target.value)}
+                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary mt-0.5"
+                                />
                                 <div>
                                   <div className="font-medium cursor-pointer flex flex-wrap items-center">
                                     <span className="mr-2">{option.name}</span>
