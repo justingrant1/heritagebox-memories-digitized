@@ -815,14 +815,13 @@ const Checkout = () => {
                         
                         <div className="space-y-3">
                           {digitizingOptions.map((option) => (
-                            <div 
+                            <label 
                               key={option.id}
                               className={`flex items-center justify-between border rounded-lg p-3 md:p-4 transition-all cursor-pointer ${
                                 digitizingSpeed === option.id 
                                   ? 'selected-option' 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
-                              onClick={() => setDigitizingSpeed(option.id)}
                             >
                               <div className="flex items-start gap-2 md:gap-3">
                                 <div className="flex items-center">
@@ -831,21 +830,18 @@ const Checkout = () => {
                                     name="digitizing-speed"
                                     value={option.id}
                                     checked={digitizingSpeed === option.id}
-                                    onChange={() => setDigitizingSpeed(option.id)}
+                                    onChange={(e) => setDigitizingSpeed(e.target.value)}
                                     className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                                   />
                                 </div>
                                 <div>
-                                  <Label 
-                                    htmlFor={`speed-${option.id}`} 
-                                    className="font-medium cursor-pointer flex flex-wrap items-center"
-                                  >
+                                  <div className="font-medium cursor-pointer flex flex-wrap items-center">
                                     <span className="mr-2">{option.name}</span>
                                     <span className="text-sm text-gray-700">({option.time})</span>
                                     {option.id === 'standard' && 
                                       <span className="ml-2 text-green-600 font-medium text-sm">Free</span>
                                     }
-                                  </Label>
+                                  </div>
                                   <p className="text-xs md:text-sm text-gray-500 mt-1">
                                     {option.description}
                                   </p>
@@ -856,7 +852,7 @@ const Checkout = () => {
                                   ${option.price.toFixed(2)}
                                 </span>
                               )}
-                            </div>
+                            </label>
                           ))}
                         </div>
                       </div>
