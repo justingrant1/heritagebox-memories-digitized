@@ -80,7 +80,7 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Contact Info */}
+          {/* Contact Info - Enhanced structure */}
           <div>
             <h4 className="text-lg font-bold mb-4">Contact Us</h4>
             <address className="not-italic text-gray-300 space-y-2">
