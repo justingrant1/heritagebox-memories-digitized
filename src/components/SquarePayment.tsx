@@ -10,7 +10,7 @@ interface Square {
 }
 
 interface SquarePayments {
-  card: (options?: any) => Promise<SquareCard>;
+  card: () => Promise<SquareCard>;
 }
 
 interface SquareCard {
@@ -106,34 +106,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         });
 
         console.log("Creating card instance");
-        const cardInstance = await payments.card({
-          includeInputLabels: true,
-          style: {
-            '.input-container': {
-              borderRadius: '8px',
-              borderColor: '#e5e7eb',
-              fontSize: '16px', // Prevents zoom on iOS
-              padding: '12px'
-            },
-            '.input-container.is-focus': {
-              borderColor: '#3b82f6'
-            },
-            '.input-container.is-error': {
-              borderColor: '#ef4444'
-            },
-            '.message-text': {
-              color: '#ef4444'
-            },
-            // Mobile-specific optimizations
-            '@media (max-width: 768px)': {
-              '.input-container': {
-                fontSize: '16px',
-                padding: '14px',
-                minHeight: '48px' // Ensures touch-friendly size
-              }
-            }
-          }
-        });
+        const cardInstance = await payments.card();
 
         // Make sure the container is ready before attaching
         const container = document.getElementById('card-container');
@@ -248,12 +221,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         </div>
         <Button
           onClick={handlePaymentSubmit}
-          className={`w-full md:w-auto px-6 py-2.5 ${buttonColorClass} touch-manipulation`}
+          className={`w-full md:w-auto px-6 py-2.5 ${buttonColorClass}`}
           disabled={isProcessing || !card || !!error}
-          style={{ 
-            WebkitTapHighlightColor: 'transparent',
-            touchAction: 'manipulation'
-          }}
         >
           {isProcessing ? (
             <span className="flex items-center">

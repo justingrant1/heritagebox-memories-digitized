@@ -4,10 +4,32 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HeritageBox</title>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-458259403"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-458259403');
+    </script>
+    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-458259403');</script>
+    <!-- End Google Tag Manager -->
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-458259403"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
@@ -16,43 +38,21 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Mobile-friendly configuration
+    // Ensure widget is visible and properly configured
     Tawk_API.onLoad = function(){
-      // Ensure chat widget doesn't interfere with mobile interactions
-      if (window.innerWidth <= 768) {
-        // Add mobile-specific styling to prevent interaction blocking
-        const style = document.createElement('style');
-        style.textContent = `
-          #tawk-bubble-container {
-            pointer-events: auto !important;
-            z-index: 9999 !important;
-          }
-          .tawk-flex-center {
-            pointer-events: none !important;
-          }
-          .tawk-flex-center > * {
-            pointer-events: auto !important;
-          }
-          .tawk-min-container {
-            pointer-events: auto !important;
-          }
-          body {
-            pointer-events: auto !important;
-          }
-          button, a, input, textarea, select {
-            pointer-events: auto !important;
-            z-index: 10000 !important;
-            position: relative !important;
-          }
-        `;
-        document.head.appendChild(style);
-      }
+      console.log('Tawk.to widget loaded and should be visible');
+      // Force show the widget
+      Tawk_API.showWidget();
+    };
+    
+    Tawk_API.onStatusChange = function(status){
+      console.log('Tawk.to status:', status);
     };
     
     (function(){
     var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
     s1.async=true;
-    s1.src='https://embed.tawk.to/68279c6acc21d9190ec452e3/1irdblvrq';
+    s1.src='https://embed.tawk.to/68279c6cc21d9190ec452e3/1irdblvrq';
     s1.charset='UTF-8';
     s1.setAttribute('crossorigin','*');
     s0.parentNode.insertBefore(s1,s0);
