@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -106,7 +105,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         });
 
         console.log("Creating card instance");
-        const cardInstance = await payments.card();
+        const cardInstance = await payments.card({ autocomplete: 'cc-number' });
 
         // Make sure the container is ready before attaching
         const container = document.getElementById('card-container');
