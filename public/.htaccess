@@ -1,5 +1,4 @@
 
-
 # Enable rewriting and necessary modules
 RewriteEngine On
 Options +FollowSymLinks
@@ -18,14 +17,13 @@ AddType application/xml .xml
     Header set X-Content-Type-Options "nosniff"
 </Files>
 
-# Handle static assets first - serve them directly if they exist
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|xml|txt|json|map)$ [NC]
-RewriteRule . - [L]
+# Handle existing static files (images, css, js, etc.)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
 
-# For all other requests that don't match existing files or directories,
-# redirect to index.html to let React Router handle the routing
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
+# Handle favicon.ico
+RewriteRule ^favicon\.ico$ - [L]
 
+# For all other requests (SPA routes), serve index.html
+RewriteRule ^ index.html [L]
