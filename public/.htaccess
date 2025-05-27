@@ -17,12 +17,12 @@ AddType application/xml .xml
     Header set X-Content-Type-Options "nosniff"
 </Files>
 
-# If the requested file exists, serve it directly (important for XML files)
+# Handle static assets - serve them directly if they exist
 RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|xml|txt)$ [NC]
 RewriteRule ^(.*)$ $1 [L,QSA]
 
-# For all other requests that aren't files or directories,
-# send to index.html for SPA routing
+# For all other requests (including SPA routes), redirect to index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [QSA,L]
+RewriteRule ^(.*)$ /index.html [L,QSA]
