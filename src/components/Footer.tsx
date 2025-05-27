@@ -1,4 +1,3 @@
-
 import { Facebook, Instagram, Twitter } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -44,7 +43,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-4">HeritageBox<sup className="text-xs align-super">®</sup></h3>
             <p className="text-gray-300 mb-4">
-              Preserving your precious memories for generations to come.
+              Preserving your precious memories for generations to come. 
             </p>
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/people/HeritageBox/100083540474473/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors" aria-label="Facebook">
