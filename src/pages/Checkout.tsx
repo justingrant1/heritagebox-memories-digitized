@@ -293,13 +293,15 @@ const Checkout = () => {
   const sendOrderDetailsToFormspree = async (orderInfo: any, paymentInfo?: string) => {
     try {
       console.log('🎯 CHECKOUT DEBUG - sendOrderDetailsToFormspree called');
-      console.log('🎯 CHECKOUT DEBUG - Current formState:', formState);
       console.log('🎯 CHECKOUT DEBUG - orderInfo param:', orderInfo);
       console.log('🎯 CHECKOUT DEBUG - paymentInfo param:', paymentInfo);
       
+      // Use customer info from orderInfo parameter instead of formState
+      const customerInfo = orderInfo.customerInfo;
+      
       // Ensure we have all required customer info
-      if (!formState.firstName || !formState.lastName || !formState.email) {
-        console.error('❌ CHECKOUT ERROR - Missing required customer information:', formState);
+      if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email) {
+        console.error('❌ CHECKOUT ERROR - Missing required customer information:', customerInfo);
         throw new Error('Missing required customer information');
       }
       
@@ -316,15 +318,15 @@ const Checkout = () => {
       const orderDetails = {
         orderId: orderId,
         customerInfo: {
-          firstName: formState.firstName,
-          lastName: formState.lastName,
-          email: formState.email,
-          phone: formState.phone,
-          address: formState.address,
-          city: formState.city,
-          state: formState.state,
-          zipCode: formState.zipCode,
-          fullName: `${formState.firstName} ${formState.lastName}`
+          firstName: customerInfo.firstName,
+          lastName: customerInfo.lastName,
+          email: customerInfo.email,
+          phone: customerInfo.phone,
+          address: customerInfo.address,
+          city: customerInfo.city,
+          state: customerInfo.state,
+          zipCode: customerInfo.zipCode,
+          fullName: customerInfo.fullName
         },
         orderDetails: {
           package: packageType,
