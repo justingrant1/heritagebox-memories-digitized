@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -10,11 +9,13 @@ import Footer from '@/components/Footer';
 import { 
   Check, ShoppingBag, CreditCard, Truck, Lock, 
   Plus, Minus, Cloud, Usb, Calendar, 
-  AlertCircle, ArrowRight, CreditCard as PaymentIcon 
+  AlertCircle, ArrowRight, CreditCard as PaymentIcon,
+  Loader2, Tag
 } from 'lucide-react';
 import SquarePayment from '@/components/SquarePayment';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { sendEmailToHeritageBox } from '@/utils/emailUtils';
+import { sendEmailToHeritageBox, generateOrderId } from '@/utils/emailUtils';
+import { sendOrderToAirtable, parseAddOnDetails, parseSpeedDetails } from '@/utils/airtableUtils';
 import { 
   Form,
   FormControl,
@@ -32,11 +33,24 @@ const shippingFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number").regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
   address: z.string().min(5, "Please enter your complete address"),
   city: z.string().min(2, "Please enter a valid city"),
   state: z.string().min(2, "Please enter a valid state"),
   zipCode: z.string().min(5, "Please enter a valid ZIP code").max(10)
 });
+
+// Define the form state type explicitly to avoid TypeScript errors
+type FormState = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+};
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -50,6 +64,7 @@ const Checkout = () => {
       firstName: '',
       lastName: '',
       email: '',
+      phone: '',
       address: '',
       city: '',
       state: '',
@@ -61,12 +76,15 @@ const Checkout = () => {
   const [showCardForm, setShowCardForm] = useState(false);
   const [usbDrives, setUsbDrives] = useState(1);
   const [cloudBackup, setCloudBackup] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card' or 'paypal'
   const [digitizingSpeed, setDigitizingSpeed] = useState('standard'); // 'standard', 'expedited', or 'rush'
-  const [formState, setFormState] = useState({
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [formState, setFormState] = useState<FormState>({
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     address: '',
     city: '',
     state: '',
@@ -98,7 +116,7 @@ const Checkout = () => {
     }
   ];
 
-  // Define all packages (updated with new prices)
+  // Define all packages (updated with new prices and description)
   const allPackages = [
     {
       name: "Starter",
@@ -107,8 +125,7 @@ const Checkout = () => {
       description: "Perfect for a small collection of memories",
       color: "primary",
       features: [
-        "Digitize up to 3 media items OR up to 75 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 3 tapes OR up to 75 photos",
         "Online access to digital files",
         "Free shipping both ways"
       ]
@@ -121,8 +138,7 @@ const Checkout = () => {
       color: "secondary",
       popular: true,
       features: [
-        "Digitize up to 10 media items OR up to 250 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 10 tapes OR up to 250 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -135,8 +151,7 @@ const Checkout = () => {
       description: "Great for larger collections",
       color: "rose-dark",
       features: [
-        "Digitize up to 20 media items OR up to 500 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 20 tapes OR up to 500 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -149,8 +164,7 @@ const Checkout = () => {
       description: "For preserving a lifetime of memories",
       color: "primary-light",
       features: [
-        "Digitize up to 40 media items OR up to 1000 photos",
-        "1 media item = 25 photos",
+        "Digitize up to 40 tapes OR up to 1000 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -174,49 +188,57 @@ const Checkout = () => {
     return digitizingOptions.find(option => option.id === digitizingSpeed) || digitizingOptions[0];
   };
 
-  // Calculate total price
-  const calculateTotal = () => {
+  // Calculate subtotal before discount
+  const calculateSubtotal = () => {
     const packagePrice = packageDetails.numericPrice || parseFloat(packageDetails.price.replace('$', ''));
     const usbTotal = usbDrives * USB_DRIVE_PRICE;
     const cloudTotal = cloudBackup * CLOUD_BACKUP_PRICE;
     const digitizingOption = getSelectedDigitizingOption();
     const speedPrice = digitizingOption ? digitizingOption.price : 0;
     
-    return (packagePrice + usbTotal + cloudTotal + speedPrice).toFixed(2);
+    return packagePrice + usbTotal + cloudTotal + speedPrice;
   };
 
-  // Get text color class based on package type
-  const getTextColorClass = () => {
-    switch(packageDetails.color) {
-      case 'primary':
-        return 'text-primary';
-      case 'rose-dark':
-        return 'text-rose-dark';
-      case 'primary-light':
-        return 'text-primary-light';
-      case 'secondary':
-        return 'text-secondary';
-      default:
-        return 'text-gray-900';
+  // Calculate total price with coupon discount
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    const discount = subtotal * (couponDiscount / 100);
+    return (subtotal - discount).toFixed(2);
+  };
+
+  // Handle coupon code application
+  const applyCouponCode = () => {
+    const trimmedCode = couponCode.trim().toUpperCase();
+    
+    if (trimmedCode === 'SAVE15') {
+      setAppliedCoupon(trimmedCode);
+      setCouponDiscount(15);
+      toast.success("Coupon applied!", {
+        description: "You saved 15% on your order!",
+        position: "top-center",
+      });
+    } else if (trimmedCode === '') {
+      toast.error("Please enter a coupon code", {
+        position: "top-center",
+      });
+    } else {
+      toast.error("Invalid coupon code", {
+        description: "Please check your coupon code and try again.",
+        position: "top-center",
+      });
     }
   };
 
-  // Get button color class based on package type
-  const getButtonClass = () => {
-    switch(packageDetails.color) {
-      case 'primary':
-        return 'bg-primary hover:bg-primary/90 text-white';
-      case 'rose-dark':
-        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
-      case 'primary-light':
-        return 'bg-primary-light hover:bg-primary-light/90 text-white';
-      case 'secondary':
-        return 'bg-secondary hover:bg-secondary/90 text-primary';
-      default:
-        return 'bg-primary hover:bg-primary/90 text-white';
-    }
+  // Remove applied coupon
+  const removeCoupon = () => {
+    setAppliedCoupon('');
+    setCouponDiscount(0);
+    setCouponCode('');
+    toast.success("Coupon removed", {
+      position: "top-center",
+    });
   };
-
+  
   const handleUsbChange = (change: number) => {
     setUsbDrives(prev => {
       const newValue = prev + change;
@@ -245,7 +267,17 @@ const Checkout = () => {
   };
 
   const handleSubmit = (values: z.infer<typeof shippingFormSchema>) => {
-    setFormState(values);
+    // Fix: Use proper typing to ensure all required fields are present
+    setFormState({
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      phone: values.phone,
+      address: values.address,
+      city: values.city,
+      state: values.state,
+      zipCode: values.zipCode,
+    });
     setShowCardForm(true);
     
     // Smooth scroll to payment section after a short delay
@@ -260,23 +292,57 @@ const Checkout = () => {
   // Function to send order details to Formspree
   const sendOrderDetailsToFormspree = async (orderInfo: any, paymentInfo?: string) => {
     try {
+      console.log('🎯 CHECKOUT DEBUG - sendOrderDetailsToFormspree called');
+      console.log('🎯 CHECKOUT DEBUG - orderInfo param:', orderInfo);
+      console.log('🎯 CHECKOUT DEBUG - paymentInfo param:', paymentInfo);
+      
+      // Use customer info from orderInfo parameter instead of formState
+      const customerInfo = orderInfo.customerInfo;
+      
+      // Ensure we have all required customer info
+      if (!customerInfo.firstName || !customerInfo.lastName || !customerInfo.email) {
+        console.error('❌ CHECKOUT ERROR - Missing required customer information:', customerInfo);
+        throw new Error('Missing required customer information');
+      }
+      
       const selectedDigitizingOption = getSelectedDigitizingOption();
+      console.log('🎯 CHECKOUT DEBUG - Selected digitizing option:', selectedDigitizingOption);
+      
+      // Generate unique order ID
+      const orderId = generateOrderId();
+      console.log('🎯 CHECKOUT DEBUG - Generated Order ID:', orderId);
+      
+      const subtotal = calculateSubtotal();
+      const discountAmount = subtotal * (couponDiscount / 100);
+      
       const orderDetails = {
+        orderId: orderId,
         customerInfo: {
-          ...formState,
-          fullName: `${formState.firstName} ${formState.lastName}`
+          firstName: customerInfo.firstName,
+          lastName: customerInfo.lastName,
+          email: customerInfo.email,
+          phone: customerInfo.phone,
+          address: customerInfo.address,
+          city: customerInfo.city,
+          state: customerInfo.state,
+          zipCode: customerInfo.zipCode,
+          fullName: customerInfo.fullName
         },
         orderDetails: {
           package: packageType,
           packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
           packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${subtotal.toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${discountAmount.toFixed(2)}`,
           totalAmount: `$${calculateTotal()}`,
           digitizingSpeed: selectedDigitizingOption.name,
           digitizingTime: selectedDigitizingOption.time,
           digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
           addOns: []
         },
-        paymentMethod: paymentInfo || paymentMethod,
+        paymentMethod: paymentInfo || "Credit Card",
         timestamp: new Date().toISOString()
       };
       
@@ -290,14 +356,16 @@ const Checkout = () => {
         orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
       }
       
-      console.log("Sending order details to Formspree:", orderDetails);
+      console.log("🎯 CHECKOUT DEBUG - Final order details object with Order ID:", JSON.stringify(orderDetails, null, 2));
       
       // Send the email with order details
       await sendEmailToHeritageBox(orderDetails, "Order Completed");
-      console.log("Order details sent successfully to Formspree");
+      console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree with Order ID:", orderId);
+      
+      return orderId; // Return the order ID for potential use elsewhere
       
     } catch (error) {
-      console.error("Failed to send order details to Formspree:", error);
+      console.error("❌ CHECKOUT ERROR - Failed to send order details to Formspree:", error);
       // We don't want to show an error to the user here as the payment was successful
       // Just log the error for debugging purposes
     }
@@ -307,6 +375,9 @@ const Checkout = () => {
     setIsProcessing(true);
     
     try {
+      console.log('💳 PAYMENT SUCCESS - Starting payment processing');
+      console.log('💳 PAYMENT SUCCESS - Current form state:', formState);
+      
       const response = await fetch('/api/process-payment', {
         method: 'POST',
         headers: {
@@ -331,8 +402,79 @@ const Checkout = () => {
         throw new Error(result.error || 'Payment failed');
       }
 
+      console.log('💳 PAYMENT SUCCESS - Payment processed, now sending email and saving to Airtable');
+
+      // Prepare order data for both email and Airtable
+      const selectedDigitizingOption = getSelectedDigitizingOption();
+      
+      // Generate unique order ID
+      const orderId = generateOrderId();
+      
+      // Create add-ons array for legacy support
+      const addOnsArray = [];
+      if (usbDrives > 0) {
+        addOnsArray.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      if (cloudBackup > 0) {
+        addOnsArray.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+
+      // Create detailed breakdown for Airtable
+      const addOnDetails = {
+        photoRestoration: { selected: false, cost: 0 },
+        videoEnhancement: { selected: false, cost: 0 },
+        digitalDelivery: { selected: false, cost: 0 },
+        expressShipping: { selected: false, cost: 0 },
+        storageUpgrade: { selected: usbDrives > 0, cost: usbDrives * USB_DRIVE_PRICE },
+        backupCopies: { selected: cloudBackup > 0, cost: 0 } // Cloud backup is included
+      };
+
+      const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
+
+      const orderData = {
+        orderId: orderId,
+        customerInfo: {
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          address: formState.address,
+          city: formState.city,
+          state: formState.state,
+          zipCode: formState.zipCode,
+          fullName: `${formState.firstName} ${formState.lastName}`
+        },
+        orderDetails: {
+          package: packageType,
+          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
+          packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${calculateSubtotal().toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}`,
+          totalAmount: `$${calculateTotal()}`,
+          digitizingSpeed: selectedDigitizingOption.name,
+          digitizingTime: selectedDigitizingOption.time,
+          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
+          addOns: addOnsArray,
+          addOnDetails: addOnDetails,
+          speedDetails: speedDetails
+        },
+        paymentMethod: `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`,
+        timestamp: new Date().toISOString()
+      };
+
       // Send order details to Formspree
-      await sendOrderDetailsToFormspree(formState, `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`);
+      await sendOrderDetailsToFormspree(orderData, "Order Completed");
+
+      // Send order details to Airtable
+      try {
+        await sendOrderToAirtable(orderData);
+        console.log('✅ AIRTABLE SUCCESS - Order saved to Airtable');
+      } catch (airtableError) {
+        console.error('❌ AIRTABLE ERROR - Failed to save to Airtable:', airtableError);
+        // Don't fail the checkout process if Airtable fails
+      }
 
       toast.success("Payment successful!", {
         description: "Thank you for your order. You will receive a confirmation email shortly.",
@@ -352,7 +494,7 @@ const Checkout = () => {
       
       navigate('/order-confirmation?' + params.toString());
     } catch (error) {
-      console.error('Payment error:', error);
+      console.error('💳 PAYMENT ERROR:', error);
       toast.error("Payment failed", {
         description: error.message || "Please try again or use a different payment method",
         position: "top-center",
@@ -365,6 +507,9 @@ const Checkout = () => {
   const handlePayPalPayment = () => {
     setIsProcessing(true);
     
+    console.log('💰 PAYPAL - Starting PayPal payment processing');
+    console.log('💰 PAYPAL - Current form state:', formState);
+    
     // For demo purposes, we'll simulate a successful PayPal payment after a short delay
     console.log("Processing PayPal payment for:", formState.email);
     console.log("Amount:", calculateTotal());
@@ -373,8 +518,75 @@ const Checkout = () => {
     console.log("Digitizing speed:", digitizingSpeed);
     
     setTimeout(async () => {
+      console.log('💰 PAYPAL - Payment processed, now sending email and saving to Airtable');
+      
+      // Prepare order data for both email and Airtable
+      const selectedDigitizingOption = getSelectedDigitizingOption();
+      
+      // Create add-ons array for legacy support
+      const addOnsArray = [];
+      if (usbDrives > 0) {
+        addOnsArray.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
+      }
+      if (cloudBackup > 0) {
+        addOnsArray.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
+      }
+
+      // Create detailed breakdown for Airtable
+      const addOnDetails = {
+        photoRestoration: { selected: false, cost: 0 },
+        videoEnhancement: { selected: false, cost: 0 },
+        digitalDelivery: { selected: false, cost: 0 },
+        expressShipping: { selected: false, cost: 0 },
+        storageUpgrade: { selected: usbDrives > 0, cost: usbDrives * USB_DRIVE_PRICE },
+        backupCopies: { selected: cloudBackup > 0, cost: 0 } // Cloud backup is included
+      };
+
+      const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
+
+      const orderData = {
+        customerInfo: {
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+          email: formState.email,
+          phone: formState.phone,
+          address: formState.address,
+          city: formState.city,
+          state: formState.state,
+          zipCode: formState.zipCode,
+          fullName: `${formState.firstName} ${formState.lastName}`
+        },
+        orderDetails: {
+          package: packageType,
+          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
+          packageFeatures: packageDetails.features.join(", "),
+          subtotal: `$${calculateSubtotal().toFixed(2)}`,
+          couponCode: appliedCoupon || 'None',
+          discountPercent: couponDiscount,
+          discountAmount: `$${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}`,
+          totalAmount: `$${calculateTotal()}`,
+          digitizingSpeed: selectedDigitizingOption.name,
+          digitizingTime: selectedDigitizingOption.time,
+          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
+          addOns: addOnsArray,
+          addOnDetails: addOnDetails,
+          speedDetails: speedDetails
+        },
+        paymentMethod: "PayPal",
+        timestamp: new Date().toISOString()
+      };
+
       // Send order details to Formspree
-      await sendOrderDetailsToFormspree(formState, "PayPal");
+      await sendOrderDetailsToFormspree(orderData, "Order Completed");
+
+      // Send order details to Airtable
+      try {
+        await sendOrderToAirtable(orderData);
+        console.log('✅ AIRTABLE SUCCESS - PayPal order saved to Airtable');
+      } catch (airtableError) {
+        console.error('❌ AIRTABLE ERROR - Failed to save PayPal order to Airtable:', airtableError);
+        // Don't fail the checkout process if Airtable fails
+      }
       
       setIsProcessing(false);
       toast.success("PayPal payment successful!", {
@@ -397,11 +609,43 @@ const Checkout = () => {
     }, 2000);
   };
 
+  // Get text color class based on package type
+  const getTextColorClass = () => {
+    switch(packageDetails.color) {
+      case 'primary':
+        return 'text-primary';
+      case 'rose-dark':
+        return 'text-rose-500';
+      case 'primary-light':
+        return 'text-primary-light';
+      case 'secondary':
+        return 'text-secondary';
+      default:
+        return 'text-gray-900';
+    }
+  };
+
+  // Get button color class based on package type
+  const getButtonClass = () => {
+    switch(packageDetails.color) {
+      case 'primary':
+        return 'bg-primary hover:bg-primary/90 text-white';
+      case 'rose-dark':
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
+      case 'primary-light':
+        return 'bg-primary-light hover:bg-primary-light/90 text-white';
+      case 'secondary':
+        return 'bg-secondary hover:bg-secondary/90 text-primary';
+      default:
+        return 'bg-primary hover:bg-primary/90 text-white';
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <NavBar />
       
-      <main className="flex-grow">
+      <main className="flex-grow pt-24 md:pt-28">
         <div className="container mx-auto px-4 py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6 md:mb-10">
@@ -493,6 +737,20 @@ const Checkout = () => {
                           
                           <FormField
                             control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel className="form-label">Phone Number</FormLabel>
+                                <FormControl>
+                                  <Input {...field} type="tel" placeholder="(555) 123-4567" className="form-input" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
                             name="address"
                             render={({ field }) => (
                               <FormItem className="md:col-span-2">
@@ -557,37 +815,33 @@ const Checkout = () => {
                           <Calendar className="mr-2 text-gray-600" /> Digitizing Time
                         </h2>
                         
-                        <RadioGroup 
-                          value={digitizingSpeed} 
-                          onValueChange={setDigitizingSpeed}
-                          className="space-y-3"
-                        >
+                        <div className="space-y-3">
                           {digitizingOptions.map((option) => (
-                            <div 
+                            <label 
                               key={option.id}
-                              className={`flex items-center justify-between border rounded-lg p-3 md:p-4 transition-all ${
+                              className={`flex items-center justify-between border rounded-lg p-3 md:p-4 transition-all cursor-pointer ${
                                 digitizingSpeed === option.id 
                                   ? 'selected-option' 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                             >
-                              <div className="flex items-start gap-2 md:gap-3">
-                                <RadioGroupItem 
-                                  value={option.id} 
-                                  id={`speed-${option.id}`} 
-                                  className="mt-1"
+                              <div className="flex items-center gap-2 md:gap-3">
+                                <input
+                                  type="radio"
+                                  name="digitizing-speed"
+                                  value={option.id}
+                                  checked={digitizingSpeed === option.id}
+                                  onChange={(e) => setDigitizingSpeed(e.target.value)}
+                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary mt-0.5"
                                 />
                                 <div>
-                                  <Label 
-                                    htmlFor={`speed-${option.id}`} 
-                                    className="font-medium cursor-pointer flex flex-wrap items-center"
-                                  >
+                                  <div className="font-medium cursor-pointer flex flex-wrap items-center">
                                     <span className="mr-2">{option.name}</span>
                                     <span className="text-sm text-gray-700">({option.time})</span>
                                     {option.id === 'standard' && 
                                       <span className="ml-2 text-green-600 font-medium text-sm">Free</span>
                                     }
-                                  </Label>
+                                  </div>
                                   <p className="text-xs md:text-sm text-gray-500 mt-1">
                                     {option.description}
                                   </p>
@@ -598,9 +852,55 @@ const Checkout = () => {
                                   ${option.price.toFixed(2)}
                                 </span>
                               )}
-                            </div>
+                            </label>
                           ))}
-                        </RadioGroup>
+                        </div>
+                      </div>
+
+                      {/* Coupon Code Section */}
+                      <div className="checkout-section">
+                        <h2 className="checkout-section-title">
+                          <Tag className="mr-2 text-gray-600" /> Coupon Code
+                        </h2>
+                        
+                        {!appliedCoupon ? (
+                          <div className="flex gap-3">
+                            <div className="flex-1">
+                              <Input
+                                type="text"
+                                placeholder="Enter coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="form-input"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={applyCouponCode}
+                              className="px-6"
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center">
+                              <Tag className="h-4 w-4 text-green-600 mr-2" />
+                              <span className="font-medium text-green-700">{appliedCoupon}</span>
+                              <span className="text-sm text-green-600 ml-2">({couponDiscount}% off)</span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={removeCoupon}
+                              className="text-green-700 hover:text-green-800"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex justify-between">
@@ -639,6 +939,10 @@ const Checkout = () => {
                           <div className="text-sm font-medium text-gray-500">Email</div>
                           <div className="font-medium">{formState.email}</div>
                         </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-500">Phone</div>
+                          <div className="font-medium">{formState.phone}</div>
+                        </div>
                         <div className="sm:col-span-2">
                           <div className="text-sm font-medium text-gray-500">Shipping Address</div>
                           <div className="font-medium">{formState.address}</div>
@@ -659,77 +963,16 @@ const Checkout = () => {
                     
                     <div className="checkout-section">
                       <h2 className="checkout-section-title">
-                        <CreditCard className="mr-2 text-gray-600" /> Payment Method
+                        <CreditCard className="mr-2 text-gray-600" /> Payment Information
                       </h2>
                       
                       <div className="space-y-6">
-                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                          <Button
-                            type="button"
-                            onClick={() => setPaymentMethod('card')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 sm:py-3 ${
-                              paymentMethod === 'card' 
-                                ? getButtonClass()
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                            }`}
-                          >
-                            <CreditCard className="h-5 w-5" />
-                            <span className="text-base sm:text-lg">Credit Card</span>
-                          </Button>
-                          
-                          <Button
-                            type="button"
-                            onClick={() => setPaymentMethod('paypal')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 sm:py-3 ${
-                              paymentMethod === 'paypal' 
-                                ? 'bg-[#0070BA] hover:bg-[#003087] text-white'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                            }`}
-                          >
-                            <PaymentIcon className="h-5 w-5" />
-                            <span className="text-base sm:text-lg">PayPal</span>
-                          </Button>
-                        </div>
-                        
-                        {paymentMethod === 'card' ? (
-                          <SquarePayment 
-                            onSuccess={handlePaymentSuccess}
-                            buttonColorClass={getButtonClass()}
-                            isProcessing={isProcessing}
-                            amount={`$${calculateTotal()}`}
-                          />
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="p-4 border rounded-md bg-[#f5f7fa]">
-                              <div className="flex items-center justify-center">
-                                <img 
-                                  src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" 
-                                  alt="PayPal" 
-                                  className="h-6 mr-2" 
-                                />
-                                <p className="text-sm md:text-base font-medium">
-                                  Continue to PayPal checkout to complete your purchase
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <Button 
-                                onClick={handlePayPalPayment}
-                                className="mobile-full px-6 py-2.5 bg-[#0070BA] hover:bg-[#003087] text-white"
-                                disabled={isProcessing}
-                              >
-                                {isProcessing ? (
-                                  <span className="flex items-center">
-                                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                    Processing...
-                                  </span>
-                                ) : (
-                                  `Pay with PayPal $${calculateTotal()}`
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
+                        <SquarePayment 
+                          onSuccess={handlePaymentSuccess}
+                          buttonColorClass={getButtonClass()}
+                          isProcessing={isProcessing}
+                          amount={`$${calculateTotal()}`}
+                        />
                         
                         <div className="flex items-center text-xs md:text-sm text-gray-500 mt-4 justify-center md:justify-start">
                           <Lock size={14} className="mr-1" />
@@ -882,8 +1125,14 @@ const Checkout = () => {
                   <div className="border-t border-gray-200 pt-3 mb-3">
                     <div className="flex justify-between mb-1 text-sm">
                       <span>Subtotal</span>
-                      <span>${calculateTotal()}</span>
+                      <span>${calculateSubtotal().toFixed(2)}</span>
                     </div>
+                    {appliedCoupon && (
+                      <div className="flex justify-between mb-1 text-sm text-green-600">
+                        <span>Coupon ({appliedCoupon}) - {couponDiscount}% off</span>
+                        <span>-${(calculateSubtotal() * (couponDiscount / 100)).toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between mb-1 text-sm">
                       <span>Shipping</span>
                       <span className="text-green-600">Free</span>

@@ -17,11 +17,13 @@ const PackageSelected = () => {
       price: "$69",
       description: "Perfect for a small collection of memories",
       color: "primary",
+      tapeCount: "3",
+      photoCount: "75",
       features: [
-        "Digitize up to 3 media items OR up to 75 photos",
-        "1 media item = 25 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
-        "Free shipping both ways"
+        "Free shipping both ways",
+        "Online Backup (1 Year Free)"
       ]
     },
     {
@@ -29,10 +31,11 @@ const PackageSelected = () => {
       price: "$179",
       description: "Our most popular package for families",
       color: "secondary",
+      tapeCount: "10",
+      photoCount: "250",
       popular: true,
       features: [
-        "Digitize up to 10 media items OR up to 250 photos",
-        "1 media item = 25 photos",
+        "High-quality digital conversion", 
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -43,9 +46,10 @@ const PackageSelected = () => {
       price: "$349",
       description: "Great for larger collections",
       color: "rose-dark",
+      tapeCount: "20",
+      photoCount: "500",
       features: [
-        "Digitize up to 20 media items OR up to 500 photos",
-        "1 media item = 25 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -56,9 +60,10 @@ const PackageSelected = () => {
       price: "$599",
       description: "For preserving a lifetime of memories",
       color: "primary-light",
+      tapeCount: "40",
+      photoCount: "1000",
       features: [
-        "Digitize up to 40 media items OR up to 1000 photos",
-        "1 media item = 25 photos",
+        "High-quality digital conversion",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -80,7 +85,7 @@ const PackageSelected = () => {
       case 'primary':
         return 'bg-primary/10';
       case 'rose-dark':
-        return 'bg-rose-dark/10';
+        return 'bg-rose-500/10';
       case 'primary-light':
         return 'bg-primary-light/10';
       case 'secondary':
@@ -96,7 +101,7 @@ const PackageSelected = () => {
       case 'primary':
         return 'text-primary';
       case 'rose-dark':
-        return 'text-rose-dark';
+        return 'text-rose-500';
       case 'primary-light':
         return 'text-primary-light';
       case 'secondary':
@@ -105,14 +110,14 @@ const PackageSelected = () => {
         return 'text-gray-900';
     }
   };
-
+  
   // Get button color class based on package type
   const getButtonClass = () => {
     switch(packageDetails.color) {
       case 'primary':
         return 'bg-primary hover:bg-primary/90 text-white';
       case 'rose-dark':
-        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
+        return 'bg-rose-500 hover:bg-rose-600 text-white';
       case 'primary-light':
         return 'bg-primary-light hover:bg-primary-light/90 text-white';
       case 'secondary':
@@ -148,12 +153,15 @@ const PackageSelected = () => {
             <div className="bg-white rounded-xl shadow-xl overflow-hidden mb-12">
               <div className={`${getBgColorClass()} p-6 md:p-8`}>
                 <h2 className="text-2xl font-bold mb-2">Your Selected Package</h2>
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
                     <h3 className={`${getTextColorClass()} text-3xl font-bold`}>
                       {packageDetails.name} Package
                     </h3>
                     <p className="text-gray-600 mt-1">{packageDetails.description}</p>
+                    <p className="text-gray-700 mt-2">
+                      <span className="font-semibold">Digitize:</span> Up to {packageDetails.tapeCount} tapes OR up to {packageDetails.photoCount} photos
+                    </p>
                   </div>
                   <div className="mt-4 md:mt-0">
                     <span className="text-4xl font-bold">{packageDetails.price}</span>
@@ -176,6 +184,18 @@ const PackageSelected = () => {
               </div>
             </div>
 
+            {/* First Complete Your Order Button */}
+            <div className="text-center mb-8">
+              <Button 
+                className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                asChild
+              >
+                <Link to={`/checkout?package=${encodeURIComponent(packageType)}`}>
+                  Complete Your Order
+                </Link>
+              </Button>
+            </div>
+
             {/* Package Change Section */}
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">
               <h2 className="text-2xl font-bold mb-4">Change Your Package</h2>
@@ -196,6 +216,9 @@ const PackageSelected = () => {
                           {pkg.name === packageType && <span className="ml-2 text-gray-500 text-sm">(Current)</span>}
                         </h3>
                         <p className="text-2xl font-bold">{pkg.price}</p>
+                        <div className="text-xs text-gray-600 mt-1">
+                          Digitize up to {pkg.tapeCount} tapes OR {pkg.photoCount} photos
+                        </div>
                       </CardHeader>
                       <CardContent className="pt-2">
                         <p className="text-sm text-gray-600 mb-2">{pkg.description}</p>
@@ -211,6 +234,18 @@ const PackageSelected = () => {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* Second Complete Your Order Button */}
+            <div className="text-center mb-12">
+              <Button 
+                className={`px-8 py-6 text-lg ${getButtonClass()}`}
+                asChild
+              >
+                <Link to={`/checkout?package=${encodeURIComponent(packageType)}`}>
+                  Complete Your Order
+                </Link>
+              </Button>
             </div>
             
             <div className="bg-white rounded-xl shadow-xl p-6 md:p-8 mb-12">

@@ -1,9 +1,39 @@
-
 import { Facebook, Instagram, Twitter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const navigate = useNavigate();
+
+  const handlePackagesClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.querySelector("#packages");
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
+  const handleHowItWorksClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.querySelector("#how-it-works");
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
+  const handleFAQClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.querySelector("#faq");
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
   
   return (
     <footer className="bg-primary text-white">
@@ -13,7 +43,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-4">HeritageBox<sup className="text-xs align-super">®</sup></h3>
             <p className="text-gray-300 mb-4">
-              Preserving your precious memories for generations to come.
+              Preserving your precious memories for generations to come. 
             </p>
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/people/HeritageBox/100083540474473/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-secondary transition-colors" aria-label="Facebook">
@@ -32,10 +62,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'how-it-works')} className="text-gray-300 hover:text-secondary transition-colors">How It Works</Link></li>
-              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'packages')} className="text-gray-300 hover:text-secondary transition-colors">Packages</Link></li>
+              <li><button onClick={handleHowItWorksClick} className="text-gray-300 hover:text-secondary transition-colors text-left">How It Works</button></li>
+              <li><button onClick={handlePackagesClick} className="text-gray-300 hover:text-secondary transition-colors text-left">Packages</button></li>
               <li><Link to="/about-us" className="text-gray-300 hover:text-secondary transition-colors">About Us</Link></li>
-              <li><Link to="/" onClick={() => window.sessionStorage.setItem('scrollTarget', 'faq')} className="text-gray-300 hover:text-secondary transition-colors">FAQ</Link></li>
+              <li><button onClick={handleFAQClick} className="text-gray-300 hover:text-secondary transition-colors text-left">FAQ</button></li>
             </ul>
           </div>
           
@@ -49,7 +79,7 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Contact Info */}
+          {/* Contact Info - Enhanced structure */}
           <div>
             <h4 className="text-lg font-bold mb-4">Contact Us</h4>
             <address className="not-italic text-gray-300 space-y-2">

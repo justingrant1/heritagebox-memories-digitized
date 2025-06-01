@@ -16,11 +16,15 @@ const Hero = () => {
               We digitize your VHS tapes, photos, and other media to keep your memories safe for generations to come.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link to="/package-selected?package=Popular">
-                <Button className="btn-primary text-lg">Get Started</Button>
+              <Link to="/package-selected?package=Popular" className="inline-block">
+                <Button className="bg-primary text-white hover:bg-primary/90 text-lg touch-manipulation select-none active:scale-95 transition-transform duration-75">
+                  Get Started
+                </Button>
               </Link>
-              <Link to="/#how-it-works">
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white text-lg">
+              <Link to="/#how-it-works" className="inline-block">
+                <Button 
+                  className="border border-primary bg-transparent text-primary hover:bg-primary hover:text-white text-lg touch-manipulation select-none active:scale-95 transition-transform duration-75"
+                >
                   Learn More
                 </Button>
               </Link>
@@ -52,8 +56,10 @@ const Hero = () => {
                 <AspectRatio ratio={16/9} className="bg-gray-100">
                   <img 
                     src="/lovable-uploads/ad279416-58a2-4b0d-8d54-d7ef25d60e52.png" 
-                    alt="Family watching old memories on TV with photos and VHS tapes" 
+                    alt="Family gathered around TV watching digitized memories from HeritageBox conversion service" 
                     className="object-cover w-full h-full"
+                    loading="eager" 
+                    fetchPriority="high"
                   />
                 </AspectRatio>
               </div>
@@ -62,8 +68,9 @@ const Hero = () => {
                   <AspectRatio ratio={1/1}>
                     <img 
                       src="/lovable-uploads/2d60a6ef-6368-475b-9e4f-86789351e721.png" 
-                      alt="VHS tape labeled Summer '94" 
+                      alt="Vintage VHS tape labeled Summer '94 ready for digitization service" 
                       className="object-cover w-full h-full"
+                      loading="eager"
                     />
                   </AspectRatio>
                 </div>
@@ -71,8 +78,9 @@ const Hero = () => {
                   <AspectRatio ratio={1/1}>
                     <img 
                       src="/lovable-uploads/f857465b-320f-4fe1-b778-9a8b0e233ce3.png" 
-                      alt="Stack of old photographs" 
+                      alt="Collection of vintage family photographs ready for professional scanning and preservation" 
                       className="object-cover w-full h-full"
+                      loading="eager"
                     />
                   </AspectRatio>
                 </div>
@@ -80,8 +88,9 @@ const Hero = () => {
                   <AspectRatio ratio={1/1}>
                     <img 
                       src="/lovable-uploads/f089a63b-496c-42fc-97d1-fd43f38c9525.png" 
-                      alt="Digitizing process with VHS tape and computer" 
+                      alt="Professional digitization process showing VHS conversion to digital format using specialized equipment" 
                       className="object-cover w-full h-full"
+                      loading="eager"
                     />
                   </AspectRatio>
                 </div>

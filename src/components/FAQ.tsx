@@ -6,33 +6,51 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+// Export faqs array for use in schema markup
+export const faqs = [
+  {
+    question: "What types of media can HeritageBox digitize?",
+    answer: "We can digitize VHS tapes, VHS-C, Betamax, MiniDV, Hi8, Digital8, slides, negatives, photos, and audio cassettes."
+  },
+  {
+    question: "How long does the digitization process take?",
+    answer: "Typically, the entire process takes 3-4 weeks from the time we receive your media. This includes digitization, quality control, and return shipping."
+  },
+  {
+    question: "Is my original media returned to me?",
+    answer: "Yes, we return all your original media along with the digital copies. We take great care to ensure everything is safely returned to you."
+  },
+  {
+    question: "How do I access my digitized memories?",
+    answer: "Depending on your package, you'll receive your digitized memories via secure online access, a custom USB drive, or both. You can easily view, download, and share your memories."
+  },
+  {
+    question: "Is there a limit to how much you can fit in the box?",
+    answer: "Each package specifies the number of items we can digitize. If you have more items than your package allows, you can purchase additional digitization services."
+  },
+  {
+    question: "What if my media is damaged?",
+    answer: "We have extensive experience working with damaged media. While we can't guarantee recovery in all cases, our technicians use specialized equipment to salvage as much content as possible from damaged items."
+  }
+];
+
+// Generate FAQPage Schema markup
+export const getFAQSchema = () => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+};
+
 const FAQ = () => {
-  const faqs = [
-    {
-      question: "What types of media can HeritageBox digitize?",
-      answer: "We can digitize VHS tapes, VHS-C, Betamax, MiniDV, Hi8, Digital8, slides, negatives, photos, and audio cassettes."
-    },
-    {
-      question: "How long does the digitization process take?",
-      answer: "Typically, the entire process takes 3-4 weeks from the time we receive your media. This includes digitization, quality control, and return shipping."
-    },
-    {
-      question: "Is my original media returned to me?",
-      answer: "Yes, we return all your original media along with the digital copies. We take great care to ensure everything is safely returned to you."
-    },
-    {
-      question: "How do I access my digitized memories?",
-      answer: "Depending on your package, you'll receive your digitized memories via secure online access, a custom USB drive, or both. You can easily view, download, and share your memories."
-    },
-    {
-      question: "Is there a limit to how much you can fit in the box?",
-      answer: "Each package specifies the number of items we can digitize. If you have more items than your package allows, you can purchase additional digitization services."
-    },
-    {
-      question: "What if my media is damaged?",
-      answer: "We have extensive experience working with damaged media. While we can't guarantee recovery in all cases, our technicians use specialized equipment to salvage as much content as possible from damaged items."
-    }
-  ];
 
   return (
     <section id="faq" className="section-padding bg-cream">

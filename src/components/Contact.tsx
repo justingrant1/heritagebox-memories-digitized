@@ -1,12 +1,23 @@
-
 import React from "react";
 import { Box } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ContactForm from "@/components/ContactForm";
 
 const Contact = () => {
+  const navigate = useNavigate();
+
+  const handleViewPackages = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.querySelector("#packages");
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
   return (
     <section className="py-16 md:py-24 bg-cream">
       <div className="container mx-auto container-padding">
@@ -27,11 +38,13 @@ const Contact = () => {
                       Get Your Box
                     </Button>
                   </Link>
-                  <Link to="/#packages">
-                    <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-                      View Packages
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                    onClick={handleViewPackages}
+                  >
+                    View Packages
+                  </Button>
                 </div>
               </div>
               <div className="bg-cream p-4 rounded-lg">
