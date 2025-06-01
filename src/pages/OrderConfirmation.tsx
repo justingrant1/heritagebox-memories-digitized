@@ -1,3 +1,4 @@
+
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import NavBar from '@/components/NavBar';
@@ -8,13 +9,6 @@ import { sendOrderConfirmationToBrevo } from '@/utils/brevoUtils';
 import { getDigitizingOptionById } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// Declare gtag function for TypeScript
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -22,7 +16,6 @@ const OrderConfirmation = () => {
   const usbDrives = parseInt(searchParams.get('usbDrives') || '0', 10);
   const digitizingSpeed = searchParams.get('digitizingSpeed') || 'standard';
   const [emailSent, setEmailSent] = useState(false);
-  const [conversionTracked, setConversionTracked] = useState(false);
   
   // Get customer info from state if available (passed from checkout)
   const customerInfo = location.state?.customerInfo || {
@@ -37,7 +30,7 @@ const OrderConfirmation = () => {
       case 'Starter':
         return 'bg-primary hover:bg-primary/90 text-white';
       case 'Dusty Rose':
-        return 'bg-rose-500 hover:bg-rose-600 text-white';
+        return 'bg-rose-dark hover:bg-rose-dark/90 text-white';
       case 'Eternal':
         return 'bg-primary-light hover:bg-primary-light/90 text-white';
       case 'Popular':
@@ -51,7 +44,7 @@ const OrderConfirmation = () => {
       case 'Starter':
         return 'text-primary';
       case 'Dusty Rose':
-        return 'text-rose-500';
+        return 'text-rose-dark';
       case 'Eternal':
         return 'text-primary-light';
       case 'Popular':
@@ -62,24 +55,6 @@ const OrderConfirmation = () => {
 
   // Generate a random order number
   const orderNumber = `MM-${Math.floor(100000 + Math.random() * 900000)}`;
-
-  // Track Google Ads conversion
-  useEffect(() => {
-    if (conversionTracked) return;
-
-    // Fire the conversion event
-    if (window.gtag) {
-      window.gtag('event', 'conversion', {
-        'send_to': 'AW-458259403/prjPCLyM9_QCEMv3wdoB',
-        'value': 50.0,
-        'currency': 'USD',
-        'transaction_id': orderNumber
-      });
-      
-      setConversionTracked(true);
-      console.log('Google Ads conversion tracked for order:', orderNumber);
-    }
-  }, [orderNumber, conversionTracked]);
 
   // Send order data to Brevo
   useEffect(() => {

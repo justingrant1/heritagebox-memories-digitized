@@ -12,46 +12,9 @@ const AboutUs = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHelmet 
         title="About Us | HeritageBox® Memory Preservation Specialists"
-        description="Learn about HeritageBox®'s mission to preserve family memories and connect generations through innovative digitization technology and professional VHS to digital services."
-        keywords="about heritagebox, memory preservation company, family archiving, digitization experts, photo scanning service, vhs conversion professionals, heritage preservation"
-        canonical="https://heritagebox.com/about-us"
-        schema={[
-          {
-            "@context": "https://schema.org",
-            "@type": "AboutPage",
-            "mainEntity": {
-              "@type": "Organization",
-              "name": "HeritageBox",
-              "description": "Professional memory preservation and digitization services company",
-              "foundingDate": "2015",
-              "founder": {
-                "@type": "Person",
-                "name": "Sarah Johnson"
-              },
-              "numberOfEmployees": "20+",
-              "slogan": "Preserving memories for generations to come",
-              "image": "https://heritagebox.com/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png"
-            }
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://heritagebox.com/"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "About Us",
-                "item": "https://heritagebox.com/about-us"
-              }
-            ]
-          }
-        ]}
+        description="Learn about HeritageBox®'s mission to preserve family memories and connect generations through innovative digitization technology."
+        keywords="about heritagebox, memory preservation company, family archiving, digitization experts, photo scanning service, vhs conversion professionals"
+        canonical="https://heritagebox.com/about-us" // Explicit canonical URL
       />
       <NavBar />
       <main className="flex-grow pt-24">
@@ -85,9 +48,8 @@ const AboutUs = () => {
             <div className="rounded-lg overflow-hidden shadow-xl">
               <img 
                 src="/lovable-uploads/c9c3910b-c1ef-4cb5-9a7e-e1df6afdf7f3.png" 
-                alt="Multi-generational family sharing memories while looking through a photo album with digitized photos from HeritageBox services" 
+                alt="Family looking at photo album together" 
                 className="w-full h-auto"
-                loading="eager"
               />
             </div>
           </div>
@@ -134,9 +96,8 @@ const AboutUs = () => {
                   <div className="mb-4 rounded-full overflow-hidden mx-auto w-32 h-32">
                     <img 
                       src="/lovable-uploads/49950c00-87a9-4b47-ab2b-ac89e4f79cb3.png" 
-                      alt="Sarah Johnson - Founder & CEO of HeritageBox with 15+ years experience in memory preservation" 
+                      alt="Sarah Johnson - Founder & CEO" 
                       className="w-full h-full object-cover"
-                      loading="eager"
                     />
                   </div>
                   <h3 className="text-lg font-semibold mb-1 text-center">Sarah Johnson</h3>
@@ -152,9 +113,8 @@ const AboutUs = () => {
                   <div className="mb-4 rounded-full overflow-hidden mx-auto w-32 h-32">
                     <img 
                       src="/lovable-uploads/b448b3fc-ae42-4ba5-b66a-caecc548b7dc.png" 
-                      alt="David Chen - Technical Director at HeritageBox specializing in digital conversion and media restoration" 
+                      alt="David Chen - Technical Director" 
                       className="w-full h-full object-cover"
-                      loading="eager"
                     />
                   </div>
                   <h3 className="text-lg font-semibold mb-1 text-center">David Chen</h3>
@@ -170,9 +130,8 @@ const AboutUs = () => {
                   <div className="mb-4 rounded-full overflow-hidden mx-auto w-32 h-32">
                     <img 
                       src="/lovable-uploads/ddab1909-1056-4ba3-b659-01c0cd97369f.png" 
-                      alt="Maria Rodriguez - Customer Relations Manager at HeritageBox helping families preserve their heritage through digitization" 
+                      alt="Maria Rodriguez - Customer Relations" 
                       className="w-full h-full object-cover"
-                      loading="eager"
                     />
                   </div>
                   <h3 className="text-lg font-semibold mb-1 text-center">Maria Rodriguez</h3>
@@ -188,9 +147,8 @@ const AboutUs = () => {
                   <div className="mb-4 rounded-full overflow-hidden mx-auto w-32 h-32">
                     <img 
                       src="/lovable-uploads/c9c3910b-c1ef-4cb5-9a7e-e1df6afdf7f3.png" 
-                      alt="James Wilson - Lead Technician at HeritageBox specializing in restoration and enhancement of damaged media formats" 
+                      alt="James Wilson - Lead Technician" 
                       className="w-full h-full object-cover"
-                      loading="eager"
                     />
                   </div>
                   <h3 className="text-lg font-semibold mb-1 text-center">James Wilson</h3>

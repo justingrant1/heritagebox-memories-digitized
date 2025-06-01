@@ -1,3 +1,4 @@
+
 import { Check } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -10,36 +11,26 @@ interface PackageProps {
   features: string[];
   popular?: boolean;
   color: string;
-  tapeCount?: string;
-  photoCount?: string;
 }
 
-const Package = ({ name, price, description, features, popular, color, tapeCount, photoCount }: PackageProps) => {
+const Package = ({ name, price, description, features, popular, color }: PackageProps) => {
   // Create a button class based on the package type
   const getButtonClass = () => {
     if (popular) {
       return 'bg-secondary hover:bg-secondary-light text-primary font-semibold';
     }
     
-    // Map the color to specific button variants
+    // Custom handling for each color
     switch (color) {
       case 'primary':
-        return 'bg-primary hover:bg-primary/90 text-white';
+        return 'bg-primary hover:bg-primary-light text-white';
       case 'rose-dark':
-        return 'bg-rose-500 hover:bg-rose-600 text-white';
+        return 'bg-rose-dark hover:bg-rose/90 text-white';
       case 'primary-light':
-        return 'bg-blue-400 hover:bg-blue-500 text-white';
+        return 'bg-primary-light hover:bg-primary-light/90 text-white';
       default:
         return `bg-${color} hover:bg-${color}/90 text-white`;
     }
-  };
-
-  // Get button variant based on package type
-  const getButtonVariant = () => {
-    if (popular) return "secondary";
-    if (color === "rose-dark") return "rose-dark";
-    if (color === "primary-light") return "primary-light";
-    return "default";
   };
 
   return (
@@ -50,22 +41,17 @@ const Package = ({ name, price, description, features, popular, color, tapeCount
         </div>
       )}
       <CardHeader className={`pb-0 ${popular ? 'bg-secondary/10' : ''}`}>
-        <h3 className={`text-xl font-bold mb-1 ${popular ? 'text-secondary' : color === 'rose-dark' ? 'text-rose-500' : color === 'primary-light' ? 'text-blue-400' : `text-${color}`}`}>{name}</h3>
+        <h3 className={`text-xl font-bold mb-1 ${popular ? 'text-secondary' : `text-${color}`}`}>{name}</h3>
         <div className="mb-2">
           <span className="text-4xl font-bold">{price}</span>
         </div>
         <p className="text-gray-600">{description}</p>
-        {(tapeCount || photoCount) && (
-          <div className="mt-2 text-sm text-gray-700">
-            <p><span className="font-semibold">Digitize:</span> {tapeCount && `Up to ${tapeCount} tapes`}{tapeCount && photoCount && ' OR '}{photoCount && `up to ${photoCount} photos`}</p>
-          </div>
-        )}
       </CardHeader>
       <CardContent className="pt-6">
         <ul className="space-y-4 mb-8">
           {features.map((feature, index) => (
             <li key={index} className="flex items-start">
-              <span className={`${popular ? 'text-secondary' : color === 'rose-dark' ? 'text-rose-500' : color === 'primary-light' ? 'text-blue-400' : `text-${color}`} mr-3 mt-0.5 shrink-0`}>
+              <span className={`${popular ? 'text-secondary' : `text-${color}`} mr-3 mt-0.5 shrink-0`}>
                 <Check size={18} className="stroke-[2.5]" />
               </span>
               <span className="text-gray-700">{feature}</span>
@@ -73,8 +59,7 @@ const Package = ({ name, price, description, features, popular, color, tapeCount
           ))}
         </ul>
         <Button 
-          variant={getButtonVariant()}
-          className="w-full"
+          className={`w-full ${getButtonClass()}`}
           asChild
         >
           <Link to={`/package-selected?package=${encodeURIComponent(name)}`}>
@@ -93,13 +78,11 @@ const PackageComparison = () => {
       price: "$69",
       description: "Perfect for a small collection of memories",
       color: "primary",
-      tapeCount: "3",
-      photoCount: "75",
       features: [
-        "High-quality digital conversion",
+        "Digitize up to 3 media items OR up to 75 photos",
+        "1 media item = 25 photos",
         "Online access to digital files",
-        "Free shipping both ways",
-        "Online Backup (1 Year Free)"
+        "Free shipping both ways"
       ]
     },
     {
@@ -107,11 +90,10 @@ const PackageComparison = () => {
       price: "$179",
       description: "Our most popular package for families",
       color: "secondary",
-      tapeCount: "10",
-      photoCount: "250",
       popular: true,
       features: [
-        "High-quality digital conversion",
+        "Digitize up to 10 media items OR up to 250 photos",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -122,10 +104,9 @@ const PackageComparison = () => {
       price: "$349",
       description: "Great for larger collections",
       color: "rose-dark",
-      tapeCount: "20",
-      photoCount: "500",
       features: [
-        "High-quality digital conversion",
+        "Digitize up to 20 media items OR up to 500 photos",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -136,10 +117,9 @@ const PackageComparison = () => {
       price: "$599",
       description: "For preserving a lifetime of memories",
       color: "primary-light",
-      tapeCount: "40",
-      photoCount: "1000",
       features: [
-        "High-quality digital conversion",
+        "Digitize up to 40 media items OR up to 1000 photos",
+        "1 media item = 25 photos",
         "Online access to digital files",
         "Free shipping both ways",
         "Online Backup (1 Year Free)"
@@ -167,8 +147,6 @@ const PackageComparison = () => {
               features={pkg.features}
               popular={pkg.popular}
               color={pkg.color}
-              tapeCount={pkg.tapeCount}
-              photoCount={pkg.photoCount}
             />
           ))}
         </div>

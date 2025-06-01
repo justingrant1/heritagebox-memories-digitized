@@ -8,8 +8,7 @@ interface SEOProps {
   image?: string;
   article?: boolean;
   keywords?: string;
-  canonical?: string;
-  schema?: object[]; // Added schema array to allow custom schema per page
+  canonical?: string; // Added canonical prop to allow specifying a direct canonical URL
 }
 
 export default function SEOHelmet({
@@ -18,30 +17,25 @@ export default function SEOHelmet({
   image = '/lovable-uploads/dff425b2-3ade-48c8-acd8-e56366b3516d.png',
   article = false,
   keywords = '',
-  canonical = '',
-  schema = [], // Default to empty array
+  canonical = '', // Default to empty string
 }: SEOProps) {
   const { pathname } = useLocation();
   
-  // Default values - optimized for length and keywords
-  const defaultTitle = 'HeritageBox® | Professional Memory Digitization Services';
-  const defaultDescription = 'Transform your precious VHS tapes, photos, slides and more into digital formats with HeritageBox®. Professional digitization services preserving memories for generations.';
-  const defaultKeywords = 'digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization, media conversion service';
-  
-  // Ensure image URL is absolute
-  const absoluteImageUrl = image.startsWith('http') 
-    ? image 
-    : `https://heritagebox.com${image}`;
+  // Default values
+  const defaultTitle = 'HeritageBox® | Preserve Your Family Memories for Generations';
+  const defaultDescription = 'Transform your precious family memories with HeritageBox®. Our professional digitization services convert VHS tapes, photos, slides and more into modern formats that last forever.';
+  const defaultKeywords = 'digitize vhs, photo scanning, memory preservation, family archives, convert slides, legacy preservation, home movies digitization';
   
   // Use provided canonical URL or build from pathname
+  // Ensure we're using the final destination URL, not a redirecting URL
   const canonicalUrl = canonical || `https://heritagebox.com${pathname}`;
   
   // Use defaults if not provided
   const seo = {
     title: title || defaultTitle,
     description: description || defaultDescription,
-    image: absoluteImageUrl,
-    url: canonicalUrl,
+    image: image,
+    url: canonicalUrl, // Use the canonical URL for all meta tags
     keywords: keywords || defaultKeywords,
   };
 
@@ -66,22 +60,6 @@ export default function SEOHelmet({
       <meta name="twitter:title" content={seo.title} />
       <meta name="twitter:description" content={seo.description} />
       <meta name="twitter:image" content={seo.image} />
-      
-      {/* Mobile optimization */}
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-      
-      {/* Resource hints for performance */}
-      <link rel="preconnect" href="https://cdn.gpteng.co" crossOrigin="anonymous" />
-      <link rel="dns-prefetch" href="https://cdn.gpteng.co" />
-      
-      {/* Custom schema markup per page */}
-      {schema.map((schemaObj, index) => (
-        <script 
-          key={`schema-${index}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaObj) }}
-        />
-      ))}
     </Helmet>
   );
 }

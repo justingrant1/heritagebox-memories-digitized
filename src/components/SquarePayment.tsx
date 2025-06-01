@@ -40,9 +40,9 @@ declare global {
   interface Window { Square: Square; }
 }
 
-const SQUARE_APP_ID = /*process.env.REACT_APP_SQUARE_APP_ID ||*/ 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
-const SQUARE_LOCATION_ID = /*process.env.REACT_APP_SQUARE_LOCATION_ID ||*/ 'LPFZYDYB5G5GM';
-const SQUARE_JS_URL = /*process.env.REACT_APP_SQUARE_JS_URL ||*/ 'https://web.squarecdn.com/v1/square.js'
+const SQUARE_APP_ID = process.env.REACT_APP_SQUARE_APP_ID || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+const SQUARE_LOCATION_ID = process.env.REACT_APP_SQUARE_LOCATION_ID || 'LPFZYDYB5G5GM';
+const SQUARE_JS_URL = process.env.REACT_APP_SQUARE_JS_URL || 'https://web.squarecdn.com/v1/square.js'
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -160,14 +160,14 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   const renderCardContainer = () => {
-    /*if (cardLoading) {
+    if (cardLoading) {
       return (
         <div className="min-h-[110px] flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
           <span className="ml-2 text-gray-500">Loading payment form...</span>
         </div>
       );
-    }*/
+    }
 
     if (error) {
       return (

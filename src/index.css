@@ -76,15 +76,6 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Improve touch responsiveness */
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Improve button touch targets on mobile */
-  button, a {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -99,14 +90,10 @@
 @layer components {
   .btn-primary {
     @apply bg-primary text-white font-medium py-3 px-6 rounded-md hover:bg-primary-light transition-all duration-300;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
   
   .btn-secondary {
     @apply bg-secondary text-primary font-medium py-3 px-6 rounded-md hover:bg-secondary-light transition-all duration-300;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
   
   .section-padding {
@@ -175,7 +162,7 @@
   box-shadow: 0 0 0 2px rgba(26, 54, 93, 0.2);
 }
 
-/* Improve mobile responsiveness and touch handling */
+/* Improve mobile responsiveness */
 @media (max-width: 640px) {
   .checkout-section {
     padding: 1rem;
@@ -185,21 +172,5 @@
   .checkout-section-title {
     font-size: 1.125rem;
     padding-bottom: 0.75rem;
-  }
-  
-  /* Ensure minimum touch target size */
-  button, a[role="button"], input[type="button"], input[type="submit"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Remove hover effects on touch devices */
-  @media (hover: none) {
-    .hover\:bg-primary:hover {
-      background-color: var(--primary);
-    }
-    .hover\:bg-primary\/90:hover {
-      background-color: hsl(var(--primary) / 0.9);
-    }
   }
 }
