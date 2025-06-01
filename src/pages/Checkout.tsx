@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -315,8 +314,12 @@ const Checkout = () => {
       const orderId = generateOrderId();
       console.log('🎯 CHECKOUT DEBUG - Generated Order ID:', orderId);
       
-      const subtotal = calculateSubtotal();
-      const discountAmount = subtotal * (couponDiscount / 100);
+      // Use the discount amount that was already calculated and passed in orderInfo
+      const subtotal = parseFloat(orderInfo.orderDetails.subtotal.replace('$', ''));
+      const discountAmount = parseFloat(orderInfo.orderDetails.discountAmount.replace('$', ''));
+      
+      console.log('🎯 CHECKOUT DEBUG - Subtotal from orderInfo:', subtotal);
+      console.log('🎯 CHECKOUT DEBUG - Discount amount from orderInfo:', discountAmount);
       
       const orderDetails = {
         orderId: orderId,
@@ -332,32 +335,22 @@ const Checkout = () => {
           fullName: customerInfo.fullName
         },
         orderDetails: {
-          package: packageType,
-          packagePrice: `$${packageDetails.numericPrice.toFixed(2)}`,
-          packageFeatures: packageDetails.features.join(", "),
-          subtotal: `$${subtotal.toFixed(2)}`,
-          couponCode: appliedCoupon || 'None',
-          discountPercent: couponDiscount,
-          discountAmount: `$${discountAmount.toFixed(2)}`,
-          totalAmount: `$${calculateTotal()}`,
-          digitizingSpeed: selectedDigitizingOption.name,
-          digitizingTime: selectedDigitizingOption.time,
-          digitizingPrice: selectedDigitizingOption.price === 0 ? "Free" : `$${selectedDigitizingOption.price.toFixed(2)}`,
-          addOns: []
+          package: orderInfo.orderDetails.package,
+          packagePrice: orderInfo.orderDetails.packagePrice,
+          packageFeatures: orderInfo.orderDetails.packageFeatures,
+          subtotal: orderInfo.orderDetails.subtotal,
+          couponCode: orderInfo.orderDetails.couponCode,
+          discountPercent: orderInfo.orderDetails.discountPercent,
+          discountAmount: orderInfo.orderDetails.discountAmount,
+          totalAmount: orderInfo.orderDetails.totalAmount,
+          digitizingSpeed: orderInfo.orderDetails.digitizingSpeed,
+          digitizingTime: orderInfo.orderDetails.digitizingTime,
+          digitizingPrice: orderInfo.orderDetails.digitizingPrice,
+          addOns: orderInfo.orderDetails.addOns
         },
         paymentMethod: paymentInfo || "Credit Card",
         timestamp: new Date().toISOString()
       };
-      
-      // Add USB drives to add-ons if any
-      if (usbDrives > 0) {
-        orderDetails.orderDetails.addOns.push(`${usbDrives} USB Drive(s) - $${(usbDrives * USB_DRIVE_PRICE).toFixed(2)}`);
-      }
-      
-      // Add cloud backup to add-ons if any
-      if (cloudBackup > 0) {
-        orderDetails.orderDetails.addOns.push(`${cloudBackup} Year Cloud Backup - $0.00 (Included)`);
-      }
       
       console.log("🎯 CHECKOUT DEBUG - Final order details object with Order ID:", JSON.stringify(orderDetails, null, 2));
       
