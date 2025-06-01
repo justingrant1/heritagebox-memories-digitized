@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -267,8 +268,8 @@ const Checkout = () => {
   };
 
   const handleSubmit = (values: z.infer<typeof shippingFormSchema>) => {
-    // Fix: Use proper typing to ensure all required fields are present
-    setFormState({
+    // Fix: Ensure all required fields are present with proper typing
+    const completeFormState: FormState = {
       firstName: values.firstName,
       lastName: values.lastName,
       email: values.email,
@@ -277,7 +278,9 @@ const Checkout = () => {
       city: values.city,
       state: values.state,
       zipCode: values.zipCode,
-    });
+    };
+    
+    setFormState(completeFormState);
     setShowCardForm(true);
     
     // Smooth scroll to payment section after a short delay
