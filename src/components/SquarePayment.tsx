@@ -40,9 +40,9 @@ declare global {
   interface Window { Square: Square; }
 }
 
-const SQUARE_APP_ID = process.env.REACT_APP_SQUARE_APP_ID || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
-const SQUARE_LOCATION_ID = process.env.REACT_APP_SQUARE_LOCATION_ID || 'LPFZYDYB5G5GM';
-const SQUARE_JS_URL = process.env.REACT_APP_SQUARE_JS_URL || 'https://web.squarecdn.com/v1/square.js'
+const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID || 'LPFZYDYB5G5GM';
+const SQUARE_JS_URL = import.meta.env.VITE_SQUARE_JS_URL || 'https://web.squarecdn.com/v1/square.js'
 
 const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
@@ -98,11 +98,11 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
       try {
         setCardLoading(true);
-        console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID, SQUARE_LOCATION_ID, process.env.NODE_ENV);
+        console.log("Initializing Square Payments with app ID:", SQUARE_APP_ID, SQUARE_LOCATION_ID, import.meta.env.MODE);
 
         // Initialize with proper configuration using app ID and location ID
         const payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID, {
-          environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
+          environment: import.meta.env.MODE === 'production' ? 'production' : 'sandbox'
         });
 
         console.log("Creating card instance");
