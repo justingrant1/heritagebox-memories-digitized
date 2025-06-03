@@ -39,24 +39,55 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Ensure widget is visible and properly configured
+    // Configure widget settings
+    Tawk_API.customStyle = {
+        visibility : {
+            desktop : {
+                position : 'br',
+                xOffset : 20,
+                yOffset : 20
+            },
+            mobile : {
+                position : 'br',
+                xOffset : 10,
+                yOffset : 10
+            }
+        }
+    };
+    
+    // Widget event handlers
     Tawk_API.onLoad = function(){
-      console.log('Tawk.to widget loaded and should be visible');
-      // Force show the widget
-      Tawk_API.showWidget();
+        console.log('Tawk.to widget loaded successfully');
+        Tawk_API.showWidget();
+        Tawk_API.maximize();
     };
     
     Tawk_API.onStatusChange = function(status){
-      console.log('Tawk.to status:', status);
+        console.log('Tawk.to status changed to:', status);
     };
     
+    Tawk_API.onChatMaximized = function(){
+        console.log('Tawk.to chat maximized');
+    };
+    
+    Tawk_API.onChatMinimized = function(){
+        console.log('Tawk.to chat minimized');
+    };
+    
+    // Load the widget script
     (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/68279c6cc21d9190ec452e3/1irdblvrq';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
+        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+        s1.async=true;
+        s1.src='https://embed.tawk.to/68279c6cc21d9190ec452e3/1irdblvrq';
+        s1.charset='UTF-8';
+        s1.setAttribute('crossorigin','*');
+        s1.onload = function() {
+            console.log('Tawk.to script loaded');
+        };
+        s1.onerror = function() {
+            console.error('Failed to load Tawk.to script');
+        };
+        s0.parentNode.insertBefore(s1,s0);
     })();
     </script>
     <!--End of Tawk.to Script-->
