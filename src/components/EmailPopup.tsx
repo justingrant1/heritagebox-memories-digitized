@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,13 +61,21 @@ const EmailPopup = () => {
     }
   };
 
-  const handleClose = () => {
-    localStorage.setItem('hasSeenEmailPopup', 'true');
-    setOpen(false);
-  };
+  // const simpleXClose = () => { // No longer needed
+  //   setOpen(false);
+  // };
+  // const handleClose = () => { // No longer needed as DialogClose will be used
+  //   setOpen(false); 
+  // };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(currentOpenState) => {
+      if (!currentOpenState) {
+        // Dialog is closing, set localStorage
+        localStorage.setItem('hasSeenEmailPopup', 'true');
+      }
+      setOpen(currentOpenState);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif text-primary">Save 15% on Your First Order</DialogTitle>
@@ -98,25 +106,19 @@ const EmailPopup = () => {
             >
               {isSubmitting ? "Submitting..." : "Get My 15% Off"}
             </Button>
-            <button 
-              type="button"
-              onClick={handleClose}
-              className="text-sm text-gray-500 hover:text-gray-700 mt-2"
-              disabled={isSubmitting}
-            >
-              No thanks, I'll pay full price
-            </button>
+            <DialogClose asChild>
+              <button 
+                type="button"
+                // onClick={handleClose} // DialogClose handles this
+                className="text-sm text-gray-500 hover:text-gray-700 mt-2"
+                disabled={isSubmitting}
+              >
+                No thanks, I'll pay full price
+              </button>
+            </DialogClose>
           </div>
         </form>
-        
-        <button 
-          onClick={handleClose}
-          className="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
-          disabled={isSubmitting}
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </button>
+        {/* The DialogContent or DialogHeader likely provides its own close button, so the custom one below was removed. */}
       </DialogContent>
     </Dialog>
   );
