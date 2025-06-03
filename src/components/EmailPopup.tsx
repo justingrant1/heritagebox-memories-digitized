@@ -61,13 +61,6 @@ const EmailPopup = () => {
     }
   };
 
-  // const simpleXClose = () => { // No longer needed
-  //   setOpen(false);
-  // };
-  // const handleClose = () => { // No longer needed as DialogClose will be used
-  //   setOpen(false); 
-  // };
-
   return (
     <Dialog open={open} onOpenChange={(currentOpenState) => {
       if (!currentOpenState) {
@@ -76,7 +69,7 @@ const EmailPopup = () => {
       }
       setOpen(currentOpenState);
     }}>
-      <DialogContent className="sm:max-w-md p-1">
+      <DialogContent className="sm:max-w-md p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif text-primary">Save 15% on Your First Order</DialogTitle>
           <DialogDescription className="text-lg mt-2">
@@ -109,7 +102,6 @@ const EmailPopup = () => {
             <DialogClose asChild>
               <button 
                 type="button"
-                // onClick={handleClose} // DialogClose handles this
                 className="text-sm text-gray-500 hover:text-gray-700 mt-2"
                 disabled={isSubmitting}
               >
@@ -118,7 +110,6 @@ const EmailPopup = () => {
             </DialogClose>
           </div>
         </form>
-        {/* The DialogContent or DialogHeader likely provides its own close button, so the custom one below was removed. */}
       </DialogContent>
     </Dialog>
   );
