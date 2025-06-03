@@ -76,7 +76,7 @@ const EmailPopup = () => {
       }
       setOpen(currentOpenState);
     }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md p-1">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif text-primary">Save 15% on Your First Order</DialogTitle>
           <DialogDescription className="text-lg mt-2">
