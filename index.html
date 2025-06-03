@@ -39,53 +39,28 @@
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     
-    // Configure widget settings
-    Tawk_API.customStyle = {
-        visibility : {
-            desktop : {
-                position : 'br',
-                xOffset : 20,
-                yOffset : 20
-            },
-            mobile : {
-                position : 'br',
-                xOffset : 10,
-                yOffset : 10
-            }
-        }
-    };
-    
-    // Widget event handlers
+    // Simple configuration - let's start basic
     Tawk_API.onLoad = function(){
-        console.log('Tawk.to widget loaded successfully');
-        Tawk_API.showWidget();
-        Tawk_API.maximize();
+        console.log('Tawk.to widget loaded and ready');
     };
     
     Tawk_API.onStatusChange = function(status){
-        console.log('Tawk.to status changed to:', status);
+        console.log('Tawk.to status:', status);
     };
     
-    Tawk_API.onChatMaximized = function(){
-        console.log('Tawk.to chat maximized');
-    };
-    
-    Tawk_API.onChatMinimized = function(){
-        console.log('Tawk.to chat minimized');
-    };
-    
-    // Load the widget script
+    // Load script with error handling
     (function(){
+        console.log('Loading Tawk.to script...');
         var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
         s1.async=true;
-        s1.src='https://embed.tawk.to/68279c6cc21d9190ec452e3/1irdblvrq';
+        s1.src='https://embed.tawk.to/674d8c4c4304e3196ae13c6a/1ie2ptnl8';
         s1.charset='UTF-8';
         s1.setAttribute('crossorigin','*');
         s1.onload = function() {
-            console.log('Tawk.to script loaded');
+            console.log('✅ Tawk.to script loaded successfully');
         };
-        s1.onerror = function() {
-            console.error('Failed to load Tawk.to script');
+        s1.onerror = function(e) {
+            console.error('❌ Failed to load Tawk.to script:', e);
         };
         s0.parentNode.insertBefore(s1,s0);
     })();
