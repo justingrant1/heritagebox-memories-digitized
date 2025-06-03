@@ -38,31 +38,13 @@
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    
-    // Simple configuration - let's start basic
-    Tawk_API.onLoad = function(){
-        console.log('Tawk.to widget loaded and ready');
-    };
-    
-    Tawk_API.onStatusChange = function(status){
-        console.log('Tawk.to status:', status);
-    };
-    
-    // Load script with error handling
     (function(){
-        console.log('Loading Tawk.to script...');
-        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-        s1.async=true;
-        s1.src='https://embed.tawk.to/674d8c4c4304e3196ae13c6a/1ie2ptnl8';
-        s1.charset='UTF-8';
-        s1.setAttribute('crossorigin','*');
-        s1.onload = function() {
-            console.log('✅ Tawk.to script loaded successfully');
-        };
-        s1.onerror = function(e) {
-            console.error('❌ Failed to load Tawk.to script:', e);
-        };
-        s0.parentNode.insertBefore(s1,s0);
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/507f395e1ba65bb46f8f5a7c/default';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
     })();
     </script>
     <!--End of Tawk.to Script-->
