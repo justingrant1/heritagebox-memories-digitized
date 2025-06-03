@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import ScrollToTop from "./components/ScrollToTop";
-import MobileChatWidget from "./components/MobileChatWidget";
 import Index from "./pages/Index";
 import PackageSelected from "./pages/PackageSelected";
 import Checkout from "./pages/Checkout";
@@ -25,7 +24,6 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <MobileChatWidget />
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
