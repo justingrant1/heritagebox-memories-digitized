@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -215,6 +216,13 @@ const Checkout = () => {
       setCouponDiscount(15);
       toast.success("Coupon applied!", {
         description: "You saved 15% on your order!",
+        position: "top-center",
+      });
+    } else if (trimmedCode === '99DOFF') {
+      setAppliedCoupon(trimmedCode);
+      setCouponDiscount(99);
+      toast.success("Coupon applied!", {
+        description: "You saved 99% on your order!",
         position: "top-center",
       });
     } else if (trimmedCode === '') {
