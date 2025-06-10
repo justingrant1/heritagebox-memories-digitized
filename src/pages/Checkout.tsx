@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -363,15 +362,28 @@ const Checkout = () => {
       console.log("🎯 CHECKOUT DEBUG - Final order details object with Order ID:", JSON.stringify(orderDetails, null, 2));
       
       // Send the email with order details
-      await sendEmailToHeritageBox(orderDetails, "Order Completed");
-      console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree with Order ID:", orderId);
+      console.log("🎯 CHECKOUT DEBUG - About to call sendEmailToHeritageBox...");
+      const emailResult = await sendEmailToHeritageBox(orderDetails, "Order Completed");
+      
+      if (emailResult) {
+        console.log("✅ CHECKOUT SUCCESS - Order details sent successfully to Formspree with Order ID:", orderId);
+      } else {
+        console.error("❌ CHECKOUT ERROR - Failed to send email to Formspree but continuing with checkout");
+      }
       
       return orderId; // Return the order ID for potential use elsewhere
       
     } catch (error) {
       console.error("❌ CHECKOUT ERROR - Failed to send order details to Formspree:", error);
+      console.error("❌ CHECKOUT ERROR - Full error details:", {
+        message: error.message,
+        stack: error.stack,
+        orderInfo,
+        paymentInfo
+      });
       // We don't want to show an error to the user here as the payment was successful
       // Just log the error for debugging purposes
+      return null;
     }
   };
 

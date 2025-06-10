@@ -136,22 +136,23 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
     console.log('📬 FORMSPREE DEBUG - Response ok:', response.ok);
     console.log('📬 FORMSPREE DEBUG - Response headers:', Object.fromEntries(response.headers.entries()));
     
+    // Log response body regardless of success or failure
+    const responseText = await response.text();
+    console.log('📬 FORMSPREE DEBUG - Response body:', responseText);
+    
     if (!response.ok) {
-      const errorText = await response.text();
       console.error('❌ FORMSPREE ERROR - Response details:', {
         status: response.status,
         statusText: response.statusText,
-        errorText,
+        responseText,
         headers: Object.fromEntries(response.headers.entries())
       });
-      throw new Error(`Formspree submission failed: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(`Formspree submission failed: ${response.status} ${response.statusText} - ${responseText}`);
     }
-    
-    const responseData = await response.text();
-    console.log('✅ FORMSPREE SUCCESS - Response data:', responseData);
     
     // Log the success
     console.log(`✅ FORMSPREE SUCCESS - Email successfully sent to info@heritagebox.com from ${source}`);
+    console.log('✅ FORMSPREE SUCCESS - Response data:', responseText);
     
     return true;
   } catch (error) {
@@ -163,7 +164,13 @@ export const sendEmailToHeritageBox = async (data: any, source: string) => {
       source,
       inputData: data
     });
-    throw error; // Re-throw to handle in the component
+    
+    // Don't throw the error - just log it so the checkout process doesn't fail
+    // but make it very visible in the console
+    console.error('🚨 FORMSPREE CRITICAL ERROR - EMAIL NOT SENT!');
+    console.error('🚨 This means the order was processed but no email was sent to HeritageBox!');
+    
+    return false; // Return false instead of throwing
   }
 };
 
