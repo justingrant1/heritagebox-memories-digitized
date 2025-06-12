@@ -210,7 +210,7 @@ const Checkout = () => {
   const applyCouponCode = () => {
     const trimmedCode = couponCode.trim().toUpperCase();
     
-    if (trimmedCode === 'SAVE15') {
+    if (trimmedCode === 'SAVE15' || trimmedCode === '15OFF') {
       setAppliedCoupon(trimmedCode);
       setCouponDiscount(15);
       toast.success("Coupon applied!", {
