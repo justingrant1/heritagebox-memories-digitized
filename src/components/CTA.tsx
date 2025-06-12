@@ -29,7 +29,7 @@ const CTA = () => {
             <div className="bg-cream rounded-xl p-6 shadow-md">
               <h3 className="text-xl font-bold mb-4 text-primary">Limited Time Offer</h3>
               <p className="text-gray-600 mb-4">
-                Use code <span className="font-bold text-secondary">HERITAGE15</span> at checkout for 15% off your first order.
+                Use code <span className="font-bold text-secondary">SAVE15</span> at checkout for 15% off your first order.
               </p>
               <p className="text-sm text-gray-500">
                 *Offer valid for new customers only. Expires on December 31, 2025.
