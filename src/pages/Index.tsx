@@ -1,7 +1,7 @@
-
 import { useEffect } from 'react';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
+import CountdownTimer from '@/components/CountdownTimer';
 import HowItWorks from '@/components/HowItWorks';
 import PackageComparison from '@/components/PackageComparison';
 import About from '@/components/About';
@@ -88,6 +88,7 @@ const Index = () => {
       <NavBar />
       <main>
         <Hero />
+        <CountdownTimer />
         <HowItWorks />
         <PackageComparison />
         <About />
