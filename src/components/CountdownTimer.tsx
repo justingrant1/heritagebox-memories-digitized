@@ -125,12 +125,6 @@ const CountdownTimer = () => {
                 </div>
               </div>
             </div>
-
-            {/* Enhanced CTA */}
-            <div className="flex items-center justify-center gap-2 text-white/95 pt-2">
-              <Clock className="w-5 h-5" />
-              <span className="text-sm font-medium">Timer resets daily at midnight</span>
-            </div>
           </div>
         </div>
       </div>
