@@ -1,8 +1,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Package, ArrowRight, Gift } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTA = () => {
+  const scrollToPackages = () => {
+    const element = document.querySelector('#packages');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="section-padding bg-gradient-to-br from-primary via-primary-light to-primary relative overflow-hidden">
       <div className="container mx-auto container-padding relative z-10">
@@ -25,12 +33,18 @@ const CTA = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button className="bg-secondary hover:bg-secondary-light text-primary text-lg px-8 py-4 h-auto flex items-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Package size={20} />
-                  Get Your Box
-                  <ArrowRight size={16} />
-                </Button>
-                <Button variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-white text-lg px-8 py-4 h-auto transition-all duration-300">
+                <Link to="/package-selected?package=Popular">
+                  <Button className="bg-secondary hover:bg-secondary-light text-primary text-lg px-8 py-4 h-auto flex items-center gap-3 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Package size={20} />
+                    Get Your Box
+                    <ArrowRight size={16} />
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="border-2 border-primary text-primary hover:bg-primary hover:text-white text-lg px-8 py-4 h-auto transition-all duration-300"
+                  onClick={scrollToPackages}
+                >
                   View All Packages
                 </Button>
               </div>
