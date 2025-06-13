@@ -265,6 +265,11 @@ const Checkout = () => {
     });
   };
   
+  const handleDigitizingSpeedChange = (value: string) => {
+    console.log('Digitizing speed changing from', digitizingSpeed, 'to', value);
+    setDigitizingSpeed(value);
+  };
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormState(prev => ({
@@ -912,7 +917,7 @@ const Checkout = () => {
                                   name="digitizing-speed"
                                   value={option.id}
                                   checked={digitizingSpeed === option.id}
-                                  onChange={(e) => setDigitizingSpeed(e.target.value)}
+                                  onChange={(e) => handleDigitizingSpeedChange(e.target.value)}
                                   className="h-5 w-5 text-primary border-2 border-gray-300 focus:ring-primary"
                                 />
                                 <div>
@@ -1226,7 +1231,7 @@ const Checkout = () => {
                         )}
                       </div>
 
-                      {/* Digitizing Speed Summary */}
+                      {/* Digitizing Speed Summary - Updated to show current selection */}
                       <div className="p-4 rounded-2xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-3">
