@@ -1,4 +1,3 @@
-
 import { Check, Star, Sparkles } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -158,8 +157,7 @@ const PackageComparison = () => {
         "Free shipping both ways", 
         "Online backup (1 year free)",
         "Professional quality guarantee",
-        "Priority processing",
-        "Custom USB drive included"
+        "Priority processing"
       ]
     },
     {
@@ -176,7 +174,6 @@ const PackageComparison = () => {
         "Online backup (1 year free)", 
         "Professional quality guarantee",
         "Priority processing",
-        "Custom USB drive included",
         "Dedicated support specialist"
       ]
     }
