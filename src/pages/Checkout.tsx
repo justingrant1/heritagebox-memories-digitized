@@ -227,11 +227,11 @@ const Checkout = () => {
         description: "You saved 15% on your order!",
         position: "top-center",
       });
-    } else if (trimmedCode === '99DOFF') {
+    } else if (trimmedCode === '90DOFF') {
       setAppliedCoupon(trimmedCode);
-      setCouponDiscount(99);
+      setCouponDiscount(90);
       toast.success("Coupon applied!", {
-        description: "You saved 99% on your order!",
+        description: "You saved 90% on your order!",
         position: "top-center",
       });
     } else if (trimmedCode === '') {
