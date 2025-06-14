@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-// Function to generate sequential order number
+// Function to generate sequential order number as fallback
 const generateOrderNumber = () => {
   const baseNumber = 13405;
   const storedCount = localStorage.getItem('hb_order_count');
@@ -34,12 +34,26 @@ const OrderConfirmation = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [conversionTracked, setConversionTracked] = useState(false);
   
-  // Get customer info from state if available (passed from checkout)
+  // Get customer info and order number from state if available (passed from checkout)
   const customerInfo = location.state?.customerInfo || {
     firstName: '',
     lastName: '',
     email: ''
   };
+  
+  const passedOrderNumber = location.state?.orderNumber;
+  
+  // Use the passed order number if available, otherwise generate a fallback
+  const [orderNumber] = useState(() => {
+    if (passedOrderNumber) {
+      console.log('✅ ORDER CONFIRMATION - Using passed order number:', passedOrderNumber);
+      return passedOrderNumber;
+    } else {
+      const fallbackOrder = generateOrderNumber();
+      console.log('⚠️ ORDER CONFIRMATION - No order number passed, generating fallback:', fallbackOrder);
+      return fallbackOrder;
+    }
+  });
   
   // Get button color class based on package type
   const getButtonClass = () => {
@@ -69,9 +83,6 @@ const OrderConfirmation = () => {
         return 'text-secondary';
     }
   };
-
-  // Generate sequential order number starting with HB
-  const [orderNumber] = useState(() => generateOrderNumber());
 
   // Track Google Ads conversion
   useEffect(() => {

@@ -503,7 +503,7 @@ const Checkout = () => {
         position: "top-center",
       });
       
-      // Pass parameters to order confirmation page
+      // Pass parameters to order confirmation page including the order ID
       const params = new URLSearchParams();
       params.append('package', packageType);
       if (usbDrives > 0) {
@@ -514,7 +514,17 @@ const Checkout = () => {
       }
       params.append('digitizingSpeed', digitizingSpeed);
       
-      navigate('/order-confirmation?' + params.toString());
+      // Navigate with both URL params and state containing the order ID and customer info
+      navigate('/order-confirmation?' + params.toString(), {
+        state: {
+          orderNumber: orderId,
+          customerInfo: {
+            firstName: formState.firstName,
+            lastName: formState.lastName,
+            email: formState.email
+          }
+        }
+      });
     } catch (error) {
       console.error('💳 PAYMENT ERROR:', error);
       toast.error("Payment failed", {
@@ -621,7 +631,7 @@ const Checkout = () => {
         position: "top-center",
       });
       
-      // Pass parameters to order confirmation page
+      // Pass parameters to order confirmation page including the order ID
       const params = new URLSearchParams();
       params.append('package', packageType);
       if (usbDrives > 0) {
@@ -632,7 +642,17 @@ const Checkout = () => {
       }
       params.append('digitizingSpeed', digitizingSpeed);
       
-      navigate('/order-confirmation?' + params.toString());
+      // Navigate with both URL params and state containing the order ID and customer info
+      navigate('/order-confirmation?' + params.toString(), {
+        state: {
+          orderNumber: orderId,
+          customerInfo: {
+            firstName: formState.firstName,
+            lastName: formState.lastName,
+            email: formState.email
+          }
+        }
+      });
     }, 2000);
   };
 
