@@ -322,9 +322,9 @@ const Checkout = () => {
       const selectedDigitizingOption = getSelectedDigitizingOption();
       console.log('🎯 CHECKOUT DEBUG - Selected digitizing option:', selectedDigitizingOption);
       
-      // Generate unique order ID
-      const orderId = generateOrderId();
-      console.log('🎯 CHECKOUT DEBUG - Generated Order ID:', orderId);
+      // Use the order ID that was already generated and passed in orderInfo
+      const orderId = orderInfo.orderId;
+      console.log('🎯 CHECKOUT DEBUG - Using existing Order ID:', orderId);
       
       // Use the discount amount that was already calculated and passed in orderInfo
       const subtotal = parseFloat(orderInfo.orderDetails.subtotal.replace('$', ''));
@@ -428,8 +428,9 @@ const Checkout = () => {
       // Prepare order data for both email and Airtable
       const selectedDigitizingOption = getSelectedDigitizingOption();
       
-      // Generate unique order ID
+      // Generate unique order ID ONCE
       const orderId = generateOrderId();
+      console.log('💳 PAYMENT SUCCESS - Generated single Order ID:', orderId);
       
       // Create add-ons array for legacy support
       const addOnsArray = [];
@@ -544,6 +545,10 @@ const Checkout = () => {
       // Prepare order data for both email and Airtable
       const selectedDigitizingOption = getSelectedDigitizingOption();
       
+      // Generate unique order ID ONCE
+      const orderId = generateOrderId();
+      console.log('💰 PAYPAL - Generated single Order ID:', orderId);
+      
       // Create add-ons array for legacy support
       const addOnsArray = [];
       if (usbDrives > 0) {
@@ -566,6 +571,7 @@ const Checkout = () => {
       const speedDetails = parseSpeedDetails(`${selectedDigitizingOption.name} (${selectedDigitizingOption.time})`);
 
       const orderData = {
+        orderId: orderId,
         customerInfo: {
           firstName: formState.firstName,
           lastName: formState.lastName,
