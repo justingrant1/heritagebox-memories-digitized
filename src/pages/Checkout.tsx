@@ -136,7 +136,7 @@ const Checkout = () => {
       numericPrice: 179,
       description: "Our most popular package for families",
       color: "secondary",
-      popular: true,
+4 popular: true,
       features: [
         "Digitize up to 10 tapes OR up to 250 photos",
         "Online access to digital files",
