@@ -136,7 +136,7 @@ const Checkout = () => {
       numericPrice: 179,
       description: "Our most popular package for families",
       color: "secondary",
-4 popular: true,
+      popular: true,
       features: [
         "Digitize up to 10 tapes OR up to 250 photos",
         "Online access to digital files",
@@ -235,7 +235,7 @@ const Checkout = () => {
       });
     }
   };
-
+  
   // Remove applied coupon
   const removeCoupon = () => {
     setAppliedCoupon('');
