@@ -220,6 +220,8 @@ const Checkout = () => {
   const applyCouponCode = () => {
     const trimmedCode = couponCode.trim().toUpperCase();
     
+    console.log('Applying coupon code:', trimmedCode); // Debug log
+    
     if (trimmedCode === 'SAVE15' || trimmedCode === '15OFF') {
       setAppliedCoupon(trimmedCode);
       setCouponDiscount(15);
@@ -234,11 +236,13 @@ const Checkout = () => {
         description: "You saved 99% on your order!",
         position: "top-center",
       });
+      console.log('99DOFF coupon applied successfully'); // Debug log
     } else if (trimmedCode === '') {
       toast.error("Please enter a coupon code", {
         position: "top-center",
       });
     } else {
+      console.log('Invalid coupon code entered:', trimmedCode); // Debug log
       toast.error("Invalid coupon code", {
         description: "Please check your coupon code and try again.",
         position: "top-center",
