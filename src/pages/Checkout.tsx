@@ -80,16 +80,9 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
-  const [formState, setFormState] = useState<FormState>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-  });
+  
+  // Remove the separate formState and use form values directly
+  const [validatedFormData, setValidatedFormData] = useState<FormState | null>(null);
 
   // Define digitizing time options
   const digitizingOptions = [
@@ -285,15 +278,14 @@ const Checkout = () => {
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormState(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    // This function is no longer needed since we're using react-hook-form
+    console.log('Input change detected:', e.target.name, e.target.value);
   };
 
   const handleSubmit = (values: z.infer<typeof shippingFormSchema>) => {
-    // Fix: Ensure all required fields are present with proper typing
+    console.log('Form submitted with values:', values);
+    
+    // Store the validated form data
     const completeFormState: FormState = {
       firstName: values.firstName,
       lastName: values.lastName,
@@ -305,8 +297,10 @@ const Checkout = () => {
       zipCode: values.zipCode,
     };
     
-    setFormState(completeFormState);
+    setValidatedFormData(completeFormState);
     setShowCardForm(true);
+    
+    console.log('Validated form data set:', completeFormState);
     
     // Smooth scroll to payment section after a short delay
     setTimeout(() => {
@@ -324,7 +318,7 @@ const Checkout = () => {
       console.log('🎯 CHECKOUT DEBUG - orderInfo param:', orderInfo);
       console.log('🎯 CHECKOUT DEBUG - paymentInfo param:', paymentInfo);
       
-      // Use customer info from orderInfo parameter instead of formState
+      // Use customer info from orderInfo parameter
       const customerInfo = orderInfo.customerInfo;
       
       // Ensure we have all required customer info
@@ -411,7 +405,12 @@ const Checkout = () => {
     
     try {
       console.log('💳 PAYMENT SUCCESS - Starting payment processing');
-      console.log('💳 PAYMENT SUCCESS - Current form state:', formState);
+      console.log('💳 PAYMENT SUCCESS - Current validated form data:', validatedFormData);
+      
+      // Ensure we have validated form data
+      if (!validatedFormData) {
+        throw new Error('Missing customer information - form data not validated');
+      }
       
       const response = await fetch('/api/process-payment', {
         method: 'POST',
@@ -426,7 +425,7 @@ const Checkout = () => {
             usbDrives,
             cloudBackup,
             digitizingSpeed,
-            customerInfo: formState
+            customerInfo: validatedFormData
           }
         }),
       });
@@ -470,15 +469,15 @@ const Checkout = () => {
       const orderData = {
         orderId: orderId,
         customerInfo: {
-          firstName: formState.firstName,
-          lastName: formState.lastName,
-          email: formState.email,
-          phone: formState.phone,
-          address: formState.address,
-          city: formState.city,
-          state: formState.state,
-          zipCode: formState.zipCode,
-          fullName: `${formState.firstName} ${formState.lastName}`
+          firstName: validatedFormData.firstName,
+          lastName: validatedFormData.lastName,
+          email: validatedFormData.email,
+          phone: validatedFormData.phone,
+          address: validatedFormData.address,
+          city: validatedFormData.city,
+          state: validatedFormData.state,
+          zipCode: validatedFormData.zipCode,
+          fullName: `${validatedFormData.firstName} ${validatedFormData.lastName}`
         },
         orderDetails: {
           package: packageType,
@@ -499,6 +498,8 @@ const Checkout = () => {
         paymentMethod: `Credit Card (${details?.card?.brand} ending in ${details?.card?.last4})`,
         timestamp: new Date().toISOString()
       };
+
+      console.log('💳 PAYMENT SUCCESS - Order data prepared for email:', orderData);
 
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(orderData, "Order Completed");
@@ -533,9 +534,9 @@ const Checkout = () => {
         state: {
           orderNumber: orderId,
           customerInfo: {
-            firstName: formState.firstName,
-            lastName: formState.lastName,
-            email: formState.email
+            firstName: validatedFormData.firstName,
+            lastName: validatedFormData.lastName,
+            email: validatedFormData.email
           }
         }
       });
@@ -554,10 +555,20 @@ const Checkout = () => {
     setIsProcessing(true);
     
     console.log('💰 PAYPAL - Starting PayPal payment processing');
-    console.log('💰 PAYPAL - Current form state:', formState);
+    console.log('💰 PAYPAL - Current validated form data:', validatedFormData);
+    
+    // Ensure we have validated form data
+    if (!validatedFormData) {
+      setIsProcessing(false);
+      toast.error("Missing customer information", {
+        description: "Please fill out the shipping form first.",
+        position: "top-center",
+      });
+      return;
+    }
     
     // For demo purposes, we'll simulate a successful PayPal payment after a short delay
-    console.log("Processing PayPal payment for:", formState.email);
+    console.log("Processing PayPal payment for:", validatedFormData.email);
     console.log("Amount:", calculateTotal());
     console.log("USB drives added:", usbDrives);
     console.log("Cloud backup years:", cloudBackup);
@@ -597,15 +608,15 @@ const Checkout = () => {
       const orderData = {
         orderId: orderId,
         customerInfo: {
-          firstName: formState.firstName,
-          lastName: formState.lastName,
-          email: formState.email,
-          phone: formState.phone,
-          address: formState.address,
-          city: formState.city,
-          state: formState.state,
-          zipCode: formState.zipCode,
-          fullName: `${formState.firstName} ${formState.lastName}`
+          firstName: validatedFormData.firstName,
+          lastName: validatedFormData.lastName,
+          email: validatedFormData.email,
+          phone: validatedFormData.phone,
+          address: validatedFormData.address,
+          city: validatedFormData.city,
+          state: validatedFormData.state,
+          zipCode: validatedFormData.zipCode,
+          fullName: `${validatedFormData.firstName} ${validatedFormData.lastName}`
         },
         orderDetails: {
           package: packageType,
@@ -626,6 +637,8 @@ const Checkout = () => {
         paymentMethod: "PayPal",
         timestamp: new Date().toISOString()
       };
+
+      console.log('💰 PAYPAL - Order data prepared for email:', orderData);
 
       // Send order details to Formspree
       await sendOrderDetailsToFormspree(orderData, "Order Completed");
@@ -661,9 +674,9 @@ const Checkout = () => {
         state: {
           orderNumber: orderId,
           customerInfo: {
-            firstName: formState.firstName,
-            lastName: formState.lastName,
-            email: formState.email
+            firstName: validatedFormData.firstName,
+            lastName: validatedFormData.lastName,
+            email: validatedFormData.email
           }
         }
       });
@@ -853,24 +866,6 @@ const Checkout = () => {
                                     {...field} 
                                     className="h-12 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 transition-colors"
                                     placeholder="123 Main Street"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm font-semibold text-gray-700">City</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    className="h-12 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 transition-colors"
-                                    placeholder="Enter your city"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -1084,27 +1079,29 @@ const Checkout = () => {
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <div>
-                            <div className="text-sm font-medium text-gray-500">Full Name</div>
-                            <div className="font-semibold text-gray-900">{formState.firstName} {formState.lastName}</div>
+                      {validatedFormData && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">Full Name</div>
+                              <div className="font-semibold text-gray-900">{validatedFormData.firstName} {validatedFormData.lastName}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">Email Address</div>
+                              <div className="font-semibold text-gray-900">{validatedFormData.email}</div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">Phone Number</div>
+                              <div className="font-semibold text-gray-900">{validatedFormData.phone}</div>
+                            </div>
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-500">Email Address</div>
-                            <div className="font-semibold text-gray-900">{formState.email}</div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-500">Phone Number</div>
-                            <div className="font-semibold text-gray-900">{formState.phone}</div>
+                            <div className="text-sm font-medium text-gray-500">Shipping Address</div>
+                            <div className="font-semibold text-gray-900">{validatedFormData.address}</div>
+                            <div className="text-gray-700">{validatedFormData.city}, {validatedFormData.state} {validatedFormData.zipCode}</div>
                           </div>
                         </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-500">Shipping Address</div>
-                          <div className="font-semibold text-gray-900">{formState.address}</div>
-                          <div className="text-gray-700">{formState.city}, {formState.state} {formState.zipCode}</div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                     
                     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
