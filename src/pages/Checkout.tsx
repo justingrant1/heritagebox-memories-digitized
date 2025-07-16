@@ -80,6 +80,7 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Remove the separate formState and use form values directly
   const [validatedFormData, setValidatedFormData] = useState<FormState | null>(null);
@@ -277,38 +278,72 @@ const Checkout = () => {
     setDigitizingSpeed(value);
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // This function is no longer needed since we're using react-hook-form
-    console.log('Input change detected:', e.target.name, e.target.value);
-  };
-
-  const handleSubmit = (values: z.infer<typeof shippingFormSchema>) => {
-    console.log('Form submitted with values:', values);
+  const handleSubmit = async (values: z.infer<typeof shippingFormSchema>) => {
+    console.log('🚀 Form submission started');
+    console.log('📝 Form values:', values);
     
-    // Store the validated form data
-    const completeFormState: FormState = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      email: values.email,
-      phone: values.phone,
-      address: values.address,
-      city: values.city,
-      state: values.state,
-      zipCode: values.zipCode,
-    };
+    setIsSubmitting(true);
     
-    setValidatedFormData(completeFormState);
-    setShowCardForm(true);
-    
-    console.log('Validated form data set:', completeFormState);
-    
-    // Smooth scroll to payment section after a short delay
-    setTimeout(() => {
-      const paymentSection = document.getElementById('payment-section');
-      if (paymentSection) {
-        paymentSection.scrollIntoView({ behavior: 'smooth' });
+    try {
+      // Validate all required fields are present
+      const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
+      const missingFields = requiredFields.filter(field => !values[field as keyof typeof values] || values[field as keyof typeof values].trim() === '');
+      
+      if (missingFields.length > 0) {
+        console.error('❌ Missing required fields:', missingFields);
+        toast.error("Please fill in all required fields", {
+          description: `Missing: ${missingFields.join(', ')}`,
+          position: "top-center",
+        });
+        setIsSubmitting(false);
+        return;
       }
-    }, 100);
+
+      console.log('✅ All required fields validated');
+      
+      // Store the validated form data
+      const completeFormState: FormState = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        address: values.address,
+        city: values.city,
+        state: values.state,
+        zipCode: values.zipCode,
+      };
+      
+      console.log('💾 Setting validated form data:', completeFormState);
+      setValidatedFormData(completeFormState);
+      
+      console.log('🎯 Showing payment form');
+      setShowCardForm(true);
+      
+      toast.success("Information validated!", {
+        description: "Proceeding to payment...",
+        position: "top-center",
+      });
+      
+      // Smooth scroll to payment section after a short delay
+      setTimeout(() => {
+        const paymentSection = document.getElementById('payment-section');
+        if (paymentSection) {
+          console.log('📍 Scrolling to payment section');
+          paymentSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          console.warn('⚠️ Payment section not found for scrolling');
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Error in form submission:', error);
+      toast.error("Form submission error", {
+        description: "Please try again or check your information",
+        position: "top-center",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Function to send order details to Formspree
@@ -745,19 +780,19 @@ const Checkout = () => {
                   </div>
                   <span className="text-sm mt-2 text-primary font-semibold">Package Selected</span>
                 </div>
-                <div className="flex-1 h-1 bg-gradient-to-r from-primary to-primary-light mx-4 rounded-full"></div>
+                <div className={`flex-1 h-1 mx-4 rounded-full ${showCardForm ? 'bg-gradient-to-r from-primary to-primary-light' : 'bg-gradient-to-r from-primary to-primary-light'}`}></div>
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-light text-white flex items-center justify-center rounded-full shadow-lg">
+                  <div className={`w-12 h-12 text-white flex items-center justify-center rounded-full shadow-lg ${showCardForm ? 'bg-gradient-to-r from-primary to-primary-light' : 'bg-gradient-to-r from-primary to-primary-light'}`}>
                     <Truck size={20} />
                   </div>
-                  <span className="text-sm mt-2 text-primary font-semibold">Shipping Info</span>
+                  <span className={`text-sm mt-2 font-semibold ${showCardForm ? 'text-primary' : 'text-primary'}`}>Shipping Info</span>
                 </div>
-                <div className="flex-1 h-1 bg-gray-200 mx-4 rounded-full"></div>
+                <div className={`flex-1 h-1 mx-4 rounded-full ${showCardForm ? 'bg-gradient-to-r from-primary to-primary-light' : 'bg-gray-200'}`}></div>
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 bg-gray-200 text-gray-500 flex items-center justify-center rounded-full">
+                  <div className={`w-12 h-12 flex items-center justify-center rounded-full ${showCardForm ? 'bg-gradient-to-r from-primary to-primary-light text-white shadow-lg' : 'bg-gray-200 text-gray-500'}`}>
                     <CreditCard size={20} />
                   </div>
-                  <span className="text-sm mt-2 text-gray-500 font-medium">Payment</span>
+                  <span className={`text-sm mt-2 font-medium ${showCardForm ? 'text-primary font-semibold' : 'text-gray-500'}`}>Payment</span>
                 </div>
               </div>
             </div>
@@ -786,7 +821,7 @@ const Checkout = () => {
                             name="firstName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-sm font-semibold text-gray-700">First Name</FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700">First Name *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     {...field} 
@@ -804,7 +839,7 @@ const Checkout = () => {
                             name="lastName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-sm font-semibold text-gray-700">Last Name</FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700">Last Name *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     {...field} 
@@ -822,7 +857,7 @@ const Checkout = () => {
                             name="email"
                             render={({ field }) => (
                               <FormItem className="md:col-span-2">
-                                <FormLabel className="text-sm font-semibold text-gray-700">Email Address</FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700">Email Address *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     {...field} 
@@ -841,7 +876,7 @@ const Checkout = () => {
                             name="phone"
                             render={({ field }) => (
                               <FormItem className="md:col-span-2">
-                                <FormLabel className="text-sm font-semibold text-gray-700">Phone Number</FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700">Phone Number *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     {...field} 
@@ -860,12 +895,30 @@ const Checkout = () => {
                             name="address"
                             render={({ field }) => (
                               <FormItem className="md:col-span-2">
-                                <FormLabel className="text-sm font-semibold text-gray-700">Street Address</FormLabel>
+                                <FormLabel className="text-sm font-semibold text-gray-700">Street Address *</FormLabel>
                                 <FormControl>
                                   <Input 
                                     {...field} 
                                     className="h-12 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 transition-colors"
                                     placeholder="123 Main Street"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm font-semibold text-gray-700">City *</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    {...field} 
+                                    className="h-12 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 transition-colors"
+                                    placeholder="Your City"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -879,7 +932,7 @@ const Checkout = () => {
                               name="state"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-sm font-semibold text-gray-700">State</FormLabel>
+                                  <FormLabel className="text-sm font-semibold text-gray-700">State *</FormLabel>
                                   <FormControl>
                                     <Input 
                                       {...field} 
@@ -897,7 +950,7 @@ const Checkout = () => {
                               name="zipCode"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-sm font-semibold text-gray-700">ZIP Code</FormLabel>
+                                  <FormLabel className="text-sm font-semibold text-gray-700">ZIP Code *</FormLabel>
                                   <FormControl>
                                     <Input 
                                       {...field} 
@@ -1043,6 +1096,7 @@ const Checkout = () => {
                           variant="outline"
                           onClick={() => navigate(-1)}
                           className="h-12 px-8 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold"
+                          disabled={isSubmitting}
                         >
                           ← Back to Package
                         </Button>
@@ -1050,9 +1104,19 @@ const Checkout = () => {
                         <Button 
                           type="submit" 
                           className={`h-12 px-8 ${getButtonClass()} gap-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all`}
+                          disabled={isSubmitting}
                         >
-                          Continue to Payment
-                          <ArrowRight className="h-5 w-5" />
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              Continue to Payment
+                              <ArrowRight className="h-5 w-5" />
+                            </>
+                          )}
                         </Button>
                       </div>
                     </form>
