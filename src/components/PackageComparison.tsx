@@ -1,4 +1,5 @@
-import { Check, Star, Sparkles } from 'lucide-react';
+
+import { Check, Star, Sparkles, Info } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -191,6 +192,24 @@ const PackageComparison = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Select the perfect package to preserve your cherished memories for generations to come. Every package includes our quality guarantee.
           </p>
+        </div>
+
+        {/* Conversion Info Banner */}
+        <div className="mb-12">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 max-w-4xl mx-auto">
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-100 rounded-full p-2 shrink-0">
+                <Info className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">Mix & Match Your Items</h3>
+                <p className="text-blue-800 leading-relaxed">
+                  Want to combine tapes and photos? <strong>1 tape = 25 photos</strong> in your package allowance. 
+                  For example, if you have a 10-tape package, you could digitize 5 tapes + 125 photos instead.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 relative">
