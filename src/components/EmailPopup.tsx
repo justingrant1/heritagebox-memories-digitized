@@ -69,10 +69,23 @@ const EmailPopup = () => {
       }
       setOpen(currentOpenState);
     }}>
-      <DialogContent className="sm:max-w-md p-6">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-serif text-primary">Save 15% on Your First Order</DialogTitle>
-          <DialogDescription className="text-lg mt-2">
+      <DialogContent className="sm:max-w-md p-4 sm:p-6 mx-4 max-h-[90vh] overflow-y-auto relative">
+        {/* Close Button - Mobile Optimized */}
+        <DialogClose asChild>
+          <button
+            type="button"
+            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Close popup"
+          >
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+        </DialogClose>
+
+        <DialogHeader className="pr-10 sm:pr-12">
+          <DialogTitle className="text-xl sm:text-2xl font-serif text-primary leading-tight">
+            Save 15% on Your First Order
+          </DialogTitle>
+          <DialogDescription className="text-base sm:text-lg mt-2 text-gray-600 leading-relaxed">
             Sign up for updates and receive a 15% discount code for your first order.
           </DialogDescription>
         </DialogHeader>
