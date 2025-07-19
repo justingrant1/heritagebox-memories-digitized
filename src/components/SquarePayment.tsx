@@ -158,6 +158,26 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         setCardLoading(true);
         console.log("Initializing Square Payments:", config);
 
+        // Wait for container to be in DOM before proceeding
+        const waitForContainer = () => {
+          return new Promise((resolve, reject) => {
+            const checkContainer = () => {
+              const container = document.getElementById('card-container');
+              if (container) {
+                resolve(container);
+              } else {
+                setTimeout(checkContainer, 100);
+              }
+            };
+            checkContainer();
+            
+            // Timeout after 5 seconds to avoid infinite waiting
+            setTimeout(() => reject(new Error('Container timeout')), 5000);
+          });
+        };
+
+        await waitForContainer();
+
         // Initialize with environment-aware configuration
         const payments = window.Square.payments(config.appId, config.locationId, {
           environment: config.environment
@@ -190,7 +210,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
         const cardInstance = await payments.card(cardOptions);
 
-        // Make sure the container is ready before attaching
+        // Double-check container is still available
         const container = document.getElementById('card-container');
         if (!container) {
           throw new Error('Card container not found in DOM');
@@ -219,7 +239,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
       }
     }
 
-    initializeCard();
+    // Small delay to ensure DOM is ready
+    setTimeout(initializeCard, 100);
   }, [loaded, card, config, isMobile]);
 
   const handlePaymentSubmit = async () => {
