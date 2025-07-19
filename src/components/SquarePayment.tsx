@@ -337,24 +337,12 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
         {/* Success state info */}
         {loaded && !showLoadingState && !showErrorState && (
-          <>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <div className="flex items-center">
                 <CardIcon size={14} className="mr-1" />
                 <span>All major credit cards accepted</span>
               </div>
-              {isMobile && (
-                <div className={`text-green-600 font-medium ${styles.successIndicator}`}>
-                  <span>Autocomplete enabled</span>
-                </div>
-              )}
             </div>
-            {isMobile && (
-              <div className={`${styles.autocompleteHint}`}>
-                💡 Tip: Your browser should offer to save and autofill card information for faster checkout.
-              </div>
-            )}
-          </>
         )}
       </div>
     );
@@ -375,8 +363,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         </div>
         <div className="flex items-center gap-2">
           <img src="https://www.svgrepo.com/show/362011/mastercard.svg" alt="Mastercard" className="h-6" />
-          <img src="https://www.svgrepo.com/show/499989/visa.svg" alt="Visa" className="h-6" />
-          <img src="https://www.svgrepo.com/show/452142/amex.svg" alt="Amex" className="h-6" />
+          <img src="https://www.svgrepo.com/show/362021/visa.svg" alt="Visa" className="h-6" />
+          <img src="https://www.svgrepo.com/show/361994/amex.svg" alt="Amex" className="h-6" />
         </div>
       </div>
       
