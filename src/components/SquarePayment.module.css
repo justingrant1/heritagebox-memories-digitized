@@ -29,6 +29,14 @@
   background: transparent;
 }
 
+/* iOS zoom prevention for all inputs in Square container */
+.cardContainer input,
+.cardContainer input[type="text"],
+.cardContainer input[type="tel"] {
+  font-size: 16px !important;
+  -webkit-appearance: none;
+}
+
 /* Mobile specific styling to help with autocomplete */
 @media (max-width: 768px) {
   .cardContainer {
