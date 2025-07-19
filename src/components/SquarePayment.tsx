@@ -362,9 +362,9 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <img src="https://www.svgrepo.com/show/362011/mastercard.svg" alt="Mastercard" className="h-6" />
-          <img src="https://www.svgrepo.com/show/362021/visa.svg" alt="Visa" className="h-6" />
-          <img src="https://www.svgrepo.com/show/361994/amex.svg" alt="Amex" className="h-6" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Mastercard_2019_logo.svg" alt="Mastercard" className="h-6" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-6" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/American_Express_logo_%282018%29.svg" alt="Amex" className="h-6" />
         </div>
       </div>
       
