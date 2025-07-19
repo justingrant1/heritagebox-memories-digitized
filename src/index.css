@@ -70,23 +70,45 @@
 }
 
 @layer base {
+  /* Comprehensive reset for mobile edge issues */
   * {
     @apply border-border;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Reset root container */
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 
   html {
+    /* Remove default margins and padding */
+    margin: 0;
+    padding: 0;
     /* Prevent horizontal overflow */
     overflow-x: hidden;
+    /* Ensure full viewport width */
+    width: 100%;
+    min-height: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
+    /* Remove default margins and padding */
+    margin: 0;
+    padding: 0;
     /* Improve touch responsiveness */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     /* Prevent horizontal overflow */
     overflow-x: hidden;
-    max-width: 100vw;
+    /* Ensure full viewport coverage */
+    width: 100%;
+    min-height: 100vh;
   }
 
   /* Improve button touch targets on mobile */
