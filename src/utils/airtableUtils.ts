@@ -1,10 +1,16 @@
-
 import Airtable from 'airtable';
 
 // Airtable configuration - you'll need to set these environment variables
 const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY || '';
-const AIRTABLE_BASE_ID = import.meta.env.VITE_AIRTABLE_BASE_ID || '';
-const AIRTABLE_TABLE_NAME = import.meta.env.VITE_AIRTABLE_TABLE_NAME || 'Orders';
+const AIRTABLE_BASE_ID = import.meta.env.VITE_AIRTABLE_BASE_ID || 'appFMHAYZrTskpmdX';
+
+// Table IDs for the new normalized structure
+const TABLES = {
+  CUSTOMERS: 'tblUS7uf11axEmL56',
+  PRODUCTS: 'tblJ0hgzvDXWgQGmK',
+  ORDERS: 'tblTq25QawVDHTTkV',
+  ORDER_ITEMS: 'tblgV4XGeQE3VL9CW'
+};
 
 // Check if Airtable is properly configured
 const isAirtableConfigured = () => {
@@ -65,6 +71,69 @@ interface OrderData {
   timestamp: string;
 }
 
+// Helper function to find or create customer
+const findOrCreateCustomer = async (customerInfo: any) => {
+  try {
+    // First, try to find existing customer by email
+    const existingCustomers = await base(TABLES.CUSTOMERS).select({
+      filterByFormula: `{Email} = "${customerInfo.email}"`
+    }).firstPage();
+
+    if (existingCustomers.length > 0) {
+      console.log('✅ AIRTABLE - Found existing customer:', existingCustomers[0].id);
+      return existingCustomers[0];
+    }
+
+    // Create new customer if not found
+    const customerFields = {
+      'Name': customerInfo.fullName,
+      'Email': customerInfo.email,
+      'Phone': customerInfo.phone,
+      'Shipping Address': `${customerInfo.address}\n${customerInfo.city}, ${customerInfo.state} ${customerInfo.zipCode}`
+    };
+
+    const newCustomer = await base(TABLES.CUSTOMERS).create([{ fields: customerFields }]);
+    console.log('✅ AIRTABLE - Created new customer:', newCustomer[0].id);
+    return newCustomer[0];
+
+  } catch (error) {
+    console.error('❌ AIRTABLE ERROR - Failed to find/create customer:', error);
+    throw error;
+  }
+};
+
+// Helper function to find or create product
+const findOrCreateProduct = async (productName: string, price: number) => {
+  try {
+    // Try to find existing product
+    const existingProducts = await base(TABLES.PRODUCTS).select({
+      filterByFormula: `{Product Name} = "${productName}"`
+    }).firstPage();
+
+    if (existingProducts.length > 0) {
+      console.log('✅ AIRTABLE - Found existing product:', existingProducts[0].id);
+      return existingProducts[0];
+    }
+
+    // Create new product if not found
+    const productFields = {
+      'Product Name': productName,
+      'Description': `Heritage Box digitization service - ${productName}`,
+      'Price': price,
+      'SKU': `HB-${productName.replace(/\s+/g, '-').toUpperCase()}`,
+      'Stock Quantity': 999 // Unlimited digital service
+    };
+
+    const newProduct = await base(TABLES.PRODUCTS).create([{ fields: productFields }]);
+    console.log('✅ AIRTABLE - Created new product:', newProduct[0].id);
+    return newProduct[0];
+
+  } catch (error) {
+    console.error('❌ AIRTABLE ERROR - Failed to find/create product:', error);
+    throw error;
+  }
+};
+
 export const sendOrderToAirtable = async (orderData: OrderData) => {
   // Check if Airtable is configured before attempting to send
   if (!isAirtableConfigured()) {
@@ -81,102 +150,98 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
   try {
     console.log('📊 AIRTABLE - Sending order data to Airtable:', orderData);
 
-    // Calculate add-on costs
-    const addOnDetails = orderData.orderDetails.addOnDetails || {};
-    const photoRestorationCost = addOnDetails.photoRestoration?.selected ? addOnDetails.photoRestoration.cost : 0;
-    const videoEnhancementCost = addOnDetails.videoEnhancement?.selected ? addOnDetails.videoEnhancement.cost : 0;
-    const digitalDeliveryCost = addOnDetails.digitalDelivery?.selected ? addOnDetails.digitalDelivery.cost : 0;
-    const expressShippingCost = addOnDetails.expressShipping?.selected ? addOnDetails.expressShipping.cost : 0;
-    const storageUpgradeCost = addOnDetails.storageUpgrade?.selected ? addOnDetails.storageUpgrade.cost : 0;
-    const backupCopiesCost = addOnDetails.backupCopies?.selected ? addOnDetails.backupCopies.cost : 0;
+    // Step 1: Find or create customer
+    const customer = await findOrCreateCustomer(orderData.customerInfo);
 
-    // Calculate speed costs
-    const speedDetails = orderData.orderDetails.speedDetails || {};
-    const standardSpeedCost = speedDetails.standardSpeed?.selected ? speedDetails.standardSpeed.cost : 0;
-    const expressSpeedCost = speedDetails.expressSpeed?.selected ? speedDetails.expressSpeed.cost : 0;
-    const rushSpeedCost = speedDetails.rushSpeed?.selected ? speedDetails.rushSpeed.cost : 0;
+    // Step 2: Find or create main product (package)
+    const packagePrice = parseFloat(orderData.orderDetails.packagePrice.replace('$', ''));
+    const mainProduct = await findOrCreateProduct(orderData.orderDetails.package, packagePrice);
 
-    // Prepare the record data for Airtable
-    const recordFields = {
-      // Customer Information
-      'Customer Name': orderData.customerInfo.fullName,
-      'First Name': orderData.customerInfo.firstName,
-      'Last Name': orderData.customerInfo.lastName,
-      'Email': orderData.customerInfo.email,
-      'Phone': orderData.customerInfo.phone,
-      'Address': orderData.customerInfo.address,
-      'City': orderData.customerInfo.city,
-      'State': orderData.customerInfo.state,
-      'ZIP Code': orderData.customerInfo.zipCode,
-      'Full Address': `${orderData.customerInfo.address}, ${orderData.customerInfo.city}, ${orderData.customerInfo.state} ${orderData.customerInfo.zipCode}`,
-      
-      // Order Details
-      'Package': orderData.orderDetails.package,
-      'Package Price': orderData.orderDetails.packagePrice,
-      'Package Features': orderData.orderDetails.packageFeatures,
-      'Total Amount': orderData.orderDetails.totalAmount,
-      
-      // Digitizing Information
-      'Digitizing Speed': orderData.orderDetails.digitizingSpeed,
-      'Digitizing Time': orderData.orderDetails.digitizingTime,
-      'Digitizing Price': orderData.orderDetails.digitizingPrice,
-      
-      // Digitizing Speed Breakdown
-      'Standard Speed Selected': speedDetails.standardSpeed?.selected || false,
-      'Standard Speed Cost': standardSpeedCost,
-      'Standard Speed Timeframe': speedDetails.standardSpeed?.timeframe || '',
-      'Express Speed Selected': speedDetails.expressSpeed?.selected || false,
-      'Express Speed Cost': expressSpeedCost,
-      'Express Speed Timeframe': speedDetails.expressSpeed?.timeframe || '',
-      'Rush Speed Selected': speedDetails.rushSpeed?.selected || false,
-      'Rush Speed Cost': rushSpeedCost,
-      'Rush Speed Timeframe': speedDetails.rushSpeed?.timeframe || '',
-      
-      // Add-ons Summary
-      'Add Ons': orderData.orderDetails.addOns.length > 0 ? orderData.orderDetails.addOns.join(', ') : 'None',
-      
-      // Individual Add-on Breakdown
-      'Photo Restoration Selected': addOnDetails.photoRestoration?.selected || false,
-      'Photo Restoration Cost': photoRestorationCost,
-      'Video Enhancement Selected': addOnDetails.videoEnhancement?.selected || false,
-      'Video Enhancement Cost': videoEnhancementCost,
-      'Digital Delivery Selected': addOnDetails.digitalDelivery?.selected || false,
-      'Digital Delivery Cost': digitalDeliveryCost,
-      'Express Shipping Selected': addOnDetails.expressShipping?.selected || false,
-      'Express Shipping Cost': expressShippingCost,
-      'Storage Upgrade Selected': addOnDetails.storageUpgrade?.selected || false,
-      'Storage Upgrade Cost': storageUpgradeCost,
-      'Backup Copies Selected': addOnDetails.backupCopies?.selected || false,
-      'Backup Copies Cost': backupCopiesCost,
-      
-      // Calculated Totals
-      'Total Add-on Cost': photoRestorationCost + videoEnhancementCost + digitalDeliveryCost + expressShippingCost + storageUpgradeCost + backupCopiesCost,
-      'Total Speed Cost': standardSpeedCost + expressSpeedCost + rushSpeedCost,
-      
-      // Payment and Order Info
-      'Payment Method': orderData.paymentMethod,
-      'Order Date': new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      'Timestamp': orderData.timestamp,
-      
-      // Status
-      'Order Status': 'New Order',
-      'Processing Status': 'Pending'
+    // Step 3: Create the order
+    const orderNumber = `HB-${Date.now()}`;
+    const orderFields = {
+      'Order Number': orderNumber,
+      'Customer': [customer.id],
+      'Order Date': new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+      'Status': 'Pending',
+      'Total Amount': parseFloat(orderData.orderDetails.totalAmount.replace('$', ''))
     };
 
-    // Create the record in Airtable
-    const createdRecord = await base(AIRTABLE_TABLE_NAME).create([{ fields: recordFields }]);
-    
-    console.log('✅ AIRTABLE SUCCESS - Record created:', createdRecord[0].getId());
-    return createdRecord;
+    const newOrder = await base(TABLES.ORDERS).create([{ fields: orderFields }]);
+    console.log('✅ AIRTABLE - Created new order:', newOrder[0].id);
+
+    // Step 4: Create order items
+    const orderItems = [];
+
+    // Main package item
+    const mainItemFields = {
+      'Item ID': `${orderNumber}-001`,
+      'Order': [newOrder[0].id],
+      'Product': [mainProduct.id],
+      'Quantity': 1,
+      'Unit Price': packagePrice,
+      'Line Total': packagePrice
+    };
+    orderItems.push({ fields: mainItemFields });
+
+    // Add-on items
+    const addOnDetails = orderData.orderDetails.addOnDetails || {};
+    let itemCounter = 2;
+
+    for (const [addOnKey, addOnData] of Object.entries(addOnDetails)) {
+      if (addOnData.selected && addOnData.cost > 0) {
+        const addOnName = addOnKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+        const addOnProduct = await findOrCreateProduct(`Add-on: ${addOnName}`, addOnData.cost);
+        
+        const addOnItemFields = {
+          'Item ID': `${orderNumber}-${itemCounter.toString().padStart(3, '0')}`,
+          'Order': [newOrder[0].id],
+          'Product': [addOnProduct.id],
+          'Quantity': 1,
+          'Unit Price': addOnData.cost,
+          'Line Total': addOnData.cost
+        };
+        orderItems.push({ fields: addOnItemFields });
+        itemCounter++;
+      }
+    }
+
+    // Speed upgrade items
+    const speedDetails = orderData.orderDetails.speedDetails || {};
+    for (const [speedKey, speedData] of Object.entries(speedDetails)) {
+      if (speedData.selected && speedData.cost > 0) {
+        const speedName = speedKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+        const speedProduct = await findOrCreateProduct(`Speed: ${speedName}`, speedData.cost);
+        
+        const speedItemFields = {
+          'Item ID': `${orderNumber}-${itemCounter.toString().padStart(3, '0')}`,
+          'Order': [newOrder[0].id],
+          'Product': [speedProduct.id],
+          'Quantity': 1,
+          'Unit Price': speedData.cost,
+          'Line Total': speedData.cost
+        };
+        orderItems.push({ fields: speedItemFields });
+        itemCounter++;
+      }
+    }
+
+    // Create all order items
+    if (orderItems.length > 0) {
+      const createdOrderItems = await base(TABLES.ORDER_ITEMS).create(orderItems);
+      console.log(`✅ AIRTABLE - Created ${createdOrderItems.length} order items`);
+    }
+
+    console.log('✅ AIRTABLE SUCCESS - Order fully processed:', orderNumber);
+    return {
+      customer,
+      order: newOrder[0],
+      orderNumber,
+      itemsCount: orderItems.length
+    };
     
   } catch (error) {
-    console.error('❌ AIRTABLE ERROR - Failed to create record:', error);
+    console.error('❌ AIRTABLE ERROR - Failed to create order:', error);
     
     // Log more details about the error
     if (error.statusCode) {
@@ -208,8 +273,8 @@ export const testAirtableConnection = async () => {
   try {
     console.log('🧪 AIRTABLE TEST - Testing connection...');
     
-    // Try to fetch the first record to test connection
-    const records = await base(AIRTABLE_TABLE_NAME).select({
+    // Try to fetch the first record from customers table to test connection
+    const records = await base(TABLES.CUSTOMERS).select({
       maxRecords: 1
     }).firstPage();
     
@@ -271,4 +336,39 @@ export const parseSpeedDetails = (digitizingSpeed: string) => {
   };
 
   return speedDetails;
+};
+
+// Function to get customer orders (useful for customer service)
+export const getCustomerOrders = async (email: string) => {
+  if (!isAirtableConfigured() || !base) {
+    return null;
+  }
+
+  try {
+    // Find customer by email
+    const customers = await base(TABLES.CUSTOMERS).select({
+      filterByFormula: `{Email} = "${email}"`
+    }).firstPage();
+
+    if (customers.length === 0) {
+      return null;
+    }
+
+    const customer = customers[0];
+    
+    // Get orders for this customer
+    const orders = await base(TABLES.ORDERS).select({
+      filterByFormula: `{Customer} = "${customer.id}"`,
+      sort: [{ field: 'Order Date', direction: 'desc' }]
+    }).firstPage();
+
+    return {
+      customer: customer.fields,
+      orders: orders.map(order => order.fields)
+    };
+
+  } catch (error) {
+    console.error('❌ AIRTABLE ERROR - Failed to get customer orders:', error);
+    return null;
+  }
 };
