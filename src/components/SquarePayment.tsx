@@ -64,10 +64,15 @@ const getSquareConfig = () => {
                        window.location.hostname !== '127.0.0.1' && 
                        !window.location.hostname.includes('preview');
   
+  // Get environment variables, fallback to hardcoded values for backward compatibility
+  const appId = import.meta.env.VITE_SQUARE_APP_ID || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+  const locationId = import.meta.env.VITE_SQUARE_LOCATION_ID || 'LPFZYDYB5G5GM';
+  const envFromConfig = import.meta.env.VITE_SQUARE_ENVIRONMENT || 'sandbox';
+  
   return {
-    appId: 'sq0idp-1Zchx5RshtaZ74spcf2w0A',
-    locationId: 'LPFZYDYB5G5GM',
-    environment: isProduction ? 'production' : 'sandbox',
+    appId,
+    locationId,
+    environment: isProduction ? 'production' : envFromConfig,
     jsUrl: 'https://web.squarecdn.com/v1/square.js'
   };
 };

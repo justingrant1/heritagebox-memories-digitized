@@ -51,9 +51,16 @@ export default async function handler(request: Request) {
         const SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID;
         const SQUARE_API_URL = process.env.SQUARE_API_URL;
 
+        logEvent('environment_check', {
+            hasAccessToken: !!squareAccessToken,
+            hasLocationId: !!SQUARE_LOCATION_ID,
+            hasApiUrl: !!SQUARE_API_URL,
+            nodeEnv: process.env.NODE_ENV
+        });
+
         if (!squareAccessToken) {
-            logEvent('configuration_error', {error: 'Square access token not configured'});
-            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+            logEvent('configuration_error', {error: 'SQUARE_ACCESS_TOKEN not configured'});
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured - missing access token'}), {
                 status: 500,
                 headers: {'Content-Type': 'application/json'}
             });
@@ -61,7 +68,7 @@ export default async function handler(request: Request) {
 
         if (!SQUARE_LOCATION_ID) {
             logEvent('configuration_error', {error: 'SQUARE_LOCATION_ID not configured'});
-            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured - missing location ID'}), {
                 status: 500,
                 headers: {'Content-Type': 'application/json'}
             });
@@ -69,7 +76,7 @@ export default async function handler(request: Request) {
 
         if (!SQUARE_API_URL) {
             logEvent('configuration_error', {error: 'SQUARE_API_URL not configured'});
-            return new Response(JSON.stringify({success: false, error: 'Payment service not configured'}), {
+            return new Response(JSON.stringify({success: false, error: 'Payment service not configured - missing API URL'}), {
                 status: 500,
                 headers: {'Content-Type': 'application/json'}
             });
@@ -145,4 +152,4 @@ export default async function handler(request: Request) {
             headers: {'Content-Type': 'application/json'}
         });
     }
-} 
+}
