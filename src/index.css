@@ -177,33 +177,74 @@
 
 /* Critical UI Element Protection - Prevent chat widgets from blocking important buttons */
 @layer utilities {
-  /* High priority buttons and forms */
+  /* High priority buttons and forms across the entire site */
   .critical-action,
   button[type="submit"],
   form button:last-child,
   .checkout-button,
   .payment-button,
+  .cta-button,
+  .btn-primary,
+  .btn-secondary,
   [data-payment="true"],
   #square-payment-form,
-  #card-container {
+  #card-container,
+  /* Package selection buttons */
+  .package-card button,
+  .package-button,
+  [data-package="true"],
+  /* Navigation and header buttons */
+  .navbar button,
+  .nav-button,
+  .menu-button,
+  /* Contact and form buttons */
+  .contact-form button,
+  .form-submit,
+  .email-signup button,
+  /* CTA and action buttons */
+  [class*="bg-primary"],
+  [class*="bg-secondary"],
+  .get-started,
+  .learn-more,
+  .contact-us,
+  /* Modal and popup buttons */
+  .modal button,
+  .popup button,
+  .dialog button {
     position: relative !important;
     z-index: 999999 !important;
     pointer-events: auto !important;
   }
   
-  /* Ensure payment forms are always accessible */
+  /* Ensure forms and interactive areas are always accessible */
   .square-payment-container,
   .payment-form-container,
-  .checkout-form {
+  .checkout-form,
+  .contact-form,
+  .email-form,
+  .signup-form,
+  form,
+  .form-container {
     position: relative !important;
     z-index: 999999 !important;
+  }
+  
+  /* Protect footer buttons and links */
+  footer button,
+  footer a[role="button"],
+  .footer-cta {
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
   }
   
   /* Override any third-party widget z-index conflicts */
   [id*="tawk"],
   [class*="tawk"],
   [id*="chat"],
-  [class*="chat-widget"] {
+  [class*="chat-widget"],
+  div[id^="tawk_"],
+  iframe[src*="tawk"] {
     z-index: 999998 !important; /* One less than critical actions */
   }
 }
