@@ -34,7 +34,6 @@ interface CardOptions {
       borderColor?: string;
     };
   };
-  autocomplete?: boolean;
   includeIntentToCapture?: boolean;
 }
 
@@ -188,7 +187,6 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
               borderColor: '#EF4444'
             }
           },
-          autocomplete: true, // Enable autocomplete for mobile
           includeIntentToCapture: true
         };
 
