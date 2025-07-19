@@ -60,17 +60,28 @@ declare global {
 
 // Environment-aware configuration
 const getSquareConfig = () => {
-  // Get environment variables, fallback to hardcoded values for backward compatibility
-  const appId = import.meta.env.VITE_SQUARE_APP_ID || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
-  const locationId = import.meta.env.VITE_SQUARE_LOCATION_ID || 'LPFZYDYB5G5GM';
-  const environment = import.meta.env.VITE_SQUARE_ENVIRONMENT || 'sandbox';
+  const isProduction = import.meta.env.PROD;
+
+  let appId = import.meta.env.VITE_SQUARE_APP_ID;
+  let locationId = import.meta.env.VITE_SQUARE_LOCATION_ID;
+
+  // Fallback to sandbox credentials ONLY in non-production environments
+  if (!isProduction) {
+    appId = appId || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
+    locationId = locationId || 'LPFZYDYB5G5GM';
+  }
+
+  if (!appId || !locationId) {
+    console.error("Square configuration is missing. Ensure VITE_SQUARE_APP_ID and VITE_SQUARE_LOCATION_ID are set for production builds.");
+    // Return empty strings to prevent initialization with incorrect credentials
+    return { appId: '', locationId: '', jsUrl: 'https://web.squarecdn.com/v1/square.js' };
+  }
   
-  console.log('Square Config:', { appId, locationId, environment });
+  console.log('Square Config:', { appId, locationId, isProduction });
   
   return {
     appId,
     locationId,
-    environment,
     jsUrl: 'https://web.squarecdn.com/v1/square.js'
   };
 };
@@ -142,6 +153,16 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
     if (!loaded || card) return;
 
     async function initializeCard() {
+      if (!config.appId || !config.locationId) {
+        const errorMessage = "Payment provider is not configured. Please contact support.";
+        console.error(errorMessage);
+        setError(errorMessage);
+        toast.error("Payment Error", {
+          description: errorMessage,
+        });
+        return;
+      }
+      
       if (!window.Square) {
         console.error("Square SDK not available");
         setError("Payment processor not available");
@@ -176,16 +197,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         await waitForContainer();
 
         // Initialize with environment-aware configuration
-        console.log("🔧 Square.payments() being called with:", {
-          appId: config.appId,
-          locationId: config.locationId,
-          environment: config.environment,
-          actualEnvVar: import.meta.env.VITE_SQUARE_ENVIRONMENT
-        });
-        
-        const payments = window.Square.payments(config.appId, config.locationId, {
-          environment: config.environment
-        });
+        const payments = window.Square.payments(config.appId, config.locationId);
 
         console.log("Creating card instance with mobile optimization");
         
