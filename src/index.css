@@ -183,7 +183,47 @@
 .tawk-tooltip,
 .tawk-button,
 .tawk-wrapper {
-  z-index: 99999 !important; /* Lower than critical buttons but high enough to be visible */
+  z-index: 99999 !important; /* Reasonable level for chat widget */
+}
+
+/* Critical button protection: Raise z-index above chat widget without changing styling */
+/* Package selection buttons */
+a[href*="/package-selected"],
+a[href*="/checkout"] {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* All critical action buttons */
+button[type="submit"],
+.btn-primary,
+.btn-secondary,
+button[class*="bg-primary"],
+button[class*="bg-secondary"],
+button[class*="bg-rose-"],
+button[class*="bg-blue-"],
+[role="button"] {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* Navigation and CTA buttons */
+nav a,
+nav button,
+.cta-button,
+[class*="cta"] button,
+[class*="cta"] a {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* Form buttons and contact buttons */
+form button,
+.contact-form button,
+.email-signup button,
+button[class*="contact"] {
+  position: relative !important;
+  z-index: 999999 !important;
 }
 
 /* Improve mobile responsiveness and touch handling */
