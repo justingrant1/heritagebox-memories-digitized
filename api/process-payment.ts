@@ -2,6 +2,24 @@ export const config = {
     runtime: 'edge',
 };
 
+// Square Catalog Product Mapping
+const SQUARE_CATALOG_MAPPING = {
+  packages: {
+    'Starter': 'GNQP4YZH57MGVR265N4QA7QH',
+    'Popular': 'MXDI5KGKHQE2G7MVWPGJWZIS', 
+    'Dusty Rose': 'GKIADSF5IJQEAAKCIL2WXZEK',
+    'Eternal': 'X2N4DL3YZBKJYAICCVYMSJ6Y'
+  },
+  addons: {
+    'Custom USB Drive': 'SMW4WXZUAE6E5L3FTS76NC7Y',
+    'Online Gallery & Backup': 'YJ3AGBF7MRHW2QQ6KI5DMSPG'
+  },
+  services: {
+    'expedited': '37LXAW3CQ7ONF7AGNCYDWRRT',
+    'rush': 'HSMOF4CINCKHVWUPCEN5ZBOU'
+  }
+};
+
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
     console.log(JSON.stringify({
@@ -156,48 +174,120 @@ export default async function handler(request: Request) {
             }
         }
 
-        // Step 2: Create order with line items
+        // Step 2: Create order with line items using Square catalog
         if (orderDetails) {
             const lineItems: any[] = [];
             
-            // Add main package as line item
-            lineItems.push({
-                name: `${orderDetails.package} Package`,
-                quantity: "1",
-                base_price_money: {
-                    amount: Math.round((orderDetails.packagePrice || amount) * 100),
-                    currency: "USD"
-                }
-            });
-
-            // Add USB drives if selected
-            if (orderDetails.usbDrives && orderDetails.usbDrives > 0) {
+            // Add main package as catalog line item
+            const packageVariationId = SQUARE_CATALOG_MAPPING.packages[orderDetails.package];
+            if (packageVariationId) {
                 lineItems.push({
-                    name: "Custom USB Drive",
-                    quantity: orderDetails.usbDrives.toString(),
+                    quantity: "1",
+                    catalog_object_id: packageVariationId,
+                    variation_name: orderDetails.package + " Package"
+                });
+                logEvent('package_line_item_added', { 
+                    package: orderDetails.package, 
+                    catalogId: packageVariationId 
+                });
+            } else {
+                // Fallback to manual line item if catalog ID not found
+                lineItems.push({
+                    name: `${orderDetails.package} Package`,
+                    quantity: "1",
                     base_price_money: {
-                        amount: 2495, // $24.95 in cents
+                        amount: Math.round((orderDetails.packagePrice || amount) * 100),
                         currency: "USD"
                     }
                 });
+                logEvent('package_fallback_line_item', { package: orderDetails.package });
+            }
+
+            // Add USB drives if selected
+            if (orderDetails.usbDrives && orderDetails.usbDrives > 0) {
+                const usbVariationId = SQUARE_CATALOG_MAPPING.addons['Custom USB Drive'];
+                if (usbVariationId) {
+                    lineItems.push({
+                        quantity: orderDetails.usbDrives.toString(),
+                        catalog_object_id: usbVariationId,
+                        variation_name: "Custom USB Drive"
+                    });
+                    logEvent('usb_line_item_added', { 
+                        quantity: orderDetails.usbDrives, 
+                        catalogId: usbVariationId 
+                    });
+                } else {
+                    // Fallback to manual line item
+                    lineItems.push({
+                        name: "Custom USB Drive",
+                        quantity: orderDetails.usbDrives.toString(),
+                        base_price_money: {
+                            amount: 2495,
+                            currency: "USD"
+                        }
+                    });
+                    logEvent('usb_fallback_line_item', { quantity: orderDetails.usbDrives });
+                }
+            }
+
+            // Add online gallery & backup if selected
+            if (orderDetails.cloudBackup && orderDetails.cloudBackup > 0) {
+                const galleryVariationId = SQUARE_CATALOG_MAPPING.addons['Online Gallery & Backup'];
+                if (galleryVariationId) {
+                    lineItems.push({
+                        quantity: orderDetails.cloudBackup.toString(),
+                        catalog_object_id: galleryVariationId,
+                        variation_name: "Online Gallery & Backup"
+                    });
+                    logEvent('gallery_line_item_added', { 
+                        quantity: orderDetails.cloudBackup, 
+                        catalogId: galleryVariationId 
+                    });
+                } else {
+                    // Fallback to manual line item
+                    lineItems.push({
+                        name: "Online Gallery & Backup",
+                        quantity: orderDetails.cloudBackup.toString(),
+                        base_price_money: {
+                            amount: 0, // First year free
+                            currency: "USD"
+                        }
+                    });
+                    logEvent('gallery_fallback_line_item', { quantity: orderDetails.cloudBackup });
+                }
             }
 
             // Add digitizing speed upgrade if not standard
             if (orderDetails.digitizingSpeed && orderDetails.digitizingSpeed !== 'standard') {
-                const speedPrices: { [key: string]: number } = {
-                    expedited: 2999, // $29.99 in cents
-                    rush: 6499 // $64.99 in cents
-                };
-                
-                if (speedPrices[orderDetails.digitizingSpeed]) {
+                const speedVariationId = SQUARE_CATALOG_MAPPING.services[orderDetails.digitizingSpeed];
+                if (speedVariationId) {
                     lineItems.push({
-                        name: `${orderDetails.digitizingSpeed.charAt(0).toUpperCase() + orderDetails.digitizingSpeed.slice(1)} Processing`,
                         quantity: "1",
-                        base_price_money: {
-                            amount: speedPrices[orderDetails.digitizingSpeed],
-                            currency: "USD"
-                        }
+                        catalog_object_id: speedVariationId,
+                        variation_name: `${orderDetails.digitizingSpeed.charAt(0).toUpperCase() + orderDetails.digitizingSpeed.slice(1)} Processing`
                     });
+                    logEvent('speed_line_item_added', { 
+                        speed: orderDetails.digitizingSpeed, 
+                        catalogId: speedVariationId 
+                    });
+                } else {
+                    // Fallback to manual line item
+                    const speedPrices: { [key: string]: number } = {
+                        expedited: 2999,
+                        rush: 6499
+                    };
+                    
+                    if (speedPrices[orderDetails.digitizingSpeed]) {
+                        lineItems.push({
+                            name: `${orderDetails.digitizingSpeed.charAt(0).toUpperCase() + orderDetails.digitizingSpeed.slice(1)} Processing`,
+                            quantity: "1",
+                            base_price_money: {
+                                amount: speedPrices[orderDetails.digitizingSpeed],
+                                currency: "USD"
+                            }
+                        });
+                        logEvent('speed_fallback_line_item', { speed: orderDetails.digitizingSpeed });
+                    }
                 }
             }
 

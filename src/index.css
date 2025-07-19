@@ -175,6 +175,39 @@
   box-shadow: 0 0 0 2px rgba(26, 54, 93, 0.2);
 }
 
+/* Critical UI Element Protection - Prevent chat widgets from blocking important buttons */
+@layer utilities {
+  /* High priority buttons and forms */
+  .critical-action,
+  button[type="submit"],
+  form button:last-child,
+  .checkout-button,
+  .payment-button,
+  [data-payment="true"],
+  #square-payment-form,
+  #card-container {
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Ensure payment forms are always accessible */
+  .square-payment-container,
+  .payment-form-container,
+  .checkout-form {
+    position: relative !important;
+    z-index: 999999 !important;
+  }
+  
+  /* Override any third-party widget z-index conflicts */
+  [id*="tawk"],
+  [class*="tawk"],
+  [id*="chat"],
+  [class*="chat-widget"] {
+    z-index: 999998 !important; /* One less than critical actions */
+  }
+}
+
 /* Improve mobile responsiveness and touch handling */
 @media (max-width: 640px) {
   .checkout-section {
@@ -191,6 +224,18 @@
   button, a[role="button"], input[type="button"], input[type="submit"] {
     min-height: 44px;
     min-width: 44px;
+  }
+  
+  /* Extra mobile protection for critical buttons */
+  button[type="submit"],
+  .payment-button,
+  .checkout-button {
+    position: relative !important;
+    z-index: 9999999 !important;
+    pointer-events: auto !important;
+    /* Ensure touch events work properly */
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.1) !important;
   }
   
   /* Remove hover effects on touch devices */

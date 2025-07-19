@@ -1103,8 +1103,9 @@ const Checkout = () => {
                         
                         <Button 
                           type="submit" 
-                          className={`h-12 px-8 ${getButtonClass()} gap-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all`}
+                          className={`h-12 px-8 ${getButtonClass()} gap-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all relative z-[9999999] pointer-events-auto`}
                           disabled={isSubmitting}
+                          style={{ position: 'relative', zIndex: 9999999 }}
                         >
                           {isSubmitting ? (
                             <>
