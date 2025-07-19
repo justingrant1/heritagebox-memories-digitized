@@ -71,6 +71,7 @@ interface OrderData {
   };
   paymentMethod: string;
   timestamp: string;
+  orderId?: string;
 }
 
 // Helper function to find or create customer
@@ -160,7 +161,7 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
     const mainProduct = await findOrCreateProduct(orderData.orderDetails.package, packagePrice);
 
     // Step 3: Create the order
-    const orderNumber = `HB-${Date.now()}`;
+    const orderNumber = orderData.orderId;
     const orderFields = {
       'Order Number': orderNumber,
       'Customer': [customer.id],

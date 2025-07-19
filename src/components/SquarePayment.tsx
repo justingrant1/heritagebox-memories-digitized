@@ -361,14 +361,22 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   return (
-    <div className={`${styles.squarePaymentContainer}`}>
-      {/* Card Information Header */}
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-8 h-8 bg-gray-800 text-white flex items-center justify-center rounded-lg mt-1">
-          <CardIcon size={16} />
+    <div className={`${styles.squarePaymentContainer} bg-white p-8 rounded-2xl shadow-lg border border-gray-100`}>
+      {/* Enhanced Card Information Header */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-gray-900 text-white flex items-center justify-center rounded-xl shadow-md">
+            <CardIcon size={24} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">Card Information</h3>
+            <p className="text-sm text-gray-500">Enter your card details below</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">Card Information</h3>
+        <div className="flex items-center gap-2">
+          <img src="https://www.svgrepo.com/show/362011/mastercard.svg" alt="Mastercard" className="h-6" />
+          <img src="https://www.svgrepo.com/show/499989/visa.svg" alt="Visa" className="h-6" />
+          <img src="https://www.svgrepo.com/show/452142/amex.svg" alt="Amex" className="h-6" />
         </div>
       </div>
       
@@ -377,43 +385,29 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         {renderCardContainer()}
       </div>
       
-      {/* Credit Cards Accepted Link */}
-      <div className="mb-6">
-        <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors text-sm">
-          <CardIcon size={16} />
-          <span>All major credit cards accepted</span>
-        </button>
-      </div>
-      
-      {/* Security Message */}
-      <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-        <ShieldCheck size={16} className="text-green-600" />
-        <span>Your payment information is secure and encrypted with 256-bit SSL</span>
-      </div>
-      
       {/* Pay Button */}
       <Button
         onClick={handlePaymentSubmit}
-        className={`w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3`}
+        className={`w-full h-16 ${buttonColorClass} text-white font-bold text-xl rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 group`}
         disabled={isProcessing || !card || !!error}
       >
         {isProcessing ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Processing Payment...
+            <Loader2 className="w-6 h-6 animate-spin" />
+            Processing...
           </>
         ) : (
           <>
-            Pay {amount}
-            <ShieldCheck className="w-5 h-5" />
+            <span>Pay {amount}</span>
+            <ShieldCheck className="w-6 h-6 opacity-80 group-hover:opacity-100 transition-opacity" />
           </>
         )}
       </Button>
       
-      {/* Bottom Security Message */}
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
+      {/* Consolidated Security Message */}
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-6">
         <ShieldCheck size={16} className="text-green-600" />
-        <span>Your payment information is secure and encrypted with 256-bit SSL</span>
+        <span>Secure 256-bit SSL encrypted payment</span>
       </div>
     </div>
   );
