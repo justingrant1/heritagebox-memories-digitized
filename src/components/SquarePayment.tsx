@@ -335,48 +335,59 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   return (
-    <div className={`space-y-6 ${styles.squarePaymentContainer}`}>
-      {/* Card Information Section */}
-      <div className="mb-6">
-        <div className="mb-4 pb-3 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <CardIcon className="w-5 h-5 text-gray-600" />
-            <h3 className="font-medium text-gray-900">Card Information</h3>
-          </div>
+    <div className={`${styles.squarePaymentContainer}`}>
+      {/* Card Information Header */}
+      <div className="flex items-start gap-3 mb-6">
+        <div className="w-8 h-8 bg-gray-800 text-white flex items-center justify-center rounded-lg mt-1">
+          <CardIcon size={16} />
         </div>
-        
-        {renderCardContainer()}
-        
-        <div className="mt-4 flex items-center gap-2 text-sm text-blue-600">
-          <CardIcon size={14} />
-          <span>All major credit cards accepted</span>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">Card Information</h3>
         </div>
       </div>
       
-      {/* Security Notice and Pay Button */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-          <ShieldCheck size={16} className="text-green-600" />
-          <span>Your payment information is secure and encrypted with 256-bit SSL</span>
-        </div>
-        
-        <Button
-          onClick={handlePaymentSubmit}
-          className={`w-full h-12 ${buttonColorClass} rounded-xl font-semibold text-base shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2`}
-          disabled={isProcessing || !card || !!error}
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Processing Payment...
-            </>
-          ) : (
-            <>
-              Pay {amount}
-              <ShieldCheck className="w-4 h-4" />
-            </>
-          )}
-        </Button>
+      {/* Card Input Container */}
+      <div className="mb-6">
+        {renderCardContainer()}
+      </div>
+      
+      {/* Credit Cards Accepted Link */}
+      <div className="mb-6">
+        <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors text-sm">
+          <CardIcon size={16} />
+          <span>All major credit cards accepted</span>
+        </button>
+      </div>
+      
+      {/* Security Message */}
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+        <ShieldCheck size={16} className="text-green-600" />
+        <span>Your payment information is secure and encrypted with 256-bit SSL</span>
+      </div>
+      
+      {/* Pay Button */}
+      <Button
+        onClick={handlePaymentSubmit}
+        className={`w-full h-14 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3`}
+        disabled={isProcessing || !card || !!error}
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Processing Payment...
+          </>
+        ) : (
+          <>
+            Pay {amount}
+            <ShieldCheck className="w-5 h-5" />
+          </>
+        )}
+      </Button>
+      
+      {/* Bottom Security Message */}
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
+        <ShieldCheck size={16} className="text-green-600" />
+        <span>Your payment information is secure and encrypted with 256-bit SSL</span>
       </div>
     </div>
   );
