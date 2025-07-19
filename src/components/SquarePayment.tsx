@@ -34,7 +34,6 @@ interface CardOptions {
       borderColor?: string;
     };
   };
-  includeIntentToCapture?: boolean;
 }
 
 interface SquareCard {
@@ -186,8 +185,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
             '.input-container.is-error': {
               borderColor: '#EF4444'
             }
-          },
-          includeIntentToCapture: true
+          }
         };
 
         const cardInstance = await payments.card(cardOptions);
