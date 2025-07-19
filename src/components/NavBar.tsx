@@ -53,7 +53,7 @@ const NavBar = () => {
 
   return (
     <header className={`fixed w-full z-[9999] transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'}`}>
-      <div className="w-full px-4 md:px-8 max-w-7xl mx-auto flex justify-between items-center">
+      <div className="container mx-auto flex justify-between items-center container-padding">
         <Link to="/" className="flex items-center gap-2">
           <h1 className={`text-primary font-serif font-bold text-2xl`}>
             Heritage<span className="text-secondary">Box</span><sup className="text-xs align-super">®</sup>
@@ -94,7 +94,7 @@ const NavBar = () => {
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <nav className="md:hidden bg-white w-full shadow-lg animate-fade-in z-[9999]">
-          <div className="w-full px-4 md:px-8 max-w-7xl mx-auto py-4 flex flex-col space-y-4">
+          <div className="container mx-auto py-4 flex flex-col space-y-4 container-padding">
             {pathname === '/' ? (
               // On homepage, use smooth scroll for these sections
               <>

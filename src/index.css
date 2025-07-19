@@ -70,45 +70,23 @@
 }
 
 @layer base {
-  /* Comprehensive reset for mobile edge issues */
   * {
     @apply border-border;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Reset root container */
-  #root {
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
   }
 
   html {
-    /* Remove default margins and padding */
-    margin: 0;
-    padding: 0;
     /* Prevent horizontal overflow */
     overflow-x: hidden;
-    /* Ensure full viewport width */
-    width: 100%;
-    min-height: 100%;
   }
 
   body {
     @apply bg-background text-foreground;
-    /* Remove default margins and padding */
-    margin: 0;
-    padding: 0;
     /* Improve touch responsiveness */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     /* Prevent horizontal overflow */
     overflow-x: hidden;
-    /* Ensure full viewport coverage */
-    width: 100%;
-    min-height: 100vh;
+    max-width: 100vw;
   }
 
   /* Improve button touch targets on mobile */
@@ -205,7 +183,56 @@
   box-shadow: 0 0 0 2px rgba(26, 54, 93, 0.2);
 }
 
+/* Surgical fix: Only limit Tawk.io z-index to prevent blocking important buttons */
+/* This targets ONLY the chat widget without affecting any page layouts */
+[id*="tawk"],
+[class*="tawk"],
+#tawkchat-container,
+.tawk-tooltip,
+.tawk-button,
+.tawk-wrapper {
+  z-index: 99999 !important; /* Reasonable level for chat widget */
+}
 
+/* Critical button protection: Raise z-index above chat widget without changing styling */
+/* Package selection buttons */
+a[href*="/package-selected"],
+a[href*="/checkout"] {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* All critical action buttons */
+button[type="submit"],
+.btn-primary,
+.btn-secondary,
+button[class*="bg-primary"],
+button[class*="bg-secondary"],
+button[class*="bg-rose-"],
+button[class*="bg-blue-"],
+[role="button"] {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* Navigation and CTA buttons */
+nav a,
+nav button,
+.cta-button,
+[class*="cta"] button,
+[class*="cta"] a {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* Form buttons and contact buttons */
+form button,
+.contact-form button,
+.email-signup button,
+button[class*="contact"] {
+  position: relative !important;
+  z-index: 999999 !important;
+}
 
 /* Mobile overflow fixes */
 * {
