@@ -351,8 +351,8 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   return (
     <div className={`${styles.squarePaymentContainer} bg-white p-8 rounded-2xl shadow-lg border border-gray-100`}>
       {/* Enhanced Card Information Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-4 mb-4 sm:mb-0">
           <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-gray-900 text-white flex items-center justify-center rounded-xl shadow-md">
             <CardIcon size={24} />
           </div>
@@ -361,7 +361,7 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
             <p className="text-sm text-gray-500">Enter your card details below</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-end sm:self-center">
           <img src="/Mastercard_2019_logo.svg" alt="Mastercard" className="h-5" />
           <img src="/Visa_Inc._logo.svg" alt="Visa" className="h-5" />
           <img src="/amex.svg" alt="Amex" className="h-5" />
@@ -393,17 +393,17 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
       </Button>
       
       {/* Trust Badges */}
-      <div className="flex items-center justify-center gap-4 mt-6">
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <ShieldCheck size={14} className="text-green-600" />
+      <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+        <div className="flex flex-col items-center gap-1 text-xs text-gray-500">
+          <ShieldCheck size={16} className="text-green-600" />
           <span>SSL Secured</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <img src="https://www.svgrepo.com/show/303105/square-1-logo.svg" alt="Square" className="h-4" />
+        <div className="flex flex-col items-center gap-1 text-xs text-gray-500">
+          <ShieldCheck size={16} className="text-green-600" />
           <span>Powered by Square</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <img src="https://www.svgrepo.com/show/303143/pci-logo.svg" alt="PCI Compliant" className="h-4" />
+        <div className="flex flex-col items-center gap-1 text-xs text-gray-500">
+          <ShieldCheck size={16} className="text-green-600" />
           <span>PCI Compliant</span>
         </div>
       </div>
