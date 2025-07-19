@@ -269,54 +269,19 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   const renderCardContainer = () => {
-    if (cardLoading && !card) {
-      return (
-        <div className={`${styles.cardContainer} ${isMobile ? styles.mobileLoadingContainer : ''} flex items-center justify-center`}>
-          <Loader2 className={`h-6 w-6 animate-spin text-gray-500 ${styles.loadingSpinner}`} />
-          <span className="ml-2 text-gray-500">
-            {isMobile ? 'Loading secure payment...' : 'Loading payment form...'}
-          </span>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className={`${styles.errorContainer} ${styles.cardContainer} flex flex-col items-center justify-center`}>
-          <p className="font-medium">{error}</p>
-          <p className="text-sm mt-2 text-center">
-            {isMobile 
-              ? "Please refresh the page or try a different browser" 
-              : "Please refresh the page or try a different browser"
-            }
-          </p>
-          <Button
-            onClick={() => window.location.reload()}
-            variant="outline"
-            className="mt-4"
-          >
-            Refresh Page
-          </Button>
-        </div>
-      );
-    }
-
-    if (!loaded) {
-      return (
-        <div className={`${styles.cardContainer} ${isMobile ? styles.mobileLoadingContainer : ''} flex items-center justify-center`}>
-          <Loader2 className={`h-6 w-6 animate-spin text-gray-500 ${styles.loadingSpinner}`} />
-          <p className="text-gray-500 ml-2">Loading payment form...</p>
-        </div>
-      );
-    }
-
+    const showLoadingState = (cardLoading && !card) || !loaded;
+    const showErrorState = error && !cardLoading;
+    
     return (
       <div className="space-y-3">
+        {/* Always render the card container for Square to attach to */}
         <div 
           id="card-container" 
           className={`${styles.cardContainer} relative`}
           data-mobile={isMobile ? 'true' : 'false'}
           style={{
+            // Hide the container when showing loading or error states
+            display: showLoadingState || showErrorState ? 'none' : 'block',
             // Additional mobile optimizations
             ...(isMobile && {
               touchAction: 'manipulation',
@@ -325,21 +290,57 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
             })
           }}
         />
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center">
-            <CardIcon size={14} className="mr-1" />
-            <span>All major credit cards accepted</span>
+        
+        {/* Loading state overlay */}
+        {showLoadingState && (
+          <div className={`${styles.cardContainer} ${isMobile ? styles.mobileLoadingContainer : ''} flex items-center justify-center`}>
+            <Loader2 className={`h-6 w-6 animate-spin text-gray-500 ${styles.loadingSpinner}`} />
+            <span className="ml-2 text-gray-500">
+              {isMobile ? 'Loading secure payment...' : 'Loading payment form...'}
+            </span>
           </div>
-          {isMobile && (
-            <div className={`text-green-600 font-medium ${styles.successIndicator}`}>
-              <span>Autocomplete enabled</span>
+        )}
+
+        {/* Error state overlay */}
+        {showErrorState && (
+          <div className={`${styles.errorContainer} ${styles.cardContainer} flex flex-col items-center justify-center`}>
+            <p className="font-medium">{error}</p>
+            <p className="text-sm mt-2 text-center">
+              {isMobile 
+                ? "Please refresh the page or try a different browser" 
+                : "Please refresh the page or try a different browser"
+              }
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="mt-4"
+            >
+              Refresh Page
+            </Button>
+          </div>
+        )}
+
+        {/* Success state info */}
+        {loaded && !showLoadingState && !showErrorState && (
+          <>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center">
+                <CardIcon size={14} className="mr-1" />
+                <span>All major credit cards accepted</span>
+              </div>
+              {isMobile && (
+                <div className={`text-green-600 font-medium ${styles.successIndicator}`}>
+                  <span>Autocomplete enabled</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        {isMobile && (
-          <div className={`${styles.autocompleteHint}`}>
-            💡 Tip: Your browser should offer to save and autofill card information for faster checkout.
-          </div>
+            {isMobile && (
+              <div className={`${styles.autocompleteHint}`}>
+                💡 Tip: Your browser should offer to save and autofill card information for faster checkout.
+              </div>
+            )}
+          </>
         )}
       </div>
     );
