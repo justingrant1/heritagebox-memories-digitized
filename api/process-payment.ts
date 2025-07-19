@@ -111,11 +111,20 @@ export default async function handler(request: Request) {
             status: response.status,
             ok: response.ok,
             hasErrors: !!result.errors,
-            errorDetails: result.errors
+            errorDetails: result.errors,
+            fullResponse: result
         });
 
         if (!response.ok) {
-            throw new Error(result.errors?.[0]?.detail || 'Payment failed');
+            // Log more detailed error information
+            logEvent('square_api_error', {
+                status: response.status,
+                errors: result.errors,
+                fullErrorResponse: result
+            });
+            
+            const errorMessage = result.errors?.[0]?.detail || result.errors?.[0]?.code || 'Payment failed';
+            throw new Error(errorMessage);
         }
 
         logEvent('payment_successful', {

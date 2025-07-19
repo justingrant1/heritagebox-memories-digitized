@@ -176,6 +176,13 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         await waitForContainer();
 
         // Initialize with environment-aware configuration
+        console.log("🔧 Square.payments() being called with:", {
+          appId: config.appId,
+          locationId: config.locationId,
+          environment: config.environment,
+          actualEnvVar: import.meta.env.VITE_SQUARE_ENVIRONMENT
+        });
+        
         const payments = window.Square.payments(config.appId, config.locationId, {
           environment: config.environment
         });
