@@ -60,25 +60,24 @@ declare global {
 
 // Environment-aware configuration
 const getSquareConfig = () => {
-  const hostname = window.location.hostname;
-  const isProduction = hostname !== 'localhost' && hostname !== '127.0.0.1';
+  const isProduction = import.meta.env.MODE === 'production';
 
   let appId = import.meta.env.VITE_SQUARE_APP_ID;
   let locationId = import.meta.env.VITE_SQUARE_LOCATION_ID;
 
-  // Fallback to sandbox credentials ONLY in non-production environments
+  // Use sandbox credentials for development if no environment variables are set
   if (!isProduction) {
     appId = appId || 'sq0idp-1Zchx5RshtaZ74spcf2w0A';
     locationId = locationId || 'LPFZYDYB5G5GM';
   }
 
   if (!appId || !locationId) {
-    console.error("Square configuration is missing. Ensure VITE_SQUARE_APP_ID and VITE_SQUARE_LOCATION_ID are set for production environments.");
+    console.error("Square configuration is missing. Ensure VITE_SQUARE_APP_ID and VITE_SQUARE_LOCATION_ID are set in your .env file for production builds.");
     // Return empty strings to prevent initialization with incorrect credentials
     return { appId: '', locationId: '', jsUrl: 'https://web.squarecdn.com/v1/square.js' };
   }
   
-  console.log('Square Config:', { appId, locationId, isProduction, hostname });
+  console.log('Square Config:', { appId, locationId, mode: import.meta.env.MODE });
   
   return {
     appId,
