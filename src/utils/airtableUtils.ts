@@ -47,6 +47,8 @@ interface OrderData {
     packagePrice: string;
     packageFeatures: string;
     totalAmount: string;
+    couponCode?: string;
+    discountAmount?: string;
     digitizingSpeed: string;
     digitizingTime: string;
     digitizingPrice: string;
@@ -164,7 +166,8 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
       'Customer': [customer.id],
       'Order Date': new Date().toISOString().split('T')[0], // YYYY-MM-DD format
       'Status': 'Pending',
-      'Total Amount': parseFloat(orderData.orderDetails.totalAmount.replace('$', ''))
+      'Total Amount': parseFloat(orderData.orderDetails.totalAmount.replace('$', '')),
+      'Promo Code': orderData.orderDetails.couponCode
     };
 
     const newOrder = await base(TABLES.ORDERS).create([{ fields: orderFields }]);
@@ -174,13 +177,16 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
     const orderItems = [];
 
     // Main package item
+    const discountPercentage = orderData.orderDetails.couponCode ? parseFloat(orderData.orderDetails.discountAmount.replace('$', '')) / (parseFloat(orderData.orderDetails.totalAmount.replace('$', '')) + parseFloat(orderData.orderDetails.discountAmount.replace('$', ''))) : 0;
+    const mainItemDiscount = packagePrice * discountPercentage;
     const mainItemFields = {
       'Item ID': `${orderNumber}-001`,
       'Order': [newOrder[0].id],
       'Product': [mainProduct.id],
       'Quantity': 1,
       'Unit Price': packagePrice,
-      'Line Total': packagePrice
+      'Line Total': packagePrice - mainItemDiscount,
+      'Discount Amount': mainItemDiscount
     };
     orderItems.push({ fields: mainItemFields });
 
@@ -193,13 +199,15 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
         const addOnName = addOnKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
         const addOnProduct = await findOrCreateProduct(`Add-on: ${addOnName}`, addOnData.cost);
         
+        const addOnDiscount = addOnData.cost * discountPercentage;
         const addOnItemFields = {
           'Item ID': `${orderNumber}-${itemCounter.toString().padStart(3, '0')}`,
           'Order': [newOrder[0].id],
           'Product': [addOnProduct.id],
           'Quantity': 1,
           'Unit Price': addOnData.cost,
-          'Line Total': addOnData.cost
+          'Line Total': addOnData.cost - addOnDiscount,
+          'Discount Amount': addOnDiscount
         };
         orderItems.push({ fields: addOnItemFields });
         itemCounter++;
@@ -213,13 +221,15 @@ export const sendOrderToAirtable = async (orderData: OrderData) => {
         const speedName = speedKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
         const speedProduct = await findOrCreateProduct(`Speed: ${speedName}`, speedData.cost);
         
+        const speedDiscount = speedData.cost * discountPercentage;
         const speedItemFields = {
           'Item ID': `${orderNumber}-${itemCounter.toString().padStart(3, '0')}`,
           'Order': [newOrder[0].id],
           'Product': [speedProduct.id],
           'Quantity': 1,
           'Unit Price': speedData.cost,
-          'Line Total': speedData.cost
+          'Line Total': speedData.cost - speedDiscount,
+          'Discount Amount': speedDiscount
         };
         orderItems.push({ fields: speedItemFields });
         itemCounter++;

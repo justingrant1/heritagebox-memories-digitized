@@ -15,16 +15,6 @@ declare global {
   }
 }
 
-// Function to generate sequential order number as fallback
-const generateOrderNumber = () => {
-  const baseNumber = 13405;
-  const storedCount = localStorage.getItem('hb_order_count');
-  const currentCount = storedCount ? parseInt(storedCount) : 0;
-  const newCount = currentCount + 1;
-  localStorage.setItem('hb_order_count', newCount.toString());
-  return `HB${(baseNumber + newCount - 1).toString().padStart(5, '0')}`;
-};
-
 const OrderConfirmation = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -44,16 +34,7 @@ const OrderConfirmation = () => {
   const passedOrderNumber = location.state?.orderNumber;
   
   // Use the passed order number if available, otherwise generate a fallback
-  const [orderNumber] = useState(() => {
-    if (passedOrderNumber) {
-      console.log('✅ ORDER CONFIRMATION - Using passed order number:', passedOrderNumber);
-      return passedOrderNumber;
-    } else {
-      const fallbackOrder = generateOrderNumber();
-      console.log('⚠️ ORDER CONFIRMATION - No order number passed, generating fallback:', fallbackOrder);
-      return fallbackOrder;
-    }
-  });
+  const orderNumber = passedOrderNumber || 'N/A';
   
   // Get button color class based on package type
   const getButtonClass = () => {
