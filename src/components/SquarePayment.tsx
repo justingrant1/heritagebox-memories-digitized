@@ -16,16 +16,11 @@ interface SquarePayments {
 
 interface CardOptions {
   style?: {
-    fontSize?: string;
-    fontFamily?: string;
-    color?: string;
-    backgroundColor?: string;
-    lineHeight?: string;
-    placeholderColor?: string;
     '.input-container'?: {
       borderRadius?: string;
       borderColor?: string;
       borderWidth?: string;
+      fontSize?: string;
     };
     '.input-container.is-focus'?: {
       borderColor?: string;
@@ -185,19 +180,14 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
 
         console.log("Creating card instance with mobile optimization");
         
-        // Mobile-optimized card configuration
+        // Mobile-optimized card configuration with only valid Square SDK styles
         const cardOptions: CardOptions = {
           style: {
-            fontSize: isMobile ? '16px' : '14px', // Prevent zoom on iOS
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            lineHeight: '1.5',
-            color: '#374151',
-            placeholderColor: '#9CA3AF',
-            backgroundColor: '#ffffff',
             '.input-container': {
               borderRadius: '8px',
               borderColor: '#D1D5DB',
-              borderWidth: '1px'
+              borderWidth: '1px',
+              fontSize: isMobile ? '16px' : '14px' // Prevent zoom on iOS
             },
             '.input-container.is-focus': {
               borderColor: '#3B82F6'
