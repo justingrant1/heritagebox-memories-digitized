@@ -335,44 +335,46 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
   };
 
   return (
-    <div className={`space-y-4 ${styles.squarePaymentContainer}`}>
-      <div className={`p-4 md:p-6 border rounded-xl bg-white shadow-sm ${isMobile ? 'touch-manipulation' : ''}`}>
-        <div className="mb-4 pb-3 border-b flex items-center justify-between">
-          <div className="flex items-center">
-            <CardIcon className="mr-2 text-gray-600" />
-            <h3 className="font-medium">Card Information</h3>
+    <div className={`space-y-6 ${styles.squarePaymentContainer}`}>
+      {/* Card Information Section */}
+      <div className="mb-6">
+        <div className="mb-4 pb-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <CardIcon className="w-5 h-5 text-gray-600" />
+            <h3 className="font-medium text-gray-900">Card Information</h3>
           </div>
-          {isMobile && (
-            <div className={`text-xs text-green-600 font-medium ${styles.successIndicator}`}>
-              Mobile Optimized
-            </div>
-          )}
         </div>
+        
         {renderCardContainer()}
+        
+        <div className="mt-4 flex items-center gap-2 text-sm text-blue-600">
+          <CardIcon size={14} />
+          <span>All major credit cards accepted</span>
+        </div>
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-        <div className={`flex items-center justify-center md:justify-start space-x-2 text-sm text-gray-600 ${!isMobile ? styles.desktopSecurityInfo : ''}`}>
+      {/* Security Notice and Pay Button */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
           <ShieldCheck size={16} className="text-green-600" />
           <span>Your payment information is secure and encrypted with 256-bit SSL</span>
         </div>
+        
         <Button
           onClick={handlePaymentSubmit}
-          className={`w-full md:w-auto px-8 py-3 ${buttonColorClass} rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all ${
-            isMobile ? `min-h-[50px] text-base ${styles.mobilePayButton}` : ''
-          }`}
+          className={`w-full h-12 ${buttonColorClass} rounded-xl font-semibold text-base shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2`}
           disabled={isProcessing || !card || !!error}
         >
           {isProcessing ? (
-            <span className="flex items-center justify-center">
-              <Loader2 className={`animate-spin mr-2 h-5 w-5 ${styles.loadingSpinner}`} />
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
               Processing Payment...
-            </span>
+            </>
           ) : (
-            <span className="flex items-center justify-center">
+            <>
               Pay {amount}
-              <ShieldCheck className="ml-2 h-4 w-4" />
-            </span>
+              <ShieldCheck className="w-4 h-4" />
+            </>
           )}
         </Button>
       </div>

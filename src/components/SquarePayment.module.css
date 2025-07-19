@@ -1,27 +1,30 @@
-/* Square Payment Component Mobile Optimizations */
+/* Square Payment Component */
 .squarePaymentContainer {
-  /* Ensure touch events work properly */
+  /* Ensure proper interaction */
   touch-action: manipulation;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 .cardContainer {
-  /* Mobile optimizations for the Square iframe */
+  /* Square iframe container */
   position: relative;
   width: 100%;
   min-height: 110px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.cardContainer:focus-within {
+  border-color: #3b82f6;
 }
 
 .cardContainer[data-mobile="true"] {
   min-height: 120px;
-  /* iOS specific optimizations */
-  -webkit-appearance: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
-/* Ensure the Square iframe elements can receive touch events properly */
+/* Ensure the Square iframe works properly */
 .cardContainer iframe {
   width: 100% !important;
   height: 100% !important;
@@ -29,7 +32,7 @@
   background: transparent;
 }
 
-/* iOS zoom prevention for all inputs in Square container */
+/* iOS zoom prevention for inputs */
 .cardContainer input,
 .cardContainer input[type="text"],
 .cardContainer input[type="tel"] {
@@ -94,11 +97,6 @@
   }
 }
 
-/* Focus states for better accessibility */
-.cardContainer:focus-within {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
 
 /* Loading state optimizations */
 .loadingSpinner {
