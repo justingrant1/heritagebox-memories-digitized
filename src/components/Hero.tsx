@@ -7,7 +7,7 @@ import { Star, Shield, Award } from "lucide-react";
 const Hero = () => {
   return (
     <section className="pt-20 pb-16 bg-gradient-to-br from-cream via-cream to-cream/80 relative overflow-hidden">
-      <div className="container mx-auto container-padding">
+      <div className="w-full px-4 md:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="z-10 space-y-8">
             <div className="space-y-6">
