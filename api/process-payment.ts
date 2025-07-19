@@ -88,7 +88,7 @@ export default async function handler(request: Request) {
             environment: process.env.NODE_ENV
         });
 
-        const response = await fetch(SQUARE_API_URL, {
+        const response = await fetch(`${SQUARE_API_URL}/v2/payments`, {
             method: 'POST',
             headers: {
                 'Square-Version': '2024-02-15',
