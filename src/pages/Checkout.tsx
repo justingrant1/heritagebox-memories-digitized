@@ -455,6 +455,7 @@ const Checkout = () => {
         body: JSON.stringify({
           token,
           amount: parseFloat(calculateTotal()),
+          couponCode: appliedCoupon,
           orderDetails: {
             package: packageType,
             usbDrives,

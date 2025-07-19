@@ -52,7 +52,7 @@ export default async function handler(request: Request) {
             orderDetails: body.orderDetails
         });
 
-        const {token, amount, orderDetails} = body;
+        const {token, amount, orderDetails, couponCode} = body;
 
         if (!token || !amount) {
             logEvent('validation_failed', {
@@ -291,12 +291,45 @@ export default async function handler(request: Request) {
                 }
             }
 
+            let discounts: any[] = [];
+            if (couponCode) {
+                const searchDiscountResponse = await fetch(`${SQUARE_API_URL}/v2/catalog/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Square-Version': '2024-02-15',
+                        'Authorization': `Bearer ${squareAccessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        object_types: ["DISCOUNT"],
+                        query: {
+                            exact_query: {
+                                attribute_name: "name",
+                                attribute_value: couponCode
+                            }
+                        }
+                    })
+                });
+
+                const discountResult = await searchDiscountResponse.json();
+                if (discountResult.objects && discountResult.objects.length > 0) {
+                    discounts.push({
+                        catalog_object_id: discountResult.objects[0].id,
+                        scope: 'ORDER'
+                    });
+                    logEvent('discount_added', { discountId: discountResult.objects[0].id });
+                } else {
+                    logEvent('discount_not_found', { couponCode });
+                }
+            }
+
             logEvent('creating_order', { lineItemsCount: lineItems.length });
 
             const orderBody: any = {
                 order: {
                     location_id: SQUARE_LOCATION_ID,
-                    line_items: lineItems
+                    line_items: lineItems,
+                    discounts: discounts
                 }
             };
 
