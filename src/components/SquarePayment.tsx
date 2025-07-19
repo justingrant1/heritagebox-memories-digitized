@@ -361,10 +361,10 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
             <p className="text-sm text-gray-500">Enter your card details below</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Mastercard_2019_logo.svg" alt="Mastercard" className="h-6" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-6" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/f6/American_Express_logo_%282018%29.svg" alt="Amex" className="h-6" />
+        <div className="flex items-center gap-3">
+          <img src="/Mastercard_2019_logo.svg" alt="Mastercard" className="h-5" />
+          <img src="/Visa_Inc._logo.svg" alt="Visa" className="h-5" />
+          <img src="/amex.svg" alt="Amex" className="h-5" />
         </div>
       </div>
       
@@ -392,10 +392,20 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: Sq
         )}
       </Button>
       
-      {/* Consolidated Security Message */}
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-6">
-        <ShieldCheck size={16} className="text-green-600" />
-        <span>Secure 256-bit SSL encrypted payment</span>
+      {/* Trust Badges */}
+      <div className="flex items-center justify-center gap-4 mt-6">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <ShieldCheck size={14} className="text-green-600" />
+          <span>SSL Secured</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <img src="https://www.svgrepo.com/show/303105/square-1-logo.svg" alt="Square" className="h-4" />
+          <span>Powered by Square</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <img src="https://www.svgrepo.com/show/303143/pci-logo.svg" alt="PCI Compliant" className="h-4" />
+          <span>PCI Compliant</span>
+        </div>
       </div>
     </div>
   );
