@@ -408,35 +408,103 @@ export default async function handler(request: Request) {
             });
         }
 
-        // If in human handoff mode, store the message in the session for agents to see
+        // If in human handoff mode, send the message to Slack and store it
         if (humanHandoff && sessionId) {
-            // Import the session management functions
-            const { getChatSession, updateChatSession } = await import('./slack-webhook');
-            
-            const userMessage = {
-                id: `user_${Date.now()}`,
-                content: message,
-                sender: 'user' as const,
-                timestamp: new Date()
-            };
-
-            updateChatSession(sessionId, userMessage);
-            
-            logEvent('human_handoff_message_stored', {
+            logEvent('human_handoff_message_received', {
                 sessionId,
                 messagePreview: message.substring(0, 100)
             });
 
-            // Return success without AI response
-            return new Response(JSON.stringify({
-                success: true,
-                sessionId: sessionId,
-                timestamp: new Date().toISOString(),
-                message: 'Message sent to human agent'
-            }), {
-                status: 200,
-                headers: {'Content-Type': 'application/json'}
-            });
+            try {
+                // Send message to Slack thread using the new endpoint
+                const slackResponse = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/send-to-slack`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        message,
+                        sender: 'user'
+                    })
+                });
+
+                const slackResult = await slackResponse.json();
+                
+                if (slackResult.success) {
+                    logEvent('message_sent_to_slack_thread', {
+                        sessionId,
+                        messageId: slackResult.messageId
+                    });
+
+                    return new Response(JSON.stringify({
+                        success: true,
+                        sessionId: sessionId,
+                        timestamp: new Date().toISOString(),
+                        message: 'Message sent to human agent',
+                        messageId: slackResult.messageId
+                    }), {
+                        status: 200,
+                        headers: {'Content-Type': 'application/json'}
+                    });
+                } else {
+                    logEvent('slack_send_failed_in_chat', {
+                        sessionId,
+                        error: slackResult.error
+                    });
+                    
+                    // Fallback: store locally if Slack fails
+                    const { getChatSession, updateChatSession } = await import('./slack-webhook');
+                    
+                    const userMessage = {
+                        id: `user_${Date.now()}`,
+                        content: message,
+                        sender: 'user' as const,
+                        timestamp: new Date()
+                    };
+
+                    updateChatSession(sessionId, userMessage);
+
+                    return new Response(JSON.stringify({
+                        success: true,
+                        sessionId: sessionId,
+                        timestamp: new Date().toISOString(),
+                        message: 'Message stored locally (Slack temporarily unavailable)',
+                        warning: slackResult.error
+                    }), {
+                        status: 200,
+                        headers: {'Content-Type': 'application/json'}
+                    });
+                }
+            } catch (error) {
+                logEvent('human_handoff_error', {
+                    sessionId,
+                    error: error.message
+                });
+
+                // Fallback: store locally if there's an error
+                const { getChatSession, updateChatSession } = await import('./slack-webhook');
+                
+                const userMessage = {
+                    id: `user_${Date.now()}`,
+                    content: message,
+                    sender: 'user' as const,
+                    timestamp: new Date()
+                };
+
+                updateChatSession(sessionId, userMessage);
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    sessionId: sessionId,
+                    timestamp: new Date().toISOString(),
+                    message: 'Message stored locally (connection error)',
+                    warning: 'Unable to send to Slack at this time'
+                }), {
+                    status: 200,
+                    headers: {'Content-Type': 'application/json'}
+                });
+            }
         }
 
         // Check if this is an order status query

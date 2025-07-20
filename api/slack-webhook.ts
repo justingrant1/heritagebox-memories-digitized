@@ -5,11 +5,13 @@ export const config = {
 interface SlackEvent {
     type: string;
     channel: string;
-    user: string;
-    text: string;
-    ts: string;
+    user?: string;
+    text?: string;
+    ts?: string;
     thread_ts?: string;
     event_ts: string;
+    subtype?: string;
+    bot_id?: string;
 }
 
 interface SlackWebhookPayload {
@@ -91,51 +93,90 @@ export default async function handler(request: Request) {
         if (body.type === 'event_callback' && body.event) {
             const event: SlackEvent = body.event;
             
-            // Ignore bot messages and messages not in threads
-            if (!event.thread_ts || event.user === 'USLACKBOT') {
-                logEvent('slack_event_ignored', { 
-                    reason: 'bot_message_or_no_thread',
-                    hasThreadTs: !!event.thread_ts,
-                    user: event.user
-                });
-                return new Response('OK', { status: 200 });
-            }
-
-            // Find the session associated with this Slack thread
-            const sessionId = slackThreadToSession.get(event.thread_ts);
+            logEvent('slack_event_received', {
+                type: event.type,
+                hasThreadTs: !!event.thread_ts,
+                user: event.user,
+                messagePreview: event.text?.substring(0, 50)
+            });
             
-            if (sessionId) {
-                const session = chatSessions.get(sessionId);
-                
-                if (session) {
-                    // Add the agent's message to the session
-                    const agentMessage = {
-                        id: `agent_${Date.now()}`,
-                        content: event.text,
-                        sender: 'agent' as const,
-                        timestamp: new Date()
-                    };
-                    
-                    session.messages.push(agentMessage);
-                    session.lastActivity = Date.now();
-                    
-                    logEvent('slack_message_routed_to_session', {
-                        sessionId,
+            // Only process message events in threads (ignore channel messages and bot messages)
+            if (event.type === 'message' && event.thread_ts && event.user && event.user !== 'USLACKBOT') {
+                // Check if this is a bot message by looking for subtype
+                if (event.subtype && event.subtype === 'bot_message') {
+                    logEvent('slack_bot_message_ignored', { 
                         threadId: event.thread_ts,
-                        messagePreview: event.text.substring(0, 100)
+                        subtype: event.subtype
                     });
+                    return new Response('OK', { status: 200 });
+                }
 
-                    // In a real-time system, you would push this message to the user's browser
-                    // For now, we'll store it and let the chat widget poll for updates
+                // Find the session associated with this Slack thread
+                const sessionId = slackThreadToSession.get(event.thread_ts);
+                
+                if (sessionId) {
+                    const session = chatSessions.get(sessionId);
+                    
+                    if (session) {
+                        // Check if this message is from a human agent (not our bot)
+                        const isHumanAgent = !event.bot_id && event.user && event.user !== 'USLACKBOT';
+                        
+                        if (isHumanAgent && event.text) {
+                            // Clean the message text (remove formatting that was added by our bot)
+                            let cleanText = event.text;
+                            
+                            // Remove our bot prefixes if they exist
+                            cleanText = cleanText
+                                .replace(/^👤\s*\*\*Customer:\*\*\s*/gi, '')
+                                .replace(/^🤖\s*\*\*Bot:\*\*\s*/gi, '')
+                                .replace(/^\*\*(.*?)\*\*:\s*/gi, '') // Remove any **prefix:**
+                                .trim();
+
+                            // Add the agent's message to the session
+                            const agentMessage = {
+                                id: `agent_${event.ts || Date.now()}`,
+                                content: cleanText,
+                                sender: 'agent' as const,
+                                timestamp: new Date()
+                            };
+                            
+                            session.messages.push(agentMessage);
+                            session.lastActivity = Date.now();
+                            
+                            logEvent('agent_message_added_to_session', {
+                                sessionId,
+                                threadId: event.thread_ts,
+                                messageId: agentMessage.id,
+                                messagePreview: cleanText.substring(0, 100),
+                                originalText: event.text.substring(0, 100)
+                            });
+                        } else {
+                            logEvent('slack_message_ignored_not_human', { 
+                                threadId: event.thread_ts,
+                                user: event.user,
+                                botId: event.bot_id,
+                                reason: 'not_human_agent'
+                            });
+                        }
+                    } else {
+                        logEvent('slack_session_not_found', { 
+                            sessionId,
+                            threadId: event.thread_ts
+                        });
+                    }
                 } else {
-                    logEvent('slack_session_not_found', { 
-                        sessionId,
-                        threadId: event.thread_ts
+                    logEvent('slack_thread_not_mapped', { 
+                        threadId: event.thread_ts,
+                        availableThreads: Array.from(slackThreadToSession.keys())
                     });
                 }
             } else {
-                logEvent('slack_thread_not_mapped', { 
-                    threadId: event.thread_ts
+                logEvent('slack_event_ignored', { 
+                    reason: 'not_threaded_message_or_bot',
+                    type: event.type,
+                    hasThreadTs: !!event.thread_ts,
+                    user: event.user,
+                    subtype: event.subtype
                 });
             }
         }
