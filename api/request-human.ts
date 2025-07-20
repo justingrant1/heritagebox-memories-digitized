@@ -15,15 +15,26 @@ function logEvent(event, data) {
  * Initiates human handoff process
  */
 export default async function handler(req, res) {
-    // Only allow POST requests
-    if (req.method !== 'POST') {
-        return res.status(405).json({
-            success: false,
-            message: 'Method not allowed'
-        });
-    }
-
+    // Wrap everything in try-catch to prevent any unhandled errors
     try {
+        // Set CORS headers
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        // Handle preflight requests
+        if (req.method === 'OPTIONS') {
+            return res.status(200).end();
+        }
+
+        // Only allow POST requests
+        if (req.method !== 'POST') {
+            return res.status(405).json({
+                success: false,
+                message: 'Method not allowed'
+            });
+        }
+
         // Ensure we have a request body
         if (!req.body) {
             return res.status(400).json({
@@ -44,13 +55,23 @@ export default async function handler(req, res) {
         // Generate unique conversation ID
         const conversationId = `HB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         
+        // Log the request for debugging
+        logEvent('human_handoff_request', {
+            conversationId,
+            customerName: customerName || 'Not provided',
+            hasEmail: !!customerEmail,
+            hasPhone: !!customerPhone,
+            urgency,
+            sessionId: sessionId || 'Not provided'
+        });
+        
         // Get environment variables
         const slackBotToken = process.env.SLACK_BOT_TOKEN;
         const VIP_CHANNEL = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
 
         if (!slackBotToken) {
-            logEvent('missing_slack_token', {});
-            return res.json({
+            logEvent('missing_slack_token', { conversationId });
+            return res.status(200).json({
                 success: true,
                 conversationId,
                 message: "Your request has been received. Our support team will contact you shortly.",
