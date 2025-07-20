@@ -52,18 +52,57 @@ What would you like to know?`,
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      // Call real Claude AI + Airtable backend
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          sessionId: `session_${Date.now()}`,
+          conversationHistory: messages
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        const botResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: result.response,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      } else {
+        // Fallback response if API fails
+        const errorResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment or contact our support team directly.",
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, errorResponse]);
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Fallback to mock response if API is unavailable
+      const fallbackResponse: Message = {
         id: (Date.now() + 1).toString(),
         content: getAIResponse(message),
         sender: 'bot',
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, botResponse]);
+      setMessages(prev => [...prev, fallbackResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500 + Math.random() * 1000);
+    }
   };
 
   const getAIResponse = (message: string): string => {
@@ -155,22 +194,62 @@ What specific information can I help you with today?`;
     setMessages(prev => [...prev, handoffMessage]);
 
     try {
-      await fetch('/api/request-human', {
+      // Format messages for the API
+      const formattedMessages = messages.map(msg => ({
+        sender: msg.sender,
+        content: msg.content,
+        timestamp: msg.timestamp.toISOString()
+      }));
+
+      // You could collect customer info from a form or previous conversation
+      // For now, we'll use basic info that might be available
+      const customerInfo = {
+        name: null, // Could be collected from a form
+        email: null, // Could be collected from a form  
+        phone: null, // Could be collected from a form
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await fetch('/api/request-human', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ 
+          messages: formattedMessages,
+          customerInfo 
+        }),
       });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const successMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "✅ " + result.message + "\n\nA team member has been notified via Slack and will assist you shortly. You can continue chatting here or expect a call/email if you provided contact details.",
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, successMessage]);
+      } else {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "❌ " + (result.message || result.error || "Unable to connect to human support at this time. Please try contacting us directly at support@heritagebox.com"),
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } catch (error) {
       console.error('Error requesting human handoff:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Sorry, I was unable to connect you to a human agent at this time. Please try again later.",
+        content: "❌ Sorry, I was unable to connect you to a human agent at this time. Please try again later or contact us directly at support@heritagebox.com",
         sender: 'bot',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+      setHumanHandoff(false); // Reset the handoff state on error
     }
   };
 
