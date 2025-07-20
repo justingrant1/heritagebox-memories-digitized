@@ -134,18 +134,148 @@ async function checkOrderStatus(query: string) {
   const BASE_ID = process.env.AIRTABLE_BASE_ID;
   
   if (!AIRTABLE_API_KEY || !BASE_ID) {
+    logEvent('airtable_not_configured', { query: query.substring(0, 50) });
     return null;
   }
 
   try {
-    // This would search for orders in Airtable
-    // For now, return a sample response
-    return {
-      found: false,
-      message: "I can check your order status! Please provide your order number or the email address you used when placing your order."
-    };
+    // Extract potential order number or email from the query
+    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+    const orderPattern = /\b(?:order|#)[\s#]*([A-Za-z0-9]+)\b/i;
+    
+    const emailMatch = query.match(emailPattern);
+    const orderMatch = query.match(orderPattern);
+    
+    let searchUrl = '';
+    let searchType = '';
+    
+    if (emailMatch) {
+      // Search by email in Customers table
+      const email = emailMatch[0];
+      searchUrl = `https://api.airtable.com/v0/${BASE_ID}/tblUS7uf11axEmL56?filterByFormula={Email}='${email}'`;
+      searchType = 'email';
+      logEvent('airtable_search_by_email', { email });
+    } else if (orderMatch) {
+      // Search by order number in Orders table
+      const orderNum = orderMatch[1];
+      searchUrl = `https://api.airtable.com/v0/${BASE_ID}/tblTq25QawVDHTTkV?filterByFormula={Order Number}='${orderNum}'`;
+      searchType = 'order';
+      logEvent('airtable_search_by_order', { orderNum });
+    } else {
+      // No clear identifier found
+      logEvent('airtable_no_identifier_found', { query: query.substring(0, 100) });
+      return {
+        found: false,
+        message: "I can check your order status! Please provide your order number (like #12345) or the email address you used when placing your order."
+      };
+    }
+
+    const response = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      logEvent('airtable_api_error', { 
+        status: response.status, 
+        statusText: response.statusText 
+      });
+      return null;
+    }
+
+    const data = await response.json();
+    logEvent('airtable_search_result', { 
+      recordCount: data.records?.length || 0,
+      searchType 
+    });
+
+    if (data.records && data.records.length > 0) {
+      const record = data.records[0];
+      
+      if (searchType === 'email') {
+        // Found customer, now get their orders
+        const customerName = record.fields.Name || 'Valued Customer';
+        const email = record.fields.Email;
+        
+        // Get orders for this customer
+        const ordersUrl = `https://api.airtable.com/v0/${BASE_ID}/tblTq25QawVDHTTkV?filterByFormula={Customer Email}='${email}'`;
+        const ordersResponse = await fetch(ordersUrl, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json();
+          const orders = ordersData.records || [];
+          
+          if (orders.length > 0) {
+            const orderDetails = orders.map(order => {
+              const status = order.fields.Status || 'In Progress';
+              const orderNum = order.fields['Order Number'] || 'N/A';
+              const total = order.fields['Total Cost'] || 0;
+              const date = order.fields['Order Date'] || 'N/A';
+              
+              return `• Order ${orderNum}: ${status} - $${total} (${new Date(date).toLocaleDateString()})`;
+            }).join('\n');
+
+            return {
+              found: true,
+              message: `Hi ${customerName}! I found your orders:\n\n${orderDetails}\n\nNeed more details about any specific order? Just ask!`
+            };
+          } else {
+            return {
+              found: false,
+              message: `Hi ${customerName}! I found your account but don't see any orders yet. Would you like to start a new digitization project?`
+            };
+          }
+        }
+      } else {
+        // Found order directly
+        const status = record.fields.Status || 'In Progress';
+        const orderNum = record.fields['Order Number'];
+        const total = record.fields['Total Cost'] || 0;
+        const customerEmail = record.fields['Customer Email'];
+        const estimatedCompletion = record.fields['Estimated Completion'];
+        
+        let statusMessage = `📦 **Order ${orderNum} Status: ${status}**\n\n`;
+        statusMessage += `• Total: $${total}\n`;
+        statusMessage += `• Customer: ${customerEmail}\n`;
+        
+        if (estimatedCompletion) {
+          statusMessage += `• Estimated Completion: ${new Date(estimatedCompletion).toLocaleDateString()}\n`;
+        }
+        
+        if (status === 'Processing') {
+          statusMessage += `\n✅ Your order is currently being processed! We're working on digitizing your precious memories.`;
+        } else if (status === 'Ready for Pickup') {
+          statusMessage += `\n🎉 Great news! Your order is ready for pickup or delivery!`;
+        } else if (status === 'Completed') {
+          statusMessage += `\n✨ Your order has been completed! Thank you for trusting us with your memories.`;
+        }
+
+        return {
+          found: true,
+          message: statusMessage
+        };
+      }
+    } else {
+      return {
+        found: false,
+        message: searchType === 'email' 
+          ? "I couldn't find any orders for that email address. Please double-check the email or provide your order number instead."
+          : "I couldn't find that order number. Please double-check the number or provide the email you used when placing the order."
+      };
+    }
+
   } catch (error) {
-    console.error('Airtable Error:', error);
+    logEvent('airtable_error', { 
+      error: error.message,
+      stack: error.stack?.substring(0, 300)
+    });
     return null;
   }
 }

@@ -27,7 +27,7 @@ What would you like to know?`,
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [humanHandoff, setHumanHandoff] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +103,7 @@ What would you like to know?`,
         },
         body: JSON.stringify({
           message,
-          sessionId: `session_${Date.now()}`,
+          sessionId: sessionId,
           conversationHistory: messages
         }),
       });
@@ -259,18 +259,15 @@ What specific information can I help you with today?`;
         },
         body: JSON.stringify({ 
           messages: formattedMessages,
-          customerInfo 
+          customerInfo,
+          sessionId: sessionId
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        // Store the session ID for polling
-        if (result.sessionId) {
-          setSessionId(result.sessionId);
-        }
-        
+        // Session ID is already set and consistent
         const successMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: "✅ " + result.message + "\n\nA team member has been notified via Slack and will assist you shortly. You can continue chatting here or expect a call/email if you provided contact details.",
