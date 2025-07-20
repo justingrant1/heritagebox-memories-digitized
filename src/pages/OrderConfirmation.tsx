@@ -23,6 +23,7 @@ const OrderConfirmation = () => {
   const digitizingSpeed = searchParams.get('digitizingSpeed') || 'standard';
   const [emailSent, setEmailSent] = useState(false);
   const [conversionTracked, setConversionTracked] = useState(false);
+  const [gaRevenueTracked, setGaRevenueTracked] = useState(false);
   
   // Get customer info and order number from state if available (passed from checkout)
   const customerInfo = location.state?.customerInfo || {
@@ -82,6 +83,85 @@ const OrderConfirmation = () => {
       console.log('Google Ads conversion tracked for order:', orderNumber);
     }
   }, [orderNumber, conversionTracked]);
+
+  // Track Google Analytics revenue (purchase event)
+  useEffect(() => {
+    if (gaRevenueTracked) return;
+
+    // Calculate order value based on package and add-ons
+    const calculateOrderValue = () => {
+      // Package prices (same as in Checkout.tsx)
+      const packagePrices = {
+        'Starter': 69,
+        'Popular': 179,
+        'Dusty Rose': 349,
+        'Eternal': 599
+      };
+
+      const USB_DRIVE_PRICE = 24.95;
+      
+      const packagePrice = packagePrices[packageType as keyof typeof packagePrices] || packagePrices['Popular'];
+      const usbTotal = usbDrives * USB_DRIVE_PRICE;
+      const digitizingOption = getDigitizingOptionById(digitizingSpeed);
+      const speedPrice = digitizingOption ? digitizingOption.price : 0;
+      
+      return packagePrice + usbTotal + speedPrice;
+    };
+
+    // Fire the purchase event
+    if (window.gtag && orderNumber && orderNumber !== 'N/A') {
+      const orderValue = calculateOrderValue();
+      const digitizingOption = getDigitizingOptionById(digitizingSpeed);
+      
+      // Create items array for the purchase event
+      const items = [
+        {
+          item_id: `hb-${packageType.toLowerCase().replace(' ', '-')}`,
+          item_name: `HeritageBox ${packageType} Package`,
+          category: 'Memory Digitization',
+          quantity: 1,
+          price: packageType === 'Starter' ? 69 : packageType === 'Popular' ? 179 : packageType === 'Dusty Rose' ? 349 : 599
+        }
+      ];
+
+      // Add USB drives as separate item if any
+      if (usbDrives > 0) {
+        items.push({
+          item_id: 'hb-usb-drive',
+          item_name: 'Custom USB Drive',
+          category: 'Add-on',
+          quantity: usbDrives,
+          price: 24.95
+        });
+      }
+
+      // Add digitizing speed as item if not standard (has additional cost)
+      if (digitizingOption && digitizingOption.price > 0) {
+        items.push({
+          item_id: `hb-speed-${digitizingSpeed}`,
+          item_name: `${digitizingOption.name} Processing`,
+          category: 'Speed Upgrade',
+          quantity: 1,
+          price: digitizingOption.price
+        });
+      }
+
+      window.gtag('event', 'purchase', {
+        transaction_id: orderNumber,
+        value: orderValue,
+        currency: 'USD',
+        items: items
+      });
+      
+      setGaRevenueTracked(true);
+      console.log('Google Analytics purchase event tracked:', {
+        transaction_id: orderNumber,
+        value: orderValue,
+        currency: 'USD',
+        items: items
+      });
+    }
+  }, [orderNumber, packageType, usbDrives, digitizingSpeed, gaRevenueTracked]);
 
   // Send order data to Brevo
   useEffect(() => {

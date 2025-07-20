@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritagebox Chat Widget Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎞️ Heritagebox</h1>
+            <p>Professional Media Digitization Services</p>
+        </div>
+        
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 15px; text-align: center;">
+            <h2 style="color: #333; margin-bottom: 15px;">See Our AI Assistant in Action</h2>
+            <p style="color: #666; margin-bottom: 20px;">Click the chat button in the bottom right to experience how customers will interact with your Heritagebox AI assistant. It's connected to your services and can help with project inquiries, pricing, and order status.</p>
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 25px;">
+                <div style="background: white; padding: 15px; border-radius: 10px; flex: 1; min-width: 200px;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">💬</div>
+                    <strong>Smart Conversations</strong>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Powered by Claude AI</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 10px; flex: 1; min-width: 200px;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">🗃️</div>
+                    <strong>Airtable Connected</strong>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Real project data</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 10px; flex: 1; min-width: 200px;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">🎯</div>
+                    <strong>24/7 Available</strong>
+                    <p style="font-size: 14px; color: #666; margin-top: 5px;">Instant responses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <button class="chat-toggle" onclick="toggleChat()">💬</button>
+        
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-avatar">🎞️</div>
+                <div class="chat-info">
+                    <h3>Heritagebox Assistant</h3>
+                    <p>Here to help with your digitization needs</p>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-content">
+                        Hi! I'm your Heritagebox AI assistant. I can help you with:
+                        <br><br>
+                        📸 Photo digitization pricing<br>
+                        🎬 Video transfer options<br>
+                        📦 Project status updates<br>
+                        ⏱️ Turnaround times<br>
+                        <br>
+                        What would you like to know?
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-action" onclick="sendQuickMessage('How much does photo scanning cost?')">Photo Pricing</button>
+                    <button class="quick-action" onclick="sendQuickMessage('Check my order status')">Order Status</button>
+                    <button class="quick-action" onclick="sendQuickMessage('Video transfer options')">Video Transfer</button>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-container">
+                    <input type="text" id="messageInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                    <button class="send-button" onclick="sendMessage()" id="sendButton">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
