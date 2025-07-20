@@ -29,6 +29,7 @@ What would you like to know?`,
   const [humanHandoff, setHumanHandoff] = useState(false);
   const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [lastPolledMessageId, setLastPolledMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -44,7 +45,8 @@ What would you like to know?`,
     if (humanHandoff && sessionId && isOpen) {
       const interval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/chat-messages?sessionId=${sessionId}&lastMessageId=${messages[messages.length - 1]?.id}`);
+          const lastMessageId = lastPolledMessageId || messages[messages.length - 1]?.id;
+          const response = await fetch(`/api/chat-messages?sessionId=${sessionId}&lastMessageId=${lastMessageId}`);
           const result = await response.json();
           
           if (result.success && result.messages.length > 0) {
@@ -57,6 +59,8 @@ What would you like to know?`,
             }));
             
             setMessages(prev => [...prev, ...newMessages]);
+            // Update the last polled message ID
+            setLastPolledMessageId(newMessages[newMessages.length - 1].id);
           }
         } catch (error) {
           console.error('Error polling for messages:', error);
@@ -69,7 +73,7 @@ What would you like to know?`,
         if (interval) clearInterval(interval);
       };
     }
-  }, [humanHandoff, sessionId, isOpen, messages]);
+  }, [humanHandoff, sessionId, isOpen, lastPolledMessageId]);
 
   // Cleanup polling when component unmounts or chat closes
   useEffect(() => {
@@ -84,7 +88,7 @@ What would you like to know?`,
 
     // Add user message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user_${Date.now()}`,
       content: message,
       sender: 'user',
       timestamp: new Date()
@@ -104,25 +108,30 @@ What would you like to know?`,
         body: JSON.stringify({
           message,
           sessionId: sessionId,
-          conversationHistory: messages
+          conversationHistory: messages,
+          humanHandoff: humanHandoff
         }),
       });
 
       const result = await response.json();
       
       if (result.success) {
-        const botResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: result.response,
-          sender: 'bot',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, botResponse]);
+        // If in human handoff mode, don't expect an AI response
+        if (!humanHandoff) {
+          const botResponse: Message = {
+            id: `bot_${Date.now()}`,
+            content: result.response,
+            sender: 'bot',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, botResponse]);
+        }
+        // If human handoff, the message was stored in session for agents to see
       } else {
         // Fallback response if API fails
         const errorResponse: Message = {
-          id: (Date.now() + 1).toString(),
+          id: `bot_${Date.now()}`,
           content: "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment or contact our support team directly.",
           sender: 'bot',
           timestamp: new Date()
@@ -133,15 +142,17 @@ What would you like to know?`,
     } catch (error) {
       console.error('Chat error:', error);
       
-      // Fallback to mock response if API is unavailable
-      const fallbackResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIResponse(message),
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, fallbackResponse]);
+      // Fallback to mock response if API is unavailable (only if not in human handoff)
+      if (!humanHandoff) {
+        const fallbackResponse: Message = {
+          id: `bot_${Date.now()}`,
+          content: getAIResponse(message),
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, fallbackResponse]);
+      }
     } finally {
       setIsTyping(false);
     }

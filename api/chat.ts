@@ -13,6 +13,7 @@ interface ChatRequest {
   message: string;
   sessionId?: string;
   conversationHistory?: ChatMessage[];
+  humanHandoff?: boolean;
 }
 
 interface ClaudeMessage {
@@ -397,12 +398,43 @@ export default async function handler(request: Request) {
             historyLength: body.conversationHistory?.length || 0
         });
 
-        const { message, sessionId, conversationHistory }: ChatRequest = body;
+        const { message, sessionId, conversationHistory, humanHandoff }: ChatRequest = body;
 
         if (!message || message.trim().length === 0) {
             logEvent('validation_failed', { missingMessage: !message });
             return new Response(JSON.stringify({success: false, error: 'Message is required'}), {
                 status: 400,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        // If in human handoff mode, store the message in the session for agents to see
+        if (humanHandoff && sessionId) {
+            // Import the session management functions
+            const { getChatSession, updateChatSession } = await import('./slack-webhook');
+            
+            const userMessage = {
+                id: `user_${Date.now()}`,
+                content: message,
+                sender: 'user' as const,
+                timestamp: new Date()
+            };
+
+            updateChatSession(sessionId, userMessage);
+            
+            logEvent('human_handoff_message_stored', {
+                sessionId,
+                messagePreview: message.substring(0, 100)
+            });
+
+            // Return success without AI response
+            return new Response(JSON.stringify({
+                success: true,
+                sessionId: sessionId,
+                timestamp: new Date().toISOString(),
+                message: 'Message sent to human agent'
+            }), {
+                status: 200,
                 headers: {'Content-Type': 'application/json'}
             });
         }
