@@ -2,6 +2,7 @@ export const config = {
     runtime: 'edge',
 };
 
+import { WebClient } from '@slack/web-api';
 import { createChatSession } from './slack-webhook';
 
 // Helper function for structured logging
@@ -85,7 +86,13 @@ export default async function handler(request: Request) {
         });
 
         try {
-            // Use a more direct approach for Edge runtime compatibility
+            const slackBotToken = process.env.SLACK_BOT_TOKEN;
+            if (!slackBotToken) {
+                throw new Error('Slack bot token not configured');
+            }
+
+            const slackClient = new WebClient(slackBotToken);
+            
             const slackMessage = `🚨 **Customer Requesting Human Support**
 
 **Customer Info:**
@@ -107,110 +114,43 @@ ${messages && messages.length > 0
 **Action Required:** Please respond to customer on website chat or reach out directly.
 **Website:** ${process.env.SITE_URL || 'https://heritagebox.com'}`;
 
-            // Try to send to Slack and create chat session
-            let slackSuccess = false;
-            let slackThreadId = null;
-            
-            // For Edge runtime, we'll use the Slack Bot API directly
-            const slackBotToken = process.env.SLACK_BOT_TOKEN;
-            
-            if (slackBotToken) {
-                const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${slackBotToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        channel: slackChannelId.replace('#', ''),
-                        text: slackMessage,
-                        unfurl_links: false,
-                        unfurl_media: false
-                    })
-                });
-
-                const slackResult = await slackResponse.json();
-                
-                if (slackResult.ok) {
-                    slackSuccess = true;
-                    slackThreadId = slackResult.ts; // This is the thread timestamp we need!
-                    
-                    logEvent('slack_notification_sent', {
-                        success: true,
-                        messageTs: slackResult.ts,
-                        channel: slackResult.channel,
-                        sessionId
-                    });
-
-                    // Create the chat session with the Slack thread ID
-                    if (slackThreadId) {
-                        try {
-                            const chatSession = createChatSession(sessionId, slackThreadId);
-                            
-                            // Add all the existing conversation messages to the session
-                            if (messages && messages.length > 0) {
-                                messages.forEach((msg, index) => {
-                                    const sessionMessage = {
-                                        id: `msg_${index}_${Date.now()}`,
-                                        content: msg.content,
-                                        sender: msg.sender,
-                                        timestamp: new Date(msg.timestamp || new Date())
-                                    };
-                                    chatSession.messages.push(sessionMessage);
-                                });
-                            }
-
-                            // Add customer info to session if available
-                            if (customerInfo) {
-                                chatSession.userId = customerInfo.email || customerInfo.phone || 'anonymous';
-                            }
-
-                            logEvent('chat_session_created_successfully', {
-                                sessionId,
-                                slackThreadId,
-                                messageCount: chatSession.messages.length
-                            });
-
-                        } catch (sessionError) {
-                            logEvent('chat_session_creation_failed', {
-                                sessionId,
-                                slackThreadId,
-                                error: sessionError.message
-                            });
-                            // Continue anyway - the Slack message was sent successfully
-                        }
-                    } else {
-                        logEvent('no_slack_thread_id', {
-                            sessionId,
-                            message: 'Slack message sent but no thread ID received'
-                        });
-                    }
-                    
-                } else {
-                    throw new Error(`Slack API error: ${slackResult.error}`);
-                }
-            }
-
-            // Return session info regardless of Slack success
-            return new Response(JSON.stringify({
-                success: true,
-                message: slackSuccess 
-                    ? 'Human support has been notified via Slack. Someone will assist you shortly.' 
-                    : 'Human support request received. Someone will assist you shortly.',
-                sessionId: sessionId,
-                timestamp: new Date().toISOString()
-            }), {
-                status: 200,
-                headers: {'Content-Type': 'application/json'}
+            const slackResult = await slackClient.chat.postMessage({
+                channel: slackChannelId.replace('#', ''),
+                text: slackMessage,
+                unfurl_links: false,
+                unfurl_media: false
             });
 
+            if (slackResult.ok) {
+                const slackThreadId = slackResult.ts;
+                logEvent('slack_notification_sent', {
+                    success: true,
+                    messageTs: slackThreadId,
+                    channel: slackResult.channel,
+                    sessionId
+                });
+
+                if (slackThreadId) {
+                    createChatSession(sessionId, slackThreadId);
+                }
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    message: 'Human support has been notified via Slack. Someone will assist you shortly.',
+                    sessionId: sessionId,
+                    timestamp: new Date().toISOString()
+                }), {
+                    status: 200,
+                    headers: {'Content-Type': 'application/json'}
+                });
+            } else {
+                throw new Error(`Slack API error: ${slackResult.error}`);
+            }
         } catch (slackError) {
             logEvent('slack_notification_failed', {
                 error: slackError.message,
                 channel: slackChannelId
             });
-            
-            // Continue anyway - don't fail the request just because Slack failed
             console.error('Failed to send Slack notification:', slackError);
         }
 
