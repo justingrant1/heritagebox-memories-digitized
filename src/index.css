@@ -76,11 +76,14 @@
 
   html, body {
     @apply bg-background text-foreground;
-    /* Prevent horizontal scroll */
-    overflow-x: hidden;
     /* Improve touch responsiveness */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent horizontal scroll on main content only, not affecting dialogs */
+  #root {
+    overflow-x: hidden;
   }
 
   /* Improve button touch targets on mobile */
