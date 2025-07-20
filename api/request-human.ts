@@ -15,7 +15,23 @@ function logEvent(event, data) {
  * Initiates human handoff process
  */
 export default async function handler(req, res) {
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed'
+        });
+    }
+
     try {
+        // Ensure we have a request body
+        if (!req.body) {
+            return res.status(400).json({
+                success: false,
+                message: 'Request body is required'
+            });
+        }
+
         const { 
             customerName, 
             customerEmail, 
@@ -43,7 +59,7 @@ export default async function handler(req, res) {
         }
 
         // Create rich message for Slack
-        const slackMessage = {
+        const slackMessage: any = {
             channel: VIP_CHANNEL.replace('#', ''),
             text: `🆘 Customer requesting human assistance`,
             blocks: [
