@@ -26,6 +26,7 @@ What would you like to know?`,
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [humanHandoff, setHumanHandoff] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -143,6 +144,36 @@ What specific information can I help you with today?`;
     }
   };
 
+  const requestHumanHandoff = async () => {
+    setHumanHandoff(true);
+    const handoffMessage: Message = {
+      id: Date.now().toString(),
+      content: "Connecting you to a human agent. Please wait a moment...",
+      sender: 'bot',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, handoffMessage]);
+
+    try {
+      await fetch('/api/request-human', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages }),
+      });
+    } catch (error) {
+      console.error('Error requesting human handoff:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I was unable to connect you to a human agent at this time. Please try again later.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {/* Chat Toggle Button */}
@@ -158,14 +189,23 @@ What specific information can I help you with today?`;
       {isOpen && (
         <div className="absolute bottom-20 right-0 w-96 h-[550px] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 max-sm:w-[calc(100vw-40px)] max-sm:right-[-10px]">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-5 flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
-              🎞️
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
+                🎞️
+              </div>
+              <div>
+                <h3 className="font-semibold">Heritagebox Assistant</h3>
+                <p className="text-sm opacity-90">Here to help with your digitization needs</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold">Heritagebox Assistant</h3>
-              <p className="text-sm opacity-90">Here to help with your digitization needs</p>
-            </div>
+            <button
+              onClick={requestHumanHandoff}
+              disabled={humanHandoff}
+              className="text-xs bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-1 px-3 rounded-full transition-colors"
+            >
+              Talk to Human
+            </button>
           </div>
 
           {/* Messages */}

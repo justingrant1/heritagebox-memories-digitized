@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const app = express();
@@ -156,6 +157,53 @@ app.post('/api/chat', async (req, res) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Human handoff endpoint
+app.post('/api/request-human', async (req, res) => {
+    try {
+        const { messages } = req.body;
+        const sessionId = uuidv4();
+        
+        const transcript = messages.map(msg => `[${msg.sender.toUpperCase()}] ${msg.content}`).join('\n\n');
+
+        // 1. Log to Airtable using MCP
+        /*
+        const airtableResult = await use_mcp_tool('github.com/domdomegg/airtable-mcp-server', 'create_record', {
+            baseId: 'appFMHAYZrTskpmdX',
+            tableId: 'tbl6gHHlvSwx4gQpB',
+            fields: {
+                'SessionID': sessionId,
+                'Transcript': transcript,
+                'Status': 'Needs Human'
+            }
+        });
+        const recordId = airtableResult.id;
+        */
+
+        // For now, let's simulate the recordId
+        const recordId = "simulated_record_id";
+
+        // 2. Notify Slack using MCP
+        const slackMessage = `*New Human Support Request* :wave:\n\n*Session ID:* ${sessionId}\n\n*Transcript:*\n\`\`\`${transcript}\`\`\`\n\n<https://airtable.com/appFMHAYZrTskpmdX/tbl6gHHlvSwx4gQpB/${recordId}|View in Airtable>`;
+        
+        /*
+        await use_mcp_tool('github.com/korotovsky/slack-mcp-server', 'conversations_add_message', {
+            channel_id: '#vip-sales',
+            payload: slackMessage,
+            content_type: 'text/markdown'
+        });
+        */
+       
+        // Simulate Slack notification
+        console.log("Simulating Slack notification:", slackMessage);
+
+        res.status(200).json({ success: true, message: 'Handoff request received.' });
+
+    } catch (error) {
+        console.error('Handoff API Error:', error);
+        res.status(500).json({ success: false, error: 'Failed to process handoff request.' });
+    }
 });
 
 // Serve the main page
