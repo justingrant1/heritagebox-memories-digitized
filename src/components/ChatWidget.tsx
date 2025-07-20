@@ -27,6 +27,8 @@ What would you like to know?`,
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [humanHandoff, setHumanHandoff] = useState(false);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -36,6 +38,46 @@ What would you like to know?`,
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Polling effect to check for new messages from Slack
+  useEffect(() => {
+    if (humanHandoff && sessionId && isOpen) {
+      const interval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/chat-messages?sessionId=${sessionId}&lastMessageId=${messages[messages.length - 1]?.id}`);
+          const result = await response.json();
+          
+          if (result.success && result.messages.length > 0) {
+            // Add new messages from agents
+            const newMessages: Message[] = result.messages.map((msg: any) => ({
+              id: msg.id,
+              content: msg.content,
+              sender: msg.sender === 'agent' ? 'bot' : msg.sender, // Display agent messages as bot messages
+              timestamp: new Date(msg.timestamp)
+            }));
+            
+            setMessages(prev => [...prev, ...newMessages]);
+          }
+        } catch (error) {
+          console.error('Error polling for messages:', error);
+        }
+      }, 3000); // Poll every 3 seconds
+      
+      setPollingInterval(interval);
+      
+      return () => {
+        if (interval) clearInterval(interval);
+      };
+    }
+  }, [humanHandoff, sessionId, isOpen, messages]);
+
+  // Cleanup polling when component unmounts or chat closes
+  useEffect(() => {
+    if (!isOpen && pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  }, [isOpen, pollingInterval]);
 
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
@@ -224,6 +266,11 @@ What specific information can I help you with today?`;
       const result = await response.json();
 
       if (result.success) {
+        // Store the session ID for polling
+        if (result.sessionId) {
+          setSessionId(result.sessionId);
+        }
+        
         const successMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: "✅ " + result.message + "\n\nA team member has been notified via Slack and will assist you shortly. You can continue chatting here or expect a call/email if you provided contact details.",

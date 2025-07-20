@@ -2,6 +2,8 @@ export const config = {
     runtime: 'edge',
 };
 
+import { createChatSession } from './slack-webhook';
+
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
     console.log(JSON.stringify({
@@ -156,10 +158,29 @@ export default async function handler(request: Request) {
                     throw new Error(`Slack API error: ${slackResult.error}`);
                 }
 
+                // Create a chat session linking this Slack thread to the user's session
+                const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const slackThreadId = slackResult.ts; // The timestamp of the Slack message becomes the thread ID
+                
+                createChatSession(sessionId, slackThreadId);
+
                 logEvent('slack_notification_sent', {
                     success: true,
                     messageTs: slackResult.ts,
-                    channel: slackResult.channel
+                    channel: slackResult.channel,
+                    sessionId,
+                    slackThreadId
+                });
+
+                // Return session info so the chat widget can use it for polling
+                return new Response(JSON.stringify({
+                    success: true,
+                    message: 'Human support has been notified. Someone will assist you shortly.',
+                    sessionId: sessionId,
+                    timestamp: new Date().toISOString()
+                }), {
+                    status: 200,
+                    headers: {'Content-Type': 'application/json'}
                 });
 
             } catch (slackError) {
