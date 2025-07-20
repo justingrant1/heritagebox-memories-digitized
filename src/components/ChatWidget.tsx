@@ -45,27 +45,40 @@ What would you like to know?`,
     if (humanHandoff && sessionId && isOpen) {
       const interval = setInterval(async () => {
         try {
-          const lastMessageId = lastPolledMessageId || messages[messages.length - 1]?.id;
-          const response = await fetch(`/api/chat-messages?sessionId=${sessionId}&lastMessageId=${lastMessageId}`);
+          const response = await fetch('/api/chat-messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sessionId })
+          });
+          
           const result = await response.json();
           
-          if (result.success && result.messages.length > 0) {
-            // Add new messages from agents
-            const newMessages: Message[] = result.messages.map((msg: any) => ({
-              id: msg.id,
-              content: msg.content,
-              sender: msg.sender === 'agent' ? 'bot' : msg.sender, // Display agent messages as bot messages
-              timestamp: new Date(msg.timestamp)
-            }));
+          if (result.success && result.messages && result.messages.length > 0) {
+            // Get messages newer than our last polled message
+            const currentMessageIds = messages.map(m => m.id);
+            const newMessages = result.messages.filter((msg: any) => 
+              !currentMessageIds.includes(msg.id) && msg.sender === 'agent'
+            );
             
-            setMessages(prev => [...prev, ...newMessages]);
-            // Update the last polled message ID
-            setLastPolledMessageId(newMessages[newMessages.length - 1].id);
+            if (newMessages.length > 0) {
+              // Add new messages from agents
+              const formattedNewMessages: Message[] = newMessages.map((msg: any) => ({
+                id: msg.id,
+                content: msg.content,
+                sender: 'bot', // Display agent messages as bot messages in the UI
+                timestamp: new Date(msg.timestamp)
+              }));
+              
+              setMessages(prev => [...prev, ...formattedNewMessages]);
+              console.log('Added new agent messages:', formattedNewMessages.length);
+            }
           }
         } catch (error) {
           console.error('Error polling for messages:', error);
         }
-      }, 3000); // Poll every 3 seconds
+      }, 2000); // Poll every 2 seconds for better responsiveness
       
       setPollingInterval(interval);
       
@@ -73,7 +86,7 @@ What would you like to know?`,
         if (interval) clearInterval(interval);
       };
     }
-  }, [humanHandoff, sessionId, isOpen, lastPolledMessageId]);
+  }, [humanHandoff, sessionId, isOpen, messages]);
 
   // Cleanup polling when component unmounts or chat closes
   useEffect(() => {
