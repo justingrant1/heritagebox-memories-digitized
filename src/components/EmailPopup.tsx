@@ -63,69 +63,83 @@ const EmailPopup = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(currentOpenState) => {
-      if (!currentOpenState) {
-        // Dialog is closing, set localStorage
-        localStorage.setItem('hasSeenEmailPopup', 'true');
-      }
-      setOpen(currentOpenState);
-    }}>
-      <DialogContent className="sm:max-w-md p-4 sm:p-6 mx-4 max-h-[90vh] overflow-y-auto relative z-[9999999]">
-        {/* Close Button - Mobile Optimized */}
-        <DialogClose asChild>
-          <button
-            type="button"
-            className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Close popup"
-          >
-            <X className="h-5 w-5 sm:h-6 sm:w-6" />
-          </button>
-        </DialogClose>
-
-        <DialogHeader className="pr-10 sm:pr-12">
-          <DialogTitle className="text-xl sm:text-2xl font-serif text-primary leading-tight">
-            Save 15% on Your First Order
-          </DialogTitle>
-          <DialogDescription className="text-base sm:text-lg mt-2 text-gray-600 leading-relaxed">
-            Sign up for updates and receive a 15% discount code for your first order.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="popup-email">Email</Label>
-            <Input 
-              id="popup-email"
-              type="email" 
-              placeholder="Enter your email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full"
-              disabled={isSubmitting}
-            />
-          </div>
-          
-          <div className="flex flex-col space-y-2">
-            <Button 
-              type="submit" 
-              className="w-full bg-secondary text-primary hover:bg-secondary-light"
-              disabled={isSubmitting}
+    <>
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[9999998]"
+          onClick={() => {
+            localStorage.setItem('hasSeenEmailPopup', 'true');
+            setOpen(false);
+          }}
+        />
+      )}
+      
+      {/* Popup Content */}
+      {open && (
+        <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.setItem('hasSeenEmailPopup', 'true');
+                setOpen(false);
+              }}
+              className="absolute right-3 top-3 rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Close popup"
             >
-              {isSubmitting ? "Submitting..." : "Get My 15% Off"}
-            </Button>
-            <DialogClose asChild>
-              <button 
-                type="button"
-                className="text-sm text-gray-500 hover:text-gray-700 mt-2"
-                disabled={isSubmitting}
-              >
-                No thanks, I'll pay full price
-              </button>
-            </DialogClose>
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="p-6 pr-12">
+              <h2 className="text-xl sm:text-2xl font-serif text-primary leading-tight mb-2">
+                Save 15% on Your First Order
+              </h2>
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6">
+                Sign up for updates and receive a 15% discount code for your first order.
+              </p>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="popup-email">Email</Label>
+                  <Input 
+                    id="popup-email"
+                    type="email" 
+                    placeholder="Enter your email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full"
+                    disabled={isSubmitting}
+                  />
+                </div>
+                
+                <div className="flex flex-col space-y-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-secondary text-primary hover:bg-secondary-light"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Submitting..." : "Get My 15% Off"}
+                  </Button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('hasSeenEmailPopup', 'true');
+                      setOpen(false);
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700 mt-2"
+                    disabled={isSubmitting}
+                  >
+                    No thanks, I'll pay full price
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+    </>
   );
 };
 
