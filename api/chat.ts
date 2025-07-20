@@ -34,21 +34,21 @@ async function callClaudeAPI(messages: ClaudeMessage[]) {
   const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
   
   if (!CLAUDE_API_KEY) {
+    logEvent('claude_api_key_missing', { message: 'Claude API key not configured' });
     throw new Error('Claude API key not configured');
   }
 
+  logEvent('claude_api_request', { 
+    messageCount: messages.length,
+    apiKeyPresent: !!CLAUDE_API_KEY,
+    apiKeyLength: CLAUDE_API_KEY.length
+  });
+
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 1000,
-        system: `You are Helena, the helpful AI assistant for Heritagebox - a professional media digitization service. 
+    const requestBody = {
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1024,
+      system: `You are Helena, the helpful AI assistant for Heritagebox - a professional media digitization service. 
 
 You help customers with:
 - Pricing quotes for photo scanning, video transfer, film digitization
@@ -72,19 +72,59 @@ Turnaround times:
 - Videos: 10-14 business days
 - Large projects: 3-4 weeks
 - Rush service: +50% fee, 2-3 days`,
-        messages: messages
-      })
+      messages: messages
+    };
+
+    logEvent('claude_request_body', { 
+      model: requestBody.model, 
+      systemLength: requestBody.system.length,
+      messageCount: requestBody.messages.length 
+    });
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    logEvent('claude_response_received', { 
+      status: response.status, 
+      statusText: response.statusText,
+      ok: response.ok
     });
 
     if (!response.ok) {
-      throw new Error(`Claude API error: ${response.statusText}`);
+      const errorText = await response.text();
+      logEvent('claude_api_error', { 
+        status: response.status, 
+        statusText: response.statusText,
+        errorBody: errorText.substring(0, 500)
+      });
+      throw new Error(`Claude API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
+    logEvent('claude_response_parsed', { 
+      hasContent: !!result.content,
+      contentLength: result.content?.[0]?.text?.length || 0
+    });
+
+    if (!result.content || !result.content[0] || !result.content[0].text) {
+      throw new Error('Invalid response format from Claude API');
+    }
+
     return result.content[0].text;
   } catch (error) {
-    console.error('Claude API Error:', error);
-    throw error; // Re-throw so we can handle it with message context in the main handler
+    logEvent('claude_api_exception', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack?.substring(0, 500)
+    });
+    throw error;
   }
 }
 

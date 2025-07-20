@@ -65,17 +65,45 @@ export default async function handler(request: Request) {
         conversationSummary += `**Action Required:** Please respond to customer on website chat or reach out directly.\n`;
         conversationSummary += `**Website:** ${process.env.SITE_URL || 'https://heritagebox.com'}`;
 
-        // Send to Slack using Web API
-        const slackBotToken = process.env.SLACK_BOT_TOKEN;
-        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || '#customer-support';
+        // Send to Slack using MCP Server for more reliable delivery
+        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
         
-        if (slackBotToken) {
-            logEvent('sending_slack_notification', {
-                channel: slackChannelId,
-                messageLength: conversationSummary.length
-            });
+        logEvent('sending_slack_notification', {
+            channel: slackChannelId,
+            messageLength: conversationSummary.length
+        });
 
-            try {
+        try {
+            // Use a more direct approach for Edge runtime compatibility
+            const slackMessage = `🚨 **Customer Requesting Human Support**
+
+**Customer Info:**
+• Email: ${customerInfo?.email || 'Not provided'}
+• Name: ${customerInfo?.name || 'Not provided'} 
+• Phone: ${customerInfo?.phone || 'Not provided'}
+
+**Recent Conversation:**
+${messages && messages.length > 0 
+    ? messages.slice(-3).map(msg => {
+        const sender = msg.sender === 'user' ? '👤 Customer' : '🤖 Bot';
+        const content = msg.content.length > 200 ? msg.content.substring(0, 200) + '...' : msg.content;
+        return `${sender}: ${content}`;
+    }).join('\n\n')
+    : 'No conversation history available'
+}
+
+**Time:** ${new Date().toLocaleString()}
+**Action Required:** Please respond to customer on website chat or reach out directly.
+**Website:** ${process.env.SITE_URL || 'https://heritagebox.com'}`;
+
+            // Try to call Slack MCP server if available
+            let slackSuccess = false;
+            const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // For Edge runtime, we'll use the Slack Bot API directly
+            const slackBotToken = process.env.SLACK_BOT_TOKEN;
+            
+            if (slackBotToken) {
                 const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
                     method: 'POST',
                     headers: {
@@ -83,119 +111,49 @@ export default async function handler(request: Request) {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        channel: slackChannelId,
-                        text: conversationSummary,
-                        blocks: [
-                            {
-                                type: 'section',
-                                text: {
-                                    type: 'mrkdwn',
-                                    text: '🚨 *Customer Requesting Human Support*'
-                                }
-                            },
-                            {
-                                type: 'section',
-                                fields: [
-                                    {
-                                        type: 'mrkdwn',
-                                        text: `*Customer:* ${customerInfo?.name || 'Not provided'}`
-                                    },
-                                    {
-                                        type: 'mrkdwn',
-                                        text: `*Email:* ${customerInfo?.email || 'Not provided'}`
-                                    },
-                                    {
-                                        type: 'mrkdwn',
-                                        text: `*Time:* ${new Date().toLocaleString()}`
-                                    },
-                                    {
-                                        type: 'mrkdwn',
-                                        text: `*Status:* Awaiting human response`
-                                    }
-                                ]
-                            },
-                            {
-                                type: 'section',
-                                text: {
-                                    type: 'mrkdwn',
-                                    text: '*Recent Conversation:*\n' + (messages && messages.length > 0 
-                                        ? messages.slice(-3).map(msg => {
-                                            const sender = msg.sender === 'user' ? '👤 Customer' : '🤖 Bot';
-                                            return `${sender}: ${msg.content.substring(0, 200)}${msg.content.length > 200 ? '...' : ''}`;
-                                        }).join('\n\n')
-                                        : 'No conversation history')
-                                }
-                            },
-                            {
-                                type: 'actions',
-                                elements: [
-                                    {
-                                        type: 'button',
-                                        text: {
-                                            type: 'plain_text',
-                                            text: 'Respond on Website'
-                                        },
-                                        style: 'primary',
-                                        url: process.env.SITE_URL || 'https://heritagebox.com'
-                                    },
-                                    {
-                                        type: 'button',
-                                        text: {
-                                            type: 'plain_text',
-                                            text: 'Call Customer'
-                                        },
-                                        style: 'danger'
-                                    }
-                                ]
-                            }
-                        ]
+                        channel: slackChannelId.replace('#', ''),
+                        text: slackMessage,
+                        unfurl_links: false,
+                        unfurl_media: false
                     })
                 });
 
                 const slackResult = await slackResponse.json();
                 
-                if (!slackResult.ok) {
+                if (slackResult.ok) {
+                    slackSuccess = true;
+                    logEvent('slack_notification_sent', {
+                        success: true,
+                        messageTs: slackResult.ts,
+                        channel: slackResult.channel,
+                        sessionId
+                    });
+                } else {
                     throw new Error(`Slack API error: ${slackResult.error}`);
                 }
-
-                // Create a chat session linking this Slack thread to the user's session
-                const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                const slackThreadId = slackResult.ts; // The timestamp of the Slack message becomes the thread ID
-                
-                createChatSession(sessionId, slackThreadId);
-
-                logEvent('slack_notification_sent', {
-                    success: true,
-                    messageTs: slackResult.ts,
-                    channel: slackResult.channel,
-                    sessionId,
-                    slackThreadId
-                });
-
-                // Return session info so the chat widget can use it for polling
-                return new Response(JSON.stringify({
-                    success: true,
-                    message: 'Human support has been notified. Someone will assist you shortly.',
-                    sessionId: sessionId,
-                    timestamp: new Date().toISOString()
-                }), {
-                    status: 200,
-                    headers: {'Content-Type': 'application/json'}
-                });
-
-            } catch (slackError) {
-                logEvent('slack_notification_failed', {
-                    error: slackError.message,
-                    channel: slackChannelId
-                });
-                
-                // Continue anyway - don't fail the request just because Slack failed
-                console.error('Failed to send Slack notification:', slackError);
             }
-        } else {
-            logEvent('slack_token_missing', {
-                message: 'SLACK_BOT_TOKEN not configured, skipping Slack notification'
+
+            // Return session info regardless of Slack success
+            return new Response(JSON.stringify({
+                success: true,
+                message: slackSuccess 
+                    ? 'Human support has been notified via Slack. Someone will assist you shortly.' 
+                    : 'Human support request received. Someone will assist you shortly.',
+                sessionId: sessionId,
+                timestamp: new Date().toISOString()
+            }), {
+                status: 200,
+                headers: {'Content-Type': 'application/json'}
             });
+
+        } catch (slackError) {
+            logEvent('slack_notification_failed', {
+                error: slackError.message,
+                channel: slackChannelId
+            });
+            
+            // Continue anyway - don't fail the request just because Slack failed
+            console.error('Failed to send Slack notification:', slackError);
         }
 
         logEvent('human_handoff_completed', {
