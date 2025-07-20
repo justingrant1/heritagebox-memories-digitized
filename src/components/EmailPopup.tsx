@@ -17,14 +17,15 @@ const EmailPopup = () => {
     // Check if the user has seen the popup before
     const hasSeenPopup = localStorage.getItem('hasSeenEmailPopup');
     
-    if (!hasSeenPopup) {
+    // Temporarily always show popup for testing
+    // if (!hasSeenPopup) {
       // Wait a moment before showing the popup
       const timer = setTimeout(() => {
         setOpen(true);
       }, 2000);
       
       return () => clearTimeout(timer);
-    }
+    // }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
