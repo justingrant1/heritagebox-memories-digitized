@@ -74,8 +74,10 @@
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
     /* Improve touch responsiveness */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -197,6 +199,13 @@
   .checkout-form {
     position: relative !important;
     z-index: 999999 !important;
+  }
+  
+  /* Ensure dialog components work properly */
+  [data-radix-popper-content-wrapper],
+  [data-radix-dialog-overlay],
+  [data-radix-dialog-content] {
+    z-index: 9999999 !important;
   }
   
   /* Override any third-party widget z-index conflicts */

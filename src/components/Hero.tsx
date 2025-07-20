@@ -123,10 +123,10 @@ const Hero = () => {
         </div>
       </div>
       
-      {/* Enhanced decorative elements */}
-      <div className="absolute top-10 right-10 w-96 h-96 bg-gradient-to-br from-secondary/30 to-rose/20 rounded-full filter blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-10 left-10 w-80 h-80 bg-gradient-to-tr from-primary/20 to-secondary/30 rounded-full filter blur-3xl"></div>
-      <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-rose/20 rounded-full filter blur-2xl"></div>
+      {/* Enhanced decorative elements - Fixed positioning to prevent horizontal scroll */}
+      <div className="absolute top-10 right-0 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-br from-secondary/30 to-rose/20 rounded-full filter blur-3xl animate-pulse -z-10 translate-x-1/3"></div>
+      <div className="absolute bottom-10 left-0 w-48 md:w-80 h-48 md:h-80 bg-gradient-to-tr from-primary/20 to-secondary/30 rounded-full filter blur-3xl -z-10 -translate-x-1/3"></div>
+      <div className="absolute top-1/2 right-1/4 w-24 md:w-32 h-24 md:h-32 bg-rose/20 rounded-full filter blur-2xl -z-10"></div>
     </section>
   );
 };

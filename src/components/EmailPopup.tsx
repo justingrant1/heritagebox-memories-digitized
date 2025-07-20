@@ -69,7 +69,7 @@ const EmailPopup = () => {
       }
       setOpen(currentOpenState);
     }}>
-      <DialogContent className="sm:max-w-md p-4 sm:p-6 mx-4 max-h-[90vh] overflow-y-auto relative">
+      <DialogContent className="sm:max-w-md p-4 sm:p-6 mx-4 max-h-[90vh] overflow-y-auto relative z-[9999999]">
         {/* Close Button - Mobile Optimized */}
         <DialogClose asChild>
           <button
