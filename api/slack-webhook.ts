@@ -1,6 +1,3 @@
-export const config = {
-    runtime: 'edge',
-};
 
 interface SlackEvent {
     type: string;

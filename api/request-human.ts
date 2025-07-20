@@ -1,6 +1,3 @@
-export const config = {
-    runtime: 'edge',
-};
 
 import { WebClient } from '@slack/web-api';
 import { createChatSession } from './slack-webhook';
