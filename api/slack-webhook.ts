@@ -61,27 +61,24 @@ if (Math.random() < 0.1) { // 10% chance on each request
     cleanupOldSessions();
 }
 
-export default async function handler(request: Request) {
+export default async function handler(req, res) {
     logEvent('slack_webhook_received', {
-        method: request.method,
-        url: request.url
+        method: req.method,
+        url: req.url
     });
 
-    if (request.method !== 'POST') {
-        return new Response('Method not allowed', { status: 405 });
+    if (req.method !== 'POST') {
+        return res.status(405).send('Method not allowed');
     }
 
     try {
-        const body = await request.json();
+        const body = req.body;
         logEvent('slack_webhook_payload', { type: body.type });
 
         // Handle URL verification challenge
         if (body.type === 'url_verification') {
             logEvent('slack_url_verification', { challenge: body.challenge });
-            return new Response(body.challenge, {
-                status: 200,
-                headers: { 'Content-Type': 'text/plain' }
-            });
+            return res.status(200).send(body.challenge);
         }
 
         // Handle incoming message events
@@ -95,7 +92,7 @@ export default async function handler(request: Request) {
                     hasThreadTs: !!event.thread_ts,
                     user: event.user
                 });
-                return new Response('OK', { status: 200 });
+                return res.status(200).send('OK');
             }
 
             // Find the session associated with this Slack thread
@@ -137,7 +134,7 @@ export default async function handler(request: Request) {
             }
         }
 
-        return new Response('OK', { status: 200 });
+        return res.status(200).send('OK');
 
     } catch (error) {
         logEvent('slack_webhook_error', {
@@ -145,7 +142,7 @@ export default async function handler(request: Request) {
             stack: error.stack
         });
         
-        return new Response('Internal Server Error', { status: 500 });
+        return res.status(500).send('Internal Server Error');
     }
 }
 
