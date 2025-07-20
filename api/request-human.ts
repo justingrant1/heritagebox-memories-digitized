@@ -1,12 +1,3 @@
-// Helper function for structured logging
-function logEvent(event: string, data: any) {
-    console.log(JSON.stringify({
-        timestamp: new Date().toISOString(),
-        event,
-        ...data
-    }));
-}
-
 // In-memory session storage (in production, use Redis or database)
 interface ChatSession {
     sessionId: string;
@@ -26,11 +17,7 @@ const chatSessions = new Map<string, ChatSession>();
 // Store session by Slack thread ID for reverse lookup
 const slackThreadToSession = new Map<string, string>();
 
-export function getChatSession(sessionId: string): ChatSession | undefined {
-    return chatSessions.get(sessionId);
-}
-
-export function createChatSession(sessionId: string, slackThreadId: string): ChatSession {
+function createChatSession(sessionId: string, slackThreadId: string): ChatSession {
     const session: ChatSession = {
         sessionId,
         slackThreadId,
@@ -45,13 +32,13 @@ export function createChatSession(sessionId: string, slackThreadId: string): Cha
     return session;
 }
 
-export function updateChatSession(sessionId: string, message: any) {
-    const session = chatSessions.get(sessionId);
-    if (session) {
-        session.messages.push(message);
-        session.lastActivity = Date.now();
-        chatSessions.set(sessionId, session);
-    }
+// Helper function for structured logging
+function logEvent(event: string, data: any) {
+    console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        event,
+        ...data
+    }));
 }
 
 export default async function handler(request: Request) {
@@ -108,7 +95,7 @@ export default async function handler(request: Request) {
 
         // Get environment variables
         const slackBotToken = process.env.SLACK_BOT_TOKEN;
-        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
+        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || 'vip-sales';
 
         if (!slackBotToken) {
             logEvent('missing_slack_token', {});
@@ -132,57 +119,70 @@ export default async function handler(request: Request) {
             `Customer Info: ${JSON.stringify(customerInfo, null, 2)}` : 
             'No customer details provided';
 
-        const slackMessage = `🆘 *New Human Support Request* 
-        
-📋 *Session ID:* ${sessionId}
-⏰ *Time:* ${new Date().toLocaleString()}
-🌐 *Website:* ${process.env.SITE_URL || 'heritagebox.com'}
-
-👤 *Customer Details:*
-${customerDetails}
-
-💬 *Conversation History:*
-\`\`\`
-${conversationSummary}
-\`\`\`
-
-Please respond in this thread to continue the conversation with the customer.`;
+        const slackMessage = {
+            channel: slackChannelId.replace('#', ''),
+            text: `🆘 *New Human Support Request*`,
+            blocks: [
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `🆘 *New Human Support Request*\n\n📋 *Session ID:* ${sessionId}\n⏰ *Time:* ${new Date().toLocaleString()}\n🌐 *Website:* ${process.env.SITE_URL || 'heritagebox.com'}`
+                    }
+                },
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn", 
+                        text: `👤 *Customer Details:*\n\`\`\`\n${customerDetails}\n\`\`\``
+                    }
+                },
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `💬 *Conversation History:*\n\`\`\`\n${conversationSummary}\n\`\`\``
+                    }
+                },
+                {
+                    type: "context",
+                    elements: [
+                        {
+                            type: "mrkdwn",
+                            text: "Please respond in this thread to continue the conversation with the customer."
+                        }
+                    ]
+                }
+            ],
+            unfurl_links: false,
+            unfurl_media: false
+        };
 
         try {
-            // Use dynamic import to handle potential module loading issues
-            let WebClient;
-            try {
-                const slackModule = await import('@slack/web-api');
-                WebClient = slackModule.WebClient;
-            } catch (importError) {
-                logEvent('slack_import_error', { error: (importError as Error).message });
-                // Fallback if import fails
-                throw new Error('Slack module not available');
-            }
-
-            const slackClient = new WebClient(slackBotToken);
-            
-            // Remove # from channel name if present
-            const channelName = slackChannelId.replace('#', '');
-            
             logEvent('sending_slack_message', {
-                channel: channelName,
+                channel: slackChannelId,
                 sessionId,
-                messageLength: slackMessage.length
+                messageLength: JSON.stringify(slackMessage).length
             });
 
-            const slackResult = await slackClient.chat.postMessage({
-                channel: channelName,
-                text: slackMessage,
-                unfurl_links: false,
-                unfurl_media: false
+            // Use plain HTTP fetch instead of Slack SDK
+            const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${slackBotToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(slackMessage)
             });
+
+            const slackResult = await slackResponse.json();
 
             logEvent('slack_api_response', {
                 ok: slackResult.ok,
                 error: slackResult.error,
                 channel: slackResult.channel,
-                ts: slackResult.ts
+                ts: slackResult.ts,
+                status: slackResponse.status
             });
 
             if (slackResult.ok && slackResult.ts) {
@@ -197,7 +197,7 @@ Please respond in this thread to continue the conversation with the customer.`;
 
                 return new Response(JSON.stringify({
                     success: true,
-                    message: 'Human support has been notified via Slack. Our team will assist you shortly. You can continue chatting here and our agent will respond directly in this chat.',
+                    message: 'Human support has been notified via Slack! Our team will assist you shortly. You can continue chatting here and our agent will respond directly in this chat.',
                     sessionId: sessionId,
                     timestamp: new Date().toISOString()
                 }), {
