@@ -1,3 +1,6 @@
+export const config = {
+    runtime: 'edge',
+};
 
 interface ChatMessage {
   id: string;
@@ -372,29 +375,37 @@ function formatResponseAsHTML(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-export default async function handler(req, res) {
+export default async function handler(request: Request) {
     logEvent('chat_request_received', {
-        method: req.method,
-        url: req.url
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers.entries())
     });
 
-    if (req.method !== 'POST') {
-        logEvent('method_not_allowed', {method: req.method});
-        return res.status(405).json({success: false, error: 'Method not allowed'});
+    if (request.method !== 'POST') {
+        logEvent('method_not_allowed', {method: request.method});
+        return new Response(JSON.stringify({success: false, error: 'Method not allowed'}), {
+            status: 405,
+            headers: {'Content-Type': 'application/json'}
+        });
     }
 
     try {
-        const { message, sessionId, conversationHistory, humanHandoff }: ChatRequest = req.body;
-        
+        const body = await request.json();
         logEvent('chat_request_body_parsed', {
-            hasMessage: !!message,
-            hasSessionId: !!sessionId,
-            historyLength: conversationHistory?.length || 0
+            hasMessage: !!body.message,
+            hasSessionId: !!body.sessionId,
+            historyLength: body.conversationHistory?.length || 0
         });
+
+        const { message, sessionId, conversationHistory, humanHandoff }: ChatRequest = body;
 
         if (!message || message.trim().length === 0) {
             logEvent('validation_failed', { missingMessage: !message });
-            return res.status(400).json({success: false, error: 'Message is required'});
+            return new Response(JSON.stringify({success: false, error: 'Message is required'}), {
+                status: 400,
+                headers: {'Content-Type': 'application/json'}
+            });
         }
 
         // If in human handoff mode, store the message in the session for agents to see
@@ -417,11 +428,14 @@ export default async function handler(req, res) {
             });
 
             // Return success without AI response
-            return res.status(200).json({
+            return new Response(JSON.stringify({
                 success: true,
                 sessionId: sessionId,
                 timestamp: new Date().toISOString(),
                 message: 'Message sent to human agent'
+            }), {
+                status: 200,
+                headers: {'Content-Type': 'application/json'}
             });
         }
 
@@ -474,11 +488,14 @@ export default async function handler(req, res) {
             timestamp: new Date()
         });
 
-        return res.status(200).json({
+        return new Response(JSON.stringify({
             response: formattedResponse,
             sessionId: sessionId || `session_${Date.now()}`,
             timestamp: new Date().toISOString(),
             success: true
+        }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
         });
 
     } catch (error) {
@@ -488,10 +505,13 @@ export default async function handler(req, res) {
             name: error.name
         });
         
-        return res.status(500).json({
+        return new Response(JSON.stringify({
             response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment or contact our support team directly.",
             error: 'Internal server error',
             success: false
+        }), {
+            status: 500,
+            headers: {'Content-Type': 'application/json'}
         });
     }
 }

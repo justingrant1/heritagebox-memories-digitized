@@ -1,8 +1,11 @@
-// Store active conversations in memory (use Redis/database in production)
-const activeConversations = new Map();
+export const config = {
+    runtime: 'edge',
+};
+
+import { createChatSession } from './slack-webhook';
 
 // Helper function for structured logging
-function logEvent(event, data) {
+function logEvent(event: string, data: any) {
     console.log(JSON.stringify({
         timestamp: new Date().toISOString(),
         event,
@@ -10,208 +13,235 @@ function logEvent(event, data) {
     }));
 }
 
-/**
- * POST /api/request-human
- * Initiates human handoff process
- */
-export default async function handler(req, res) {
-    // Wrap everything in try-catch to prevent any unhandled errors
+export default async function handler(request: Request) {
+    logEvent('human_handoff_request_received', {
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers.entries())
+    });
+
+    if (request.method !== 'POST') {
+        logEvent('method_not_allowed', {method: request.method});
+        return new Response(JSON.stringify({success: false, error: 'Method not allowed'}), {
+            status: 405,
+            headers: {'Content-Type': 'application/json'}
+        });
+    }
+
     try {
-        // Set CORS headers
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        
-        // Handle preflight requests
-        if (req.method === 'OPTIONS') {
-            return res.status(200).end();
-        }
-
-        // Only allow POST requests
-        if (req.method !== 'POST') {
-            return res.status(405).json({
-                success: false,
-                message: 'Method not allowed'
-            });
-        }
-
-        // Ensure we have a request body
-        if (!req.body) {
-            return res.status(400).json({
-                success: false,
-                message: 'Request body is required'
-            });
-        }
-
-        const { 
-            customerName, 
-            customerEmail, 
-            customerPhone,
-            messages: chatHistory, 
-            urgency = 'medium',
-            sessionId 
-        } = req.body;
-
-        // Generate unique conversation ID
-        const conversationId = `HB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Log the request for debugging
-        logEvent('human_handoff_request', {
-            conversationId,
-            customerName: customerName || 'Not provided',
-            hasEmail: !!customerEmail,
-            hasPhone: !!customerPhone,
-            urgency,
-            sessionId: sessionId || 'Not provided'
+        const body = await request.json();
+        logEvent('human_handoff_body_parsed', {
+            hasMessages: !!body.messages,
+            messageCount: body.messages?.length || 0
         });
-        
-        // Get environment variables
-        const slackBotToken = process.env.SLACK_BOT_TOKEN;
-        const VIP_CHANNEL = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
 
-        if (!slackBotToken) {
-            logEvent('missing_slack_token', { conversationId });
-            return res.status(200).json({
-                success: true,
-                conversationId,
-                message: "Your request has been received. Our support team will contact you shortly.",
-                estimatedWaitTime: "2-5 minutes"
+        const { messages, customerInfo, sessionId } = body;
+        
+        if (!sessionId) {
+            logEvent('validation_failed', { missingSessionId: true });
+            return new Response(JSON.stringify({
+                success: false, 
+                error: 'Session ID is required'
+            }), {
+                status: 400,
+                headers: {'Content-Type': 'application/json'}
             });
         }
 
-        // Create rich message for Slack
-        const slackMessage: any = {
-            channel: VIP_CHANNEL.replace('#', ''),
-            text: `🆘 Customer requesting human assistance`,
-            blocks: [
-                {
-                    type: "header",
-                    text: {
-                        type: "plain_text",
-                        text: "🆘 Customer Needs Human Help"
-                    }
-                },
-                {
-                    type: "section",
-                    fields: [
-                        {
-                            type: "mrkdwn",
-                            text: `*Customer:* ${customerName || 'Not provided'}`
-                        },
-                        {
-                            type: "mrkdwn", 
-                            text: `*Email:* ${customerEmail || 'Not provided'}`
-                        },
-                        {
-                            type: "mrkdwn",
-                            text: `*Phone:* ${customerPhone || 'Not provided'}`
-                        },
-                        {
-                            type: "mrkdwn",
-                            text: `*Urgency:* ${urgency.toUpperCase()}`
-                        },
-                        {
-                            type: "mrkdwn",
-                            text: `*Conversation ID:* \`${conversationId}\``
-                        },
-                        {
-                            type: "mrkdwn",
-                            text: `*Time:* ${new Date().toLocaleString()}`
-                        }
-                    ]
-                }
-            ]
-        };
+        // Format the conversation for Slack
+        let conversationSummary = "🚨 **Customer Requesting Human Support**\n\n";
+        
+        if (customerInfo) {
+            conversationSummary += `**Customer Info:**\n`;
+            conversationSummary += `• Email: ${customerInfo.email || 'Not provided'}\n`;
+            conversationSummary += `• Name: ${customerInfo.name || 'Not provided'}\n`;
+            conversationSummary += `• Phone: ${customerInfo.phone || 'Not provided'}\n\n`;
+        }
 
-        // Add chat history if available
-        if (chatHistory && chatHistory.length > 0) {
-            const historyText = chatHistory
-                .slice(-5) // Last 5 messages
-                .map(msg => `*${msg.sender}:* ${msg.content}`)
-                .join('\n');
+        conversationSummary += `**Recent Conversation:**\n`;
+        
+        if (messages && messages.length > 0) {
+            // Show last 5 messages
+            const recentMessages = messages.slice(-5);
+            recentMessages.forEach((msg, index) => {
+                const sender = msg.sender === 'user' ? '👤 Customer' : '🤖 AI Bot';
+                const content = msg.content.length > 150 ? msg.content.substring(0, 150) + '...' : msg.content;
+                conversationSummary += `${sender}: ${content}\n\n`;
+            });
+        } else {
+            conversationSummary += "No conversation history available.\n\n";
+        }
+
+        conversationSummary += `**Time:** ${new Date().toLocaleString()}\n`;
+        conversationSummary += `**Action Required:** Please respond to customer on website chat or reach out directly.\n`;
+        conversationSummary += `**Website:** ${process.env.SITE_URL || 'https://heritagebox.com'}`;
+
+        // Send to Slack using MCP Server for more reliable delivery
+        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
+        
+        logEvent('sending_slack_notification', {
+            channel: slackChannelId,
+            messageLength: conversationSummary.length
+        });
+
+        try {
+            // Use a more direct approach for Edge runtime compatibility
+            const slackMessage = `🚨 **Customer Requesting Human Support**
+
+**Customer Info:**
+• Email: ${customerInfo?.email || 'Not provided'}
+• Name: ${customerInfo?.name || 'Not provided'} 
+• Phone: ${customerInfo?.phone || 'Not provided'}
+
+**Recent Conversation:**
+${messages && messages.length > 0 
+    ? messages.slice(-3).map(msg => {
+        const sender = msg.sender === 'user' ? '👤 Customer' : '🤖 Bot';
+        const content = msg.content.length > 200 ? msg.content.substring(0, 200) + '...' : msg.content;
+        return `${sender}: ${content}`;
+    }).join('\n\n')
+    : 'No conversation history available'
+}
+
+**Time:** ${new Date().toLocaleString()}
+**Action Required:** Please respond to customer on website chat or reach out directly.
+**Website:** ${process.env.SITE_URL || 'https://heritagebox.com'}`;
+
+            // Try to send to Slack and create chat session
+            let slackSuccess = false;
+            let slackThreadId = null;
             
-            slackMessage.blocks.push({
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `*Recent Chat History:*\n${historyText}`
+            // For Edge runtime, we'll use the Slack Bot API directly
+            const slackBotToken = process.env.SLACK_BOT_TOKEN;
+            
+            if (slackBotToken) {
+                const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${slackBotToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        channel: slackChannelId.replace('#', ''),
+                        text: slackMessage,
+                        unfurl_links: false,
+                        unfurl_media: false
+                    })
+                });
+
+                const slackResult = await slackResponse.json();
+                
+                if (slackResult.ok) {
+                    slackSuccess = true;
+                    slackThreadId = slackResult.ts; // This is the thread timestamp we need!
+                    
+                    logEvent('slack_notification_sent', {
+                        success: true,
+                        messageTs: slackResult.ts,
+                        channel: slackResult.channel,
+                        sessionId
+                    });
+
+                    // Create the chat session with the Slack thread ID
+                    if (slackThreadId) {
+                        try {
+                            const chatSession = createChatSession(sessionId, slackThreadId);
+                            
+                            // Add all the existing conversation messages to the session
+                            if (messages && messages.length > 0) {
+                                messages.forEach((msg, index) => {
+                                    const sessionMessage = {
+                                        id: `msg_${index}_${Date.now()}`,
+                                        content: msg.content,
+                                        sender: msg.sender,
+                                        timestamp: new Date(msg.timestamp || new Date())
+                                    };
+                                    chatSession.messages.push(sessionMessage);
+                                });
+                            }
+
+                            // Add customer info to session if available
+                            if (customerInfo) {
+                                chatSession.userId = customerInfo.email || customerInfo.phone || 'anonymous';
+                            }
+
+                            logEvent('chat_session_created_successfully', {
+                                sessionId,
+                                slackThreadId,
+                                messageCount: chatSession.messages.length
+                            });
+
+                        } catch (sessionError) {
+                            logEvent('chat_session_creation_failed', {
+                                sessionId,
+                                slackThreadId,
+                                error: sessionError.message
+                            });
+                            // Continue anyway - the Slack message was sent successfully
+                        }
+                    } else {
+                        logEvent('no_slack_thread_id', {
+                            sessionId,
+                            message: 'Slack message sent but no thread ID received'
+                        });
+                    }
+                    
+                } else {
+                    throw new Error(`Slack API error: ${slackResult.error}`);
                 }
+            }
+
+            // Return session info regardless of Slack success
+            return new Response(JSON.stringify({
+                success: true,
+                message: slackSuccess 
+                    ? 'Human support has been notified via Slack. Someone will assist you shortly.' 
+                    : 'Human support request received. Someone will assist you shortly.',
+                sessionId: sessionId,
+                timestamp: new Date().toISOString()
+            }), {
+                status: 200,
+                headers: {'Content-Type': 'application/json'}
             });
+
+        } catch (slackError) {
+            logEvent('slack_notification_failed', {
+                error: slackError.message,
+                channel: slackChannelId
+            });
+            
+            // Continue anyway - don't fail the request just because Slack failed
+            console.error('Failed to send Slack notification:', slackError);
         }
 
-        // Add action buttons
-        slackMessage.blocks.push({
-            type: "actions",
-            elements: [
-                {
-                    type: "button",
-                    text: {
-                        type: "plain_text",
-                        text: "Take This Customer"
-                    },
-                    style: "primary",
-                    action_id: "take_customer",
-                    value: conversationId
-                },
-                {
-                    type: "button", 
-                    text: {
-                        type: "plain_text",
-                        text: "Mark as Handled"
-                    },
-                    action_id: "mark_handled",
-                    value: conversationId
-                }
-            ]
-        });
-
-        // Send message to Slack using fetch
-        const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${slackBotToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(slackMessage)
-        });
-
-        const slackResult = await slackResponse.json();
-        
-        // Store conversation data
-        activeConversations.set(conversationId, {
-            customerName,
-            customerEmail, 
-            customerPhone,
-            chatHistory,
-            sessionId,
-            slackMessageTs: slackResult.ts,
-            slackChannel: slackResult.channel,
-            status: 'waiting',
-            createdAt: new Date(),
-            assignedAgent: null
-        });
-
-        logEvent('human_handoff_created', {
-            conversationId,
-            customerName,
-            customerEmail,
-            slackOk: slackResult.ok
-        });
-
-        res.json({
+        logEvent('human_handoff_completed', {
             success: true,
-            conversationId,
-            message: "Your request has been sent to our team. A human agent will be with you shortly.",
-            estimatedWaitTime: "2-5 minutes"
+            channel: slackChannelId
+        });
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: 'Human support has been notified. Someone will assist you shortly.',
+            timestamp: new Date().toISOString()
+        }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
         });
 
     } catch (error) {
-        console.error('Human handoff error:', error);
-        logEvent('human_handoff_error', { error: error.message });
+        logEvent('human_handoff_error', {
+            error: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         
-        res.status(500).json({
+        return new Response(JSON.stringify({
             success: false,
-            message: "Sorry, we're having trouble connecting you to an agent. Please try again or call us directly."
+            error: 'Unable to connect to human support at this time',
+            message: 'Please try again in a moment or contact us directly at support@heritagebox.com'
+        }), {
+            status: 500,
+            headers: {'Content-Type': 'application/json'}
         });
     }
 }

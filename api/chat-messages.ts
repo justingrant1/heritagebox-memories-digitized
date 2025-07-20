@@ -1,4 +1,6 @@
-
+export const config = {
+    runtime: 'edge',
+};
 
 import { getChatSession } from './slack-webhook';
 
@@ -15,39 +17,50 @@ function logEvent(event: string, data: any) {
     }));
 }
 
-export default async function handler(req, res) {
+export default async function handler(request: Request) {
     logEvent('chat_messages_request_received', {
-        method: req.method,
-        url: req.url
+        method: request.method,
+        url: request.url
     });
 
-    if (req.method !== 'GET') {
-        return res.status(405).json({
+    if (request.method !== 'GET') {
+        return new Response(JSON.stringify({
             success: false, 
             error: 'Method not allowed'
+        }), {
+            status: 405,
+            headers: {'Content-Type': 'application/json'}
         });
     }
 
     try {
-        const { sessionId, lastMessageId } = req.query;
+        const url = new URL(request.url);
+        const sessionId = url.searchParams.get('sessionId');
+        const lastMessageId = url.searchParams.get('lastMessageId');
 
         if (!sessionId) {
             logEvent('validation_failed', { missingSessionId: true });
-            return res.status(400).json({
+            return new Response(JSON.stringify({
                 success: false, 
                 error: 'Session ID is required'
+            }), {
+                status: 400,
+                headers: {'Content-Type': 'application/json'}
             });
         }
 
         // Get the chat session
-        const session = getChatSession(sessionId as string);
+        const session = getChatSession(sessionId);
         
         if (!session) {
             logEvent('session_not_found', { sessionId });
-            return res.status(200).json({
+            return new Response(JSON.stringify({
                 success: true,
                 messages: [],
                 sessionExists: false
+            }), {
+                status: 200,
+                headers: {'Content-Type': 'application/json'}
             });
         }
 
@@ -71,7 +84,7 @@ export default async function handler(req, res) {
             lastMessageId
         });
 
-        return res.status(200).json({
+        return new Response(JSON.stringify({
             success: true,
             messages: newMessages.map(msg => ({
                 id: msg.id,
@@ -81,6 +94,9 @@ export default async function handler(req, res) {
             })),
             sessionExists: true,
             lastActivity: new Date(session.lastActivity).toISOString()
+        }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
         });
 
     } catch (error) {
@@ -89,9 +105,12 @@ export default async function handler(req, res) {
             stack: error.stack
         });
         
-        return res.status(500).json({
+        return new Response(JSON.stringify({
             success: false,
             error: 'Internal server error'
+        }), {
+            status: 500,
+            headers: {'Content-Type': 'application/json'}
         });
     }
 }

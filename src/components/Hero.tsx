@@ -82,7 +82,7 @@ const Hero = () => {
                     alt="Family gathered around TV watching digitized memories from HeritageBox conversion service" 
                     className="object-cover w-full h-full"
                     loading="eager" 
-                    fetchpriority="high"
+                    fetchPriority="high"
                   />
                 </AspectRatio>
               </div>
