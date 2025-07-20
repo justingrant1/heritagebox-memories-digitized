@@ -84,7 +84,7 @@ Turnaround times:
     return result.content[0].text;
   } catch (error) {
     console.error('Claude API Error:', error);
-    return getFallbackResponse();
+    throw error; // Re-throw so we can handle it with message context in the main handler
   }
 }
 
@@ -110,7 +110,77 @@ async function checkOrderStatus(query: string) {
   }
 }
 
-function getFallbackResponse(): string {
+function getFallbackResponse(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('photo') || lowerMessage.includes('picture') || lowerMessage.includes('scan')) {
+    return `📸 **Photo Digitization Pricing:**
+
+• Standard photos: $0.50 each
+• Large photos (8x10+): $1.00 each  
+• Slides/negatives: $0.75 each
+• Bulk discounts available for 500+ items
+
+All photos are scanned at 600 DPI with color correction included. Would you like me to create a custom quote for your collection?`;
+  }
+  
+  if (lowerMessage.includes('video') || lowerMessage.includes('tape') || lowerMessage.includes('film')) {
+    return `🎬 **Video Transfer Options:**
+
+• VHS/VHS-C: $25 per tape
+• 8mm/Hi8/Digital8: $30 per tape
+• MiniDV: $20 per tape  
+• Film reels (8mm/16mm): $40-80 per reel
+
+Includes digital cleanup and DVD/digital file delivery. What type of tapes do you have?`;
+  }
+  
+  if (lowerMessage.includes('order') || lowerMessage.includes('status') || lowerMessage.includes('project')) {
+    return `📦 I can check your order status! I'll need either:
+
+• Your order number
+• Email address used for the order
+• Last name + phone number
+
+Once you provide this information, I'll instantly access your project details from our system and provide live updates, estimated completion dates, and tracking information.`;
+  }
+  
+  if (lowerMessage.includes('time') || lowerMessage.includes('how long') || lowerMessage.includes('turnaround')) {
+    return `⏱️ **Current Turnaround Times:**
+
+• Photos: 5-7 business days
+• Videos: 10-14 business days  
+• Large projects (1000+ items): 3-4 weeks
+• Rush service: +50% fee, 2-3 days
+
+These are live estimates based on our current queue. Would you like rush processing?`;
+  }
+  
+  if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('quote')) {
+    return `💰 I can provide instant pricing! Tell me more about your project:
+
+• What type of media? (photos, videos, slides, etc.)
+• Approximately how many items?
+• Any special requirements?
+
+I'll calculate a custom quote with our current pricing and any applicable discounts.`;
+  }
+  
+  if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+    return `Hello! I'm Helena, your Heritagebox AI assistant. Great to meet you! 👋
+
+I'm here to help with all your media digitization needs:
+
+📸 Photo & slide scanning
+🎬 Video & film transfer  
+💰 Pricing & quotes
+📦 Order status & tracking
+⏱️ Turnaround times
+
+What can I help you with today?`;
+  }
+  
+  // Default response
   return `Thanks for your message! I'm Helena, your Heritagebox AI assistant. I can help with:
 
 📸 Photo & slide scanning pricing
@@ -202,7 +272,7 @@ export default async function handler(request: Request) {
                 error: error.message,
                 fallbackUsed: true 
             });
-            responseText = getFallbackResponse();
+            responseText = getFallbackResponse(message);
         }
 
         // Format the response

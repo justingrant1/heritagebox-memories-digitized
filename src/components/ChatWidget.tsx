@@ -292,14 +292,15 @@ What specific information can I help you with today?`;
             {messages.map((message) => (
               <div key={message.id} className="mb-4">
                 <div
-                  className={`max-w-[85%] p-3 rounded-2xl whitespace-pre-line ${
+                  className={`max-w-[85%] p-3 rounded-2xl ${
                     message.sender === 'user'
                       ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto rounded-br-sm'
                       : 'bg-white text-gray-800 shadow-sm rounded-bl-sm'
                   }`}
-                >
-                  {message.content}
-                </div>
+                  dangerouslySetInnerHTML={{ 
+                    __html: message.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                  }}
+                />
               </div>
             ))}
 
