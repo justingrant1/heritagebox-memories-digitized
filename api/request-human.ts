@@ -146,7 +146,8 @@ ${messages && messages.length > 0
         } catch (slackError) {
             logEvent('slack_notification_failed', {
                 error: slackError.message,
-                channel: slackChannelId
+                channel: slackChannelId,
+                stack: slackError.stack
             });
             console.error('Failed to send Slack notification:', slackError);
         }
