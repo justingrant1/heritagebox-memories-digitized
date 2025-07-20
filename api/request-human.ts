@@ -1,7 +1,4 @@
 
-import { WebClient } from '@slack/web-api';
-import { createChatSession } from './slack-webhook';
-
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
     console.log(JSON.stringify({
@@ -101,6 +98,10 @@ export default async function handler(request: Request) {
         });
 
         try {
+            // Dynamic import to handle module loading issues
+            const { WebClient } = await import('@slack/web-api');
+            const { createChatSession } = await import('./slack-webhook');
+            
             const slackClient = new WebClient(slackBotToken);
             
             // Remove # from channel name if present, as Slack API expects just the name
