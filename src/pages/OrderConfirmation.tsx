@@ -66,16 +66,14 @@ const OrderConfirmation = () => {
     }
   };
 
-  // Track Google Ads conversion
+  // Track Google Ads conversion (Page Load tracking)
   useEffect(() => {
     if (conversionTracked) return;
 
     // Fire the conversion event
     if (window.gtag) {
       window.gtag('event', 'conversion', {
-        'send_to': 'AW-458259403/prjPCLyM9_QCEMv3wdoB',
-        'value': 50.0,
-        'currency': 'USD',
+        'send_to': 'AW-754907361/hOtZCNj4iMMBEOHx--cC',
         'transaction_id': orderNumber
       });
       
