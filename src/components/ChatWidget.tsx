@@ -133,7 +133,26 @@ What would you like to know?`,
         }),
       });
 
-      const result = await response.json();
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Check if response is OK before trying to parse JSON
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error('API Error Response:', responseText);
+        throw new Error(`API returned ${response.status}: ${responseText.substring(0, 200)}`);
+      }
+
+      // Try to parse JSON, but handle cases where it's not JSON
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText.substring(0, 500));
+        result = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('JSON Parse Error:', jsonError);
+        throw new Error(`Server returned invalid JSON response. This usually means there's a server configuration issue.`);
+      }
       
       if (result.success) {
         // If in human handoff mode, don't expect an AI response
@@ -149,10 +168,10 @@ What would you like to know?`,
         }
         // If human handoff, the message was stored in session for agents to see
       } else {
-        // Fallback response if API fails
+        // API returned an error in the result
         const errorResponse: Message = {
           id: `bot_${Date.now()}`,
-          content: "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment or contact our support team directly.",
+          content: `❌ **API Error**<br><br>${result.error || 'Unknown API error'}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
           sender: 'bot',
           timestamp: new Date()
         };
