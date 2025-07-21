@@ -92,6 +92,7 @@ export default async function handler(request: Request) {
                 sender: msg.sender,
                 timestamp: msg.timestamp.toISOString()
             })),
+            debugLog: session.debugLog, // Send debug logs to the client
             sessionExists: true,
             lastActivity: new Date(session.lastActivity).toISOString()
         }), {

@@ -3,6 +3,18 @@ let sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)
 let isTyping = false;
 let humanHandoff = false;
 let pollingInterval = null;
+let lastDebugCount = 0;
+
+function addDebugMessage(content) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message debug';
+    
+    messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
 function toggleChat() {
     const chatWindow = document.getElementById('chatWindow');
@@ -43,23 +55,26 @@ function startPolling() {
             
             const result = await response.json();
             
-            if (result.success && result.messages && result.messages.length > 0) {
-                // Get current message IDs in the UI
-                const messagesContainer = document.getElementById('chatMessages');
-                const currentMessages = Array.from(messagesContainer.querySelectorAll('.message')).map(msg => msg.dataset.messageId);
-                
-                // Find new agent messages
-                const newMessages = result.messages.filter(msg => 
-                    msg.sender === 'agent' && !currentMessages.includes(msg.id)
-                );
-                
-                // Add new messages to UI
-                newMessages.forEach(msg => {
-                    addMessage(msg.content, 'bot', msg.id);
-                });
-                
-                if (newMessages.length > 0) {
-                    console.log('Added new agent messages:', newMessages.length);
+            if (result.success) {
+                // Display new agent messages
+                if (result.messages && result.messages.length > 0) {
+                    const messagesContainer = document.getElementById('chatMessages');
+                    const currentMessages = Array.from(messagesContainer.querySelectorAll('.message')).map(msg => msg.dataset.messageId);
+                    
+                    const newMessages = result.messages.filter(msg => 
+                        msg.sender === 'agent' && !currentMessages.includes(msg.id)
+                    );
+                    
+                    newMessages.forEach(msg => {
+                        addMessage(msg.content, 'bot', msg.id);
+                    });
+                }
+
+                // Display new debug logs
+                if (result.debugLog && result.debugLog.length > lastDebugCount) {
+                    const newLogs = result.debugLog.slice(lastDebugCount);
+                    newLogs.forEach(log => addDebugMessage(log));
+                    lastDebugCount = result.debugLog.length;
                 }
             }
         } catch (error) {
