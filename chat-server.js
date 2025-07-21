@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { Anthropic } = require('@anthropic-ai/sdk');
+const Airtable = require('airtable');
 require('dotenv').config();
 
 const app = express();
@@ -15,19 +16,167 @@ const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY,
 });
 
+// Airtable configuration
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || 'appFMHAYZrTskpmdX';
+
+// Table IDs
+const TABLES = {
+  CUSTOMERS: 'tblUS7uf11axEmL56',
+  PRODUCTS: 'tblJ0hgzvDXWgQGmK',
+  ORDERS: 'tblTq25QawVDHTTkV',
+  ORDER_ITEMS: 'tblgV4XGeQE3VL9CW'
+};
+
+// Initialize Airtable
+let base = null;
+if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID) {
+  try {
+    base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(AIRTABLE_BASE_ID);
+    console.log('✅ AIRTABLE - Connected successfully');
+  } catch (error) {
+    console.warn('⚠️ AIRTABLE WARNING - Failed to initialize:', error);
+  }
+} else {
+  console.warn('⚠️ AIRTABLE WARNING - Missing API key or Base ID. Chatbot will use fallback pricing.');
+}
+
 // Simple in-memory session storage
 const sessions = new Map();
 
-// Heritagebox-specific prompt
-const SYSTEM_PROMPT = `You are a helpful AI assistant for Heritagebox, a professional media digitization company. You help customers with:
+// Cache for product data (refreshed every 5 minutes)
+let productsCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-- Photo digitization pricing and services
-- Video transfer options and pricing  
-- Order status inquiries
-- Turnaround times and scheduling
-- General questions about digitization services
+// Function to fetch products from Airtable
+const fetchProducts = async () => {
+  if (!base) {
+    console.warn('⚠️ AIRTABLE - Cannot fetch products, using fallback data');
+    return null;
+  }
 
-Key pricing info:
+  try {
+    console.log('📊 AIRTABLE - Fetching current product data...');
+    const records = await base(TABLES.PRODUCTS).select({
+      sort: [{ field: 'Price', direction: 'asc' }]
+    }).all();
+
+    const products = records.map(record => ({
+      id: record.id,
+      name: record.get('Product Name') || 'Unknown Product',
+      description: record.get('Description') || '',
+      price: record.get('Price') || 0,
+      sku: record.get('SKU') || '',
+      stockQuantity: record.get('Stock Quantity') || 0,
+      category: record.get('Category') || 'General',
+      features: record.get('Features') || ''
+    }));
+
+    console.log(`✅ AIRTABLE - Fetched ${products.length} products successfully`);
+    return products;
+  } catch (error) {
+    console.error('❌ AIRTABLE ERROR - Failed to fetch products:', error);
+    return null;
+  }
+};
+
+// Function to get cached or fresh product data
+const getProducts = async () => {
+  const now = Date.now();
+  
+  // Check if we have fresh cached data
+  if (productsCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
+    console.log('📊 AIRTABLE - Using cached product data');
+    return productsCache;
+  }
+
+  // Fetch fresh data
+  const freshProducts = await fetchProducts();
+  if (freshProducts) {
+    productsCache = freshProducts;
+    cacheTimestamp = now;
+    console.log('📊 AIRTABLE - Product cache updated');
+    return freshProducts;
+  }
+
+  // Return cached data if available, even if stale
+  if (productsCache) {
+    console.log('⚠️ AIRTABLE - Using stale cached data');
+    return productsCache;
+  }
+
+  return null;
+};
+
+// Function to generate dynamic system prompt with current pricing
+const generateSystemPrompt = async () => {
+  const products = await getProducts();
+  
+  let pricingInfo = '';
+  if (products && products.length > 0) {
+    // Organize products by category for better presentation
+    const packages = products.filter(p => p.category === 'Package' || p.name.includes('Package') || 
+      p.name.includes('Starter') || p.name.includes('Popular') || p.name.includes('Dusty Rose') || p.name.includes('Eternal'));
+    
+    const addOns = products.filter(p => p.category === 'Add-on' || p.name.includes('Add-on'));
+    const services = products.filter(p => p.category === 'Service' || p.name.includes('Speed'));
+
+    if (packages.length > 0) {
+      pricingInfo += '\n📦 CURRENT DIGITIZATION PACKAGES:\n';
+      packages.forEach(product => {
+        pricingInfo += `- ${product.name}: $${product.price}`;
+        if (product.features) {
+          pricingInfo += ` (${product.features})`;
+        }
+        if (product.description && product.description !== product.name) {
+          pricingInfo += ` - ${product.description}`;
+        }
+        pricingInfo += '\n';
+      });
+    }
+
+    if (addOns.length > 0) {
+      pricingInfo += '\n🔧 ADD-ON SERVICES:\n';
+      addOns.forEach(product => {
+        pricingInfo += `- ${product.name}: $${product.price}`;
+        if (product.description) {
+          pricingInfo += ` - ${product.description}`;
+        }
+        pricingInfo += '\n';
+      });
+    }
+
+    if (services.length > 0) {
+      pricingInfo += '\n⚡ SPEED OPTIONS:\n';
+      services.forEach(product => {
+        pricingInfo += `- ${product.name}: $${product.price}`;
+        if (product.description) {
+          pricingInfo += ` - ${product.description}`;
+        }
+        pricingInfo += '\n';
+      });
+    }
+
+    // Add any remaining products
+    const otherProducts = products.filter(p => 
+      !packages.includes(p) && !addOns.includes(p) && !services.includes(p));
+    if (otherProducts.length > 0) {
+      pricingInfo += '\n📋 OTHER SERVICES:\n';
+      otherProducts.forEach(product => {
+        pricingInfo += `- ${product.name}: $${product.price}`;
+        if (product.description) {
+          pricingInfo += ` - ${product.description}`;
+        }
+        pricingInfo += '\n';
+      });
+    }
+
+    pricingInfo += '\n💡 NOTE: All pricing is current as of today. Packages may include multiple services and bulk discounts.\n';
+  } else {
+    // Fallback pricing if Airtable is unavailable
+    pricingInfo = `
+📦 FALLBACK PRICING (Airtable unavailable):
 - Standard photos: $0.50 each
 - Large photos (8x10+): $1.00 each
 - Slides/negatives: $0.75 each
@@ -36,13 +185,35 @@ Key pricing info:
 - MiniDV: $20 per tape
 - Film reels (8mm/16mm): $40-80 per reel
 
-Current turnaround times:
-- Photos: 5-7 business days
-- Videos: 10-14 business days
-- Large projects: 3-4 weeks
-- Rush service available: +50% fee, 2-3 days
+⚠️ Note: Please check our website for most current pricing.
+`;
+  }
 
-Be helpful, professional, and concise. If you need specific customer information for order status, ask for order number, email, or name + phone.`;
+  return `You are a helpful AI assistant for Heritagebox, a professional media digitization company. You help customers with:
+
+- Photo digitization pricing and services
+- Video transfer options and pricing  
+- Order status inquiries
+- Turnaround times and scheduling
+- General questions about digitization services
+
+${pricingInfo}
+
+Current turnaround times:
+- Standard processing: 2-3 weeks
+- Express processing: 1 week (+$50)
+- Rush processing: 3-5 days (+$100)
+- Large projects may take longer
+
+IMPORTANT INSTRUCTIONS:
+- Always use the current pricing information provided above
+- When customers ask about packages, explain our main offerings: Starter, Popular, Dusty Rose, and Eternal packages
+- Mention that we offer various add-ons like USB drives, online galleries, photo restoration, etc.
+- For specific order status, ask for order number, email, or customer details
+- Be helpful, professional, and encourage customers to visit our website for full package details
+
+If pricing information seems unavailable, direct customers to check our website or contact us directly for the most current rates.`;
+};
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -76,11 +247,14 @@ app.post('/chat', async (req, res) => {
 
     console.log(`Processing message for session ${sessionId}: ${message.substring(0, 100)}...`);
 
+    // Generate dynamic system prompt with current Airtable data
+    const systemPrompt = await generateSystemPrompt();
+
     // Call Claude AI
     const response = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: 1000,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: recentMessages
     });
 
