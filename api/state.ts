@@ -27,13 +27,19 @@ function logEvent(event: string, data: any) {
 
 // Export functions to manage the shared state
 export function getChatSession(sessionId: string): ChatSession | undefined {
+    logEvent('get_chat_session_called', { sessionId, found: chatSessions.has(sessionId) });
     return chatSessions.get(sessionId);
 }
 
 export function getSessionBySlackThread(thread_ts: string): ChatSession | undefined {
     const sessionId = slackThreadToSession.get(thread_ts);
+    logEvent('get_session_by_slack_thread_called', { 
+        thread_ts, 
+        foundSessionId: sessionId,
+        map: Array.from(slackThreadToSession.entries()) 
+    });
     if (sessionId) {
-        return chatSessions.get(sessionId);
+        return getChatSession(sessionId);
     }
     return undefined;
 }
@@ -49,16 +55,25 @@ export function createChatSession(sessionId: string, slackThreadId: string): Cha
     chatSessions.set(sessionId, session);
     slackThreadToSession.set(slackThreadId, sessionId);
     
-    logEvent('chat_session_created', { sessionId, slackThreadId, mapSize: chatSessions.size });
+    logEvent('chat_session_created', { 
+        sessionId, 
+        slackThreadId, 
+        sessionMapSize: chatSessions.size,
+        threadMapSize: slackThreadToSession.size
+    });
     return session;
 }
 
 export function addMessageToSession(sessionId: string, message: any) {
-    const session = chatSessions.get(sessionId);
+    const session = getChatSession(sessionId);
     if (session) {
         session.messages.push(message);
         session.lastActivity = Date.now();
-        logEvent('message_added_to_session', { sessionId, messageId: message.id });
+        logEvent('message_added_to_session', { 
+            sessionId, 
+            messageId: message.id,
+            newMessageCount: session.messages.length
+        });
     } else {
         logEvent('add_message_failed_session_not_found', { sessionId });
     }
