@@ -54,6 +54,7 @@ function startPolling() {
             const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
             
             const result = await response.json();
+            console.log('Polling API response:', result); // Add this for debugging
             
             if (result.success) {
                 // Display new agent messages
@@ -65,8 +66,10 @@ function startPolling() {
                         msg.sender === 'agent' && !currentMessages.includes(msg.id)
                     );
                     
+                    console.log(`Found ${newMessages.length} new agent messages.`); // Add this for debugging
+
                     newMessages.forEach(msg => {
-                        addMessage(msg.content, 'bot', msg.id);
+                        addMessage(msg.content, 'agent', msg.id);
                     });
                 }
 
