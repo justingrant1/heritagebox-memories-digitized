@@ -2,22 +2,30 @@ export const config = {
     runtime: 'edge',
 };
 
-// Square Catalog Product Mapping
+// Square Catalog Product Mapping - Production IDs (update these with your actual production catalog IDs)
 const SQUARE_CATALOG_MAPPING = {
   packages: {
-    'Starter': 'GNQP4YZH57MGVR265N4QA7QH',
-    'Popular': 'MXDI5KGKHQE2G7MVWPGJWZIS', 
-    'Dusty Rose': 'GKIADSF5IJQEAAKCIL2WXZEK',
-    'Eternal': 'X2N4DL3YZBKJYAICCVYMSJ6Y'
+    'Starter': null, // Update with production catalog ID
+    'Popular': null, // Update with production catalog ID
+    'Dusty Rose': null, // Update with production catalog ID
+    'Eternal': null // Update with production catalog ID
   },
   addons: {
-    'Custom USB Drive': 'SMW4WXZUAE6E5L3FTS76NC7Y',
-    'Online Gallery & Backup': 'YJ3AGBF7MRHW2QQ6KI5DMSPG'
+    'Custom USB Drive': null, // Update with production catalog ID
+    'Online Gallery & Backup': null // Update with production catalog ID
   },
   services: {
-    'expedited': '37LXAW3CQ7ONF7AGNCYDWRRT',
-    'rush': 'HSMOF4CINCKHVWUPCEN5ZBOU'
+    'expedited': null, // Update with production catalog ID
+    'rush': null // Update with production catalog ID
   }
+};
+
+// Package pricing for manual line items (when catalog IDs not available)
+const PACKAGE_PRICING = {
+  'Starter': 99,
+  'Popular': 199,
+  'Dusty Rose': 299,
+  'Eternal': 499
 };
 
 // Helper function for structured logging
