@@ -1,6 +1,3 @@
-export const config = {
-    runtime: 'edge',
-};
 
 // Square Catalog Product Mapping
 const SQUARE_CATALOG_MAPPING = {
