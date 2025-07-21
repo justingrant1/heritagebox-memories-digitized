@@ -142,7 +142,24 @@ export default async function handler(request: Request) {
                 })
             });
 
-            const searchResult = await searchCustomerResponse.json();
+            let searchResult;
+            try {
+                const responseText = await searchCustomerResponse.text();
+                logEvent('customer_search_response', { 
+                    status: searchCustomerResponse.status, 
+                    responseLength: responseText.length,
+                    responsePreview: responseText.substring(0, 200)
+                });
+                
+                if (!responseText.trim()) {
+                    throw new Error('Empty response from Square customer search API');
+                }
+                
+                searchResult = JSON.parse(responseText);
+            } catch (parseError) {
+                logEvent('customer_search_parse_error', { error: parseError.message });
+                throw new Error(`Failed to parse customer search response: ${parseError.message}`);
+            }
             
             if (searchResult.customers && searchResult.customers.length > 0) {
                 customerId = searchResult.customers[0].id;
@@ -171,7 +188,24 @@ export default async function handler(request: Request) {
                     })
                 });
 
-                const customerResult = await createCustomerResponse.json();
+                let customerResult;
+                try {
+                    const responseText = await createCustomerResponse.text();
+                    logEvent('customer_create_response', { 
+                        status: createCustomerResponse.status, 
+                        responseLength: responseText.length,
+                        responsePreview: responseText.substring(0, 200)
+                    });
+                    
+                    if (!responseText.trim()) {
+                        throw new Error('Empty response from Square customer create API');
+                    }
+                    
+                    customerResult = JSON.parse(responseText);
+                } catch (parseError) {
+                    logEvent('customer_create_parse_error', { error: parseError.message });
+                    throw new Error(`Failed to parse customer create response: ${parseError.message}`);
+                }
                 
                 if (customerResult.customer) {
                     customerId = customerResult.customer.id;
@@ -324,7 +358,25 @@ export default async function handler(request: Request) {
                     })
                 });
 
-                const discountResult = await searchDiscountResponse.json();
+                let discountResult;
+                try {
+                    const responseText = await searchDiscountResponse.text();
+                    logEvent('discount_search_response', { 
+                        status: searchDiscountResponse.status, 
+                        responseLength: responseText.length,
+                        responsePreview: responseText.substring(0, 200)
+                    });
+                    
+                    if (!responseText.trim()) {
+                        throw new Error('Empty response from Square discount search API');
+                    }
+                    
+                    discountResult = JSON.parse(responseText);
+                } catch (parseError) {
+                    logEvent('discount_search_parse_error', { error: parseError.message });
+                    // Don't throw here, just continue without discount
+                    discountResult = { objects: [] };
+                }
                 if (discountResult.objects && discountResult.objects.length > 0) {
                     discounts.push({
                         catalog_object_id: discountResult.objects[0].id,
@@ -413,7 +465,30 @@ export default async function handler(request: Request) {
             body: JSON.stringify(paymentBody)
         });
 
-        const result = await response.json();
+        let result;
+        try {
+            const responseText = await response.text();
+            logEvent('payment_response_raw', { 
+                status: response.status, 
+                responseLength: responseText.length,
+                responsePreview: responseText.substring(0, 500),
+                headers: Object.fromEntries(response.headers.entries())
+            });
+            
+            if (!responseText.trim()) {
+                throw new Error('Empty response from Square payments API');
+            }
+            
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            logEvent('payment_parse_error', { 
+                error: parseError.message,
+                status: response.status,
+                statusText: response.statusText
+            });
+            throw new Error(`Failed to parse payment response: ${parseError.message}`);
+        }
+
         logEvent('square_response_received', {
             status: response.status,
             ok: response.ok,
