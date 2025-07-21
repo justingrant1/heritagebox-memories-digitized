@@ -158,16 +158,14 @@ What would you like to know?`,
         // Route to AI when in normal mode
         console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
         
-        response = await fetch('http://localhost:3001/chat', {
+        response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             message,
-            sessionId: sessionId,
-            conversationHistory: messages.slice(-6), // Send recent conversation history
-            humanHandoff: false
+            sessionId: sessionId
           }),
         });
 
