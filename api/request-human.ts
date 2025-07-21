@@ -2,7 +2,7 @@ export const config = {
     runtime: 'edge',
 };
 
-import { createChatSession } from './slack-webhook';
+import { createChatSession } from './state';
 
 // Helper function for structured logging
 function logEvent(event: string, data: any) {

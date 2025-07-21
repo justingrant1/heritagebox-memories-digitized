@@ -454,7 +454,7 @@ export default async function handler(request: Request) {
                     });
                     
                     // Fallback: store locally if Slack fails
-                    const { getChatSession, updateChatSession } = await import('./slack-webhook');
+                    const { addMessageToSession } = await import('./state');
                     
                     const userMessage = {
                         id: `user_${Date.now()}`,
@@ -463,7 +463,7 @@ export default async function handler(request: Request) {
                         timestamp: new Date()
                     };
 
-                    updateChatSession(sessionId, userMessage);
+                    addMessageToSession(sessionId, userMessage);
 
                     return new Response(JSON.stringify({
                         success: true,
@@ -483,7 +483,7 @@ export default async function handler(request: Request) {
                 });
 
                 // Fallback: store locally if there's an error
-                const { getChatSession, updateChatSession } = await import('./slack-webhook');
+                const { addMessageToSession } = await import('./state');
                 
                 const userMessage = {
                     id: `user_${Date.now()}`,
@@ -492,7 +492,7 @@ export default async function handler(request: Request) {
                     timestamp: new Date()
                 };
 
-                updateChatSession(sessionId, userMessage);
+                addMessageToSession(sessionId, userMessage);
 
                 return new Response(JSON.stringify({
                     success: true,

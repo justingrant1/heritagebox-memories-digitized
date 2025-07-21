@@ -2,7 +2,7 @@ export const config = {
     runtime: 'edge',
 };
 
-import { getChatSession } from './slack-webhook';
+import { getChatSession } from './state';
 
 interface GetMessagesRequest {
     sessionId: string;

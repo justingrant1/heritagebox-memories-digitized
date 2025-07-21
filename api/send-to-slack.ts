@@ -2,7 +2,7 @@ export const config = {
     runtime: 'edge',
 };
 
-import { getChatSession, updateChatSession } from './slack-webhook';
+import { getChatSession, addMessageToSession } from './state';
 
 interface SendToSlackRequest {
     sessionId: string;
@@ -155,7 +155,7 @@ export default async function handler(request: Request) {
             timestamp: new Date()
         };
 
-        updateChatSession(sessionId, sessionMessage);
+        addMessageToSession(sessionId, sessionMessage);
 
         logEvent('message_stored_in_session', {
             sessionId,
