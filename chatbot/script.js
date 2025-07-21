@@ -39,13 +39,7 @@ function startPolling() {
         }
         
         try {
-            const response = await fetch('/api/chat-messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ sessionId })
-            });
+            const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
             
             const result = await response.json();
             
