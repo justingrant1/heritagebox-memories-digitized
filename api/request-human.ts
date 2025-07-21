@@ -1,8 +1,4 @@
-export const config = {
-    runtime: 'edge',
-};
-
-import { createChatSession, addMessageToSession } from './state';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
@@ -13,7 +9,31 @@ function logEvent(event: string, data: any) {
     }));
 }
 
-export default async function handler(request: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
+
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+        return res.status(405).json({
+            success: false, 
+            error: 'Method not allowed'
+        });
+    }
+
+    const request = {
+        method: req.method,
+        url: req.url,
+        headers: new Map(Object.entries(req.headers || {})),
+        json: async () => req.body
+    };
     logEvent('human_handoff_request_received', {
         method: request.method,
         url: request.url,
@@ -165,47 +185,16 @@ ${messages && messages.length > 0
                         sessionId
                     });
 
-                    // Create the chat session with the Slack thread ID
-                    if (slackThreadId) {
-                        try {
-                            const chatSession = await createChatSession(sessionId, slackThreadId);
-                            
-                            // Add all the existing conversation messages to the session
-                            if (messages && messages.length > 0) {
-                                for (const msg of messages) {
-                                    await addMessageToSession(sessionId, {
-                                        id: msg.id || `msg_${Date.now()}`,
-                                        content: msg.content,
-                                        sender: msg.sender,
-                                        timestamp: (msg.timestamp ? new Date(msg.timestamp) : new Date()).toISOString()
-                                    });
-                                }
-                            }
+                    // Log session information for debugging
+                    logEvent('slack_thread_created', {
+                        sessionId,
+                        slackThreadId,
+                        messageCount: messages?.length || 0
+                    });
 
-                            // The customer info (userId) should be part of the session creation or an update function
-                            // For now, we'll log it and move on. The core functionality is message passing.
-                            if (customerInfo) {
-                                logEvent('customer_info_received', { sessionId, customerInfo });
-                            }
-
-                            logEvent('chat_session_created_successfully', {
-                                sessionId,
-                                slackThreadId
-                            });
-
-                        } catch (sessionError) {
-                            logEvent('chat_session_creation_failed', {
-                                sessionId,
-                                slackThreadId,
-                                error: sessionError.message
-                            });
-                            // Continue anyway - the Slack message was sent successfully
-                        }
-                    } else {
-                        logEvent('no_slack_thread_id', {
-                            sessionId,
-                            message: 'Slack message sent but no thread ID received'
-                        });
+                    // Log customer info for debugging
+                    if (customerInfo) {
+                        logEvent('customer_info_received', { sessionId, customerInfo });
                     }
                     
                 } else {

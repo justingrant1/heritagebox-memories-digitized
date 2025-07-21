@@ -1,16 +1,4 @@
-interface VercelRequest {
-  method: string;
-  body: any;
-  url?: string;
-  headers: { [key: string]: string | string[] | undefined };
-}
-
-interface VercelResponse {
-  status(code: number): VercelResponse;
-  json(obj: any): VercelResponse;
-  setHeader(name: string, value: string): void;
-  end(): void;
-}
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Set CORS headers
@@ -57,10 +45,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         return res.status(200).json({
+            success: true,
             response,
             sessionId: `session_${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            success: true
+            timestamp: new Date().toISOString()
         });
 
     } catch (error) {

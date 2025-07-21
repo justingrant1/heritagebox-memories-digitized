@@ -158,57 +158,66 @@ What would you like to know?`,
         // Route to AI when in normal mode
         console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
         
-        response = await fetch('/api/chat-simple', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message,
-            sessionId: sessionId
-          }),
-        });
-
-        console.log('AI API Response status:', response.status);
-        console.log('AI API Response headers:', Object.fromEntries(response.headers.entries()));
-
-        // Check if response is OK before trying to parse JSON
-        if (!response.ok) {
-          const responseText = await response.text();
-          console.error('AI API Error Response:', responseText);
-          throw new Error(`AI API returned ${response.status}: ${responseText.substring(0, 200)}`);
-        }
-
-        // Try to parse JSON, but handle cases where it's not JSON
         try {
+          response = await fetch('/api/chat-simple', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message,
+              sessionId: sessionId
+            }),
+          });
+
+          console.log('AI API Response status:', response.status);
+
+          // Check if response is OK before trying to parse JSON
+          if (!response.ok) {
+            // If it's a 404, the API endpoint doesn't exist (local development)
+            if (response.status === 404) {
+              throw new Error('API_NOT_AVAILABLE');
+            }
+            const responseText = await response.text();
+            console.error('AI API Error Response:', responseText);
+            throw new Error(`AI API returned ${response.status}: ${responseText.substring(0, 200)}`);
+          }
+
+          // Try to parse JSON, but handle cases where it's not JSON
           const responseText = await response.text();
           console.log('Raw AI API Response:', responseText.substring(0, 500));
           result = JSON.parse(responseText);
-        } catch (jsonError) {
-          console.error('JSON Parse Error:', jsonError);
-          throw new Error(`Server returned invalid JSON response. This usually means there's a server configuration issue.`);
-        }
-        
-        if (result.success) {
-          // Add AI response to chat
-          const botResponse: Message = {
-            id: `bot_${Date.now()}`,
-            content: result.response,
-            sender: 'bot',
-            timestamp: new Date()
-          };
           
-          setMessages(prev => [...prev, botResponse]);
-        } else {
-          // AI API returned an error in the result
-          const errorResponse: Message = {
-            id: `bot_${Date.now()}`,
-            content: `❌ **API Error**<br><br>${result.error || 'Unknown API error'}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
-            sender: 'bot',
-            timestamp: new Date()
-          };
-          
-          setMessages(prev => [...prev, errorResponse]);
+          if (result.success) {
+            // Add AI response to chat
+            const botResponse: Message = {
+              id: `bot_${Date.now()}`,
+              content: result.response,
+              sender: 'bot',
+              timestamp: new Date()
+            };
+            
+            setMessages(prev => [...prev, botResponse]);
+          } else {
+            // AI API returned an error in the result
+            throw new Error(result.error || 'Unknown API error');
+          }
+        } catch (apiError: any) {
+          // If API is not available (404 in local development), use local fallback
+          if (apiError.message === 'API_NOT_AVAILABLE') {
+            console.log('🔄 API not available, using local fallback responses');
+            const fallbackResponse = getAIResponse(message);
+            const botResponse: Message = {
+              id: `bot_${Date.now()}`,
+              content: fallbackResponse,
+              sender: 'bot',
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, botResponse]);
+          } else {
+            // Re-throw other API errors to be handled by the outer catch block
+            throw apiError;
+          }
         }
       }
     } catch (error) {
