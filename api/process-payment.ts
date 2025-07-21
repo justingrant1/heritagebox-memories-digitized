@@ -119,54 +119,15 @@ export default async function handler(request: Request) {
         let customerId = null;
         let orderId = null;
 
-        // Step 1: Create or find customer
+        // Step 1: Create or find customer (make this optional to not block payment)
         if (orderDetails?.customerInfo) {
             const customerInfo = orderDetails.customerInfo;
             
-            logEvent('creating_customer', { email: customerInfo.email });
+            logEvent('attempting_customer_operations', { email: customerInfo.email });
             
-            // First, try to find existing customer by email
-            const searchCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers/search`, {
-                method: 'POST',
-                headers: {
-                    'Square-Version': '2024-02-15',
-                    'Authorization': `Bearer ${squareAccessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    filter: {
-                        email_address: {
-                            exact: customerInfo.email
-                        }
-                    }
-                })
-            });
-
-            let searchResult;
             try {
-                const responseText = await searchCustomerResponse.text();
-                logEvent('customer_search_response', { 
-                    status: searchCustomerResponse.status, 
-                    responseLength: responseText.length,
-                    responsePreview: responseText.substring(0, 200)
-                });
-                
-                if (!responseText.trim()) {
-                    throw new Error('Empty response from Square customer search API');
-                }
-                
-                searchResult = JSON.parse(responseText);
-            } catch (parseError) {
-                logEvent('customer_search_parse_error', { error: parseError.message });
-                throw new Error(`Failed to parse customer search response: ${parseError.message}`);
-            }
-            
-            if (searchResult.customers && searchResult.customers.length > 0) {
-                customerId = searchResult.customers[0].id;
-                logEvent('existing_customer_found', { customerId });
-            } else {
-                // Create new customer
-                const createCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers`, {
+                // First, try to find existing customer by email
+                const searchCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers/search`, {
                     method: 'POST',
                     headers: {
                         'Square-Version': '2024-02-15',
@@ -174,45 +135,99 @@ export default async function handler(request: Request) {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        given_name: customerInfo.firstName,
-                        family_name: customerInfo.lastName,
-                        email_address: customerInfo.email,
-                        phone_number: customerInfo.phone,
-                        address: {
-                            address_line_1: customerInfo.address,
-                            locality: customerInfo.city,
-                            administrative_district_level_1: customerInfo.state,
-                            postal_code: customerInfo.zipCode,
-                            country: 'US'
+                        filter: {
+                            email_address: {
+                                exact: customerInfo.email
+                            }
                         }
                     })
                 });
 
-                let customerResult;
+                let searchResult;
                 try {
-                    const responseText = await createCustomerResponse.text();
-                    logEvent('customer_create_response', { 
-                        status: createCustomerResponse.status, 
+                    const responseText = await searchCustomerResponse.text();
+                    logEvent('customer_search_response', { 
+                        status: searchCustomerResponse.status, 
                         responseLength: responseText.length,
-                        responsePreview: responseText.substring(0, 200)
+                        responsePreview: responseText.substring(0, 200),
+                        headers: Object.fromEntries(searchCustomerResponse.headers.entries())
                     });
                     
                     if (!responseText.trim()) {
-                        throw new Error('Empty response from Square customer create API');
+                        logEvent('customer_search_empty_response', { status: searchCustomerResponse.status });
+                        // Don't throw error, just continue without customer
+                        searchResult = { customers: [] };
+                    } else {
+                        searchResult = JSON.parse(responseText);
                     }
-                    
-                    customerResult = JSON.parse(responseText);
                 } catch (parseError) {
-                    logEvent('customer_create_parse_error', { error: parseError.message });
-                    throw new Error(`Failed to parse customer create response: ${parseError.message}`);
+                    logEvent('customer_search_parse_error', { error: parseError.message });
+                    // Don't throw error, just continue without customer
+                    searchResult = { customers: [] };
                 }
                 
-                if (customerResult.customer) {
-                    customerId = customerResult.customer.id;
-                    logEvent('new_customer_created', { customerId });
+                if (searchResult.customers && searchResult.customers.length > 0) {
+                    customerId = searchResult.customers[0].id;
+                    logEvent('existing_customer_found', { customerId });
                 } else {
-                    logEvent('customer_creation_failed', { errors: customerResult.errors });
+                    // Try to create new customer, but don't fail if it doesn't work
+                    try {
+                        const createCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers`, {
+                            method: 'POST',
+                            headers: {
+                                'Square-Version': '2024-02-15',
+                                'Authorization': `Bearer ${squareAccessToken}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                given_name: customerInfo.firstName,
+                                family_name: customerInfo.lastName,
+                                email_address: customerInfo.email,
+                                phone_number: customerInfo.phone,
+                                address: {
+                                    address_line_1: customerInfo.address,
+                                    locality: customerInfo.city,
+                                    administrative_district_level_1: customerInfo.state,
+                                    postal_code: customerInfo.zipCode,
+                                    country: 'US'
+                                }
+                            })
+                        });
+
+                        let customerResult;
+                        try {
+                            const responseText = await createCustomerResponse.text();
+                            logEvent('customer_create_response', { 
+                                status: createCustomerResponse.status, 
+                                responseLength: responseText.length,
+                                responsePreview: responseText.substring(0, 200)
+                            });
+                            
+                            if (!responseText.trim()) {
+                                logEvent('customer_create_empty_response', { status: createCustomerResponse.status });
+                                customerResult = { errors: ['Empty response'] };
+                            } else {
+                                customerResult = JSON.parse(responseText);
+                            }
+                        } catch (parseError) {
+                            logEvent('customer_create_parse_error', { error: parseError.message });
+                            customerResult = { errors: ['Parse error'] };
+                        }
+                        
+                        if (customerResult.customer) {
+                            customerId = customerResult.customer.id;
+                            logEvent('new_customer_created', { customerId });
+                        } else {
+                            logEvent('customer_creation_failed', { errors: customerResult.errors });
+                        }
+                    } catch (createError) {
+                        logEvent('customer_creation_error', { error: createError.message });
+                        // Continue without customer - don't block payment
+                    }
                 }
+            } catch (customerError) {
+                logEvent('customer_operations_failed', { error: customerError.message });
+                // Continue without customer - don't block payment
             }
         }
 
@@ -411,23 +426,46 @@ export default async function handler(request: Request) {
                 }];
             }
 
-            const createOrderResponse = await fetch(`${SQUARE_API_URL}/v2/orders`, {
-                method: 'POST',
-                headers: {
-                    'Square-Version': '2024-02-15',
-                    'Authorization': `Bearer ${squareAccessToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderBody)
-            });
+            try {
+                const createOrderResponse = await fetch(`${SQUARE_API_URL}/v2/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Square-Version': '2024-02-15',
+                        'Authorization': `Bearer ${squareAccessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderBody)
+                });
 
-            const orderResult = await createOrderResponse.json();
-            
-            if (orderResult.order) {
-                orderId = orderResult.order.id;
-                logEvent('order_created', { orderId });
-            } else {
-                logEvent('order_creation_failed', { errors: orderResult.errors });
+                let orderResult;
+                try {
+                    const responseText = await createOrderResponse.text();
+                    logEvent('order_create_response', { 
+                        status: createOrderResponse.status, 
+                        responseLength: responseText.length,
+                        responsePreview: responseText.substring(0, 200)
+                    });
+                    
+                    if (!responseText.trim()) {
+                        logEvent('order_create_empty_response', { status: createOrderResponse.status });
+                        orderResult = { errors: ['Empty response'] };
+                    } else {
+                        orderResult = JSON.parse(responseText);
+                    }
+                } catch (parseError) {
+                    logEvent('order_create_parse_error', { error: parseError.message });
+                    orderResult = { errors: ['Parse error'] };
+                }
+                
+                if (orderResult.order) {
+                    orderId = orderResult.order.id;
+                    logEvent('order_created', { orderId });
+                } else {
+                    logEvent('order_creation_failed', { errors: orderResult.errors });
+                }
+            } catch (orderError) {
+                logEvent('order_creation_error', { error: orderError.message });
+                // Continue without order - don't block payment
             }
         }
 
