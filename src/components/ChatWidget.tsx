@@ -48,10 +48,7 @@ What would you like to know?`,
       const interval = setInterval(async () => {
         try {
           console.log('📡 Polling for new messages...', { sessionId });
-          const chatEndpoint = process.env.NODE_ENV === 'development' 
-            ? `http://localhost:3001/chat-messages?sessionId=${encodeURIComponent(sessionId)}`
-            : `/chat-messages?sessionId=${encodeURIComponent(sessionId)}`;
-          const response = await fetch(chatEndpoint);
+          const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
           
           const result = await response.json();
           console.log('📨 Polling response:', result);
@@ -129,11 +126,7 @@ What would you like to know?`,
         // Route to Slack when in human handoff mode
         console.log('🔄 Sending message to Slack thread...', { sessionId, message: message.substring(0, 50) });
         
-        const slackEndpoint = process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:3001/send-to-slack'
-          : '/send-to-slack';
-        
-        response = await fetch(slackEndpoint, {
+        response = await fetch('/api/send-to-slack', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -165,12 +158,7 @@ What would you like to know?`,
         // Route to AI when in normal mode
         console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
         
-        // Use relative URL that works on both desktop and mobile
-        const chatEndpoint = process.env.NODE_ENV === 'development' 
-          ? 'http://localhost:3001/chat' 
-          : '/chat';
-        
-        response = await fetch(chatEndpoint, {
+        response = await fetch('http://localhost:3001/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -349,11 +337,7 @@ What specific information can I help you with today?`;
         timestamp: new Date().toISOString()
       };
 
-      const requestEndpoint = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:3001/request-human'
-        : '/request-human';
-      
-      const response = await fetch(requestEndpoint, {
+      const response = await fetch('/api/request-human', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
