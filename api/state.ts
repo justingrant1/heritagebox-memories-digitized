@@ -1,11 +1,31 @@
 import { Redis } from '@upstash/redis';
 
-// Initialize Redis client from environment variables
-// Vercel's KV integration (powered by Upstash) uses these specific names
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+let redis: Redis;
+try {
+    const url = process.env.KV_REST_API_URL;
+    const token = process.env.KV_REST_API_TOKEN;
+
+    if (!url || !token) {
+        throw new Error('KV_REST_API_URL or KV_REST_API_TOKEN is not defined in environment variables.');
+    }
+
+    // Initialize Redis client from environment variables
+    // Vercel's KV integration (powered by Upstash) uses these specific names
+    redis = new Redis({
+      url: url,
+      token: token,
+    });
+    console.log('Redis client initialized successfully.');
+} catch (error) {
+    console.error('FATAL: Failed to initialize Redis client.', {
+        errorMessage: error.message,
+        hasUrl: !!process.env.KV_REST_API_URL,
+        hasToken: !!process.env.KV_REST_API_TOKEN
+    });
+    // If Redis fails, the app is in a non-functional state.
+    // We can't proceed, but this log will be critical for debugging.
+}
+
 
 // Define the session structure
 export interface ChatSession {
