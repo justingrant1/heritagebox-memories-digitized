@@ -698,6 +698,49 @@ app.get('/debug/sessions', (req, res) => {
   });
 });
 
+// Send to Slack endpoint
+app.post('/send-to-slack', (req, res) => {
+  // For now, return success - this needs Slack integration
+  const { sessionId, message, sender } = req.body;
+  console.log(`📤 SLACK - Message from ${sender} in session ${sessionId}: ${message.substring(0, 100)}...`);
+  
+  // TODO: Implement actual Slack API integration
+  res.json({ 
+    success: true, 
+    message: 'Message sent to support team',
+    messageId: `slack_${Date.now()}`
+  });
+});
+
+// Chat messages polling endpoint
+app.get('/chat-messages', (req, res) => {
+  const { sessionId } = req.query;
+  
+  // For now, return empty messages - this needs Slack integration
+  console.log(`📨 MESSAGES - Polling for session ${sessionId}`);
+  
+  // TODO: Implement actual message retrieval from Slack
+  res.json({
+    success: true,
+    messages: []
+  });
+});
+
+// Request human handoff endpoint
+app.post('/request-human', (req, res) => {
+  const { messages, customerInfo, sessionId } = req.body;
+  
+  console.log(`👤 HUMAN - Handoff requested for session ${sessionId}`);
+  console.log(`👤 HUMAN - ${messages.length} messages in conversation`);
+  
+  // TODO: Implement actual Slack/human handoff logic
+  res.json({
+    success: true,
+    message: 'A human agent has been notified and will respond soon.',
+    sessionId: sessionId
+  });
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Server error:', error);
