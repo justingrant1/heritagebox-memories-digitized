@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import claudeService from '../services/claudeService';
+import airtableService from '../services/airtableService';
 
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'bot';
+  sender: 'user' | 'bot' | 'human';
   timestamp: Date;
+}
+
+interface ChatHistory {
+  sender: 'user' | 'bot' | 'human';
+  message: string;
 }
 
 const ChatWidget: React.FC = () => {
@@ -119,14 +126,11 @@ What would you like to know?`,
     setIsTyping(true);
 
     try {
-      let response;
-      let result;
-
       if (humanHandoff) {
         // Route to Slack when in human handoff mode
         console.log('🔄 Sending message to Slack thread...', { sessionId, message: message.substring(0, 50) });
         
-        response = await fetch('/api/send-to-slack', {
+        const response = await fetch('/api/send-to-slack', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -144,8 +148,7 @@ What would you like to know?`,
           throw new Error(`Failed to send to Slack: ${response.status} - ${responseText.substring(0, 200)}`);
         }
 
-        const responseText = await response.text();
-        result = JSON.parse(responseText);
+        const result = await response.json();
         
         if (result.success) {
           console.log('✅ Message sent to Slack successfully', { messageId: result.messageId });
@@ -155,60 +158,15 @@ What would you like to know?`,
         }
 
       } else {
-        // Route to AI when in normal mode
-        console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
+        // Use Claude directly for AI responses
+        console.log('🤖 Processing message with Claude AI...');
         
-        response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message,
-            sessionId: sessionId
-          }),
-        });
-
-        console.log('AI API Response status:', response.status);
-        console.log('AI API Response headers:', Object.fromEntries(response.headers.entries()));
-
-        // Check if response is OK before trying to parse JSON
-        if (!response.ok) {
-          const responseText = await response.text();
-          console.error('AI API Error Response:', responseText);
-          throw new Error(`AI API returned ${response.status}: ${responseText.substring(0, 200)}`);
-        }
-
-        // Try to parse JSON, but handle cases where it's not JSON
-        try {
-          const responseText = await response.text();
-          console.log('Raw AI API Response:', responseText.substring(0, 500));
-          result = JSON.parse(responseText);
-        } catch (jsonError) {
-          console.error('JSON Parse Error:', jsonError);
-          throw new Error(`Server returned invalid JSON response. This usually means there's a server configuration issue.`);
-        }
-        
-        if (result.success) {
-          // Add AI response to chat
-          const botResponse: Message = {
-            id: `bot_${Date.now()}`,
-            content: result.response,
-            sender: 'bot',
-            timestamp: new Date()
-          };
-          
-          setMessages(prev => [...prev, botResponse]);
+        // Check if this looks like an order lookup request
+        if (await isOrderLookupRequest(message)) {
+          await handleOrderLookup(message);
         } else {
-          // AI API returned an error in the result
-          const errorResponse: Message = {
-            id: `bot_${Date.now()}`,
-            content: `❌ **API Error**<br><br>${result.error || 'Unknown API error'}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
-            sender: 'bot',
-            timestamp: new Date()
-          };
-          
-          setMessages(prev => [...prev, errorResponse]);
+          // Regular AI conversation
+          await handleClaudeConversation(message);
         }
       }
     } catch (error) {
@@ -218,8 +176,8 @@ What would you like to know?`,
       const errorResponse: Message = {
         id: `bot_${Date.now()}`,
         content: humanHandoff 
-          ? `❌ **Unable to send message to support team**<br><br>There was a problem forwarding your message. Please try again or contact us directly at support@heritagebox.com<br><br>**Error:** ${error.message}`
-          : `❌ **Connection Error**<br><br>I'm having trouble connecting to our AI service right now. This could be due to:<br><br>• Network connectivity issues<br>• API service temporarily unavailable<br>• Configuration problems<br><br>**Error details:** ${error.message}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
+          ? `❌ **Unable to send message to support team**<br><br>There was a problem forwarding your message. Please try again or contact us directly at support@heritagebox.com<br><br>**Error:** ${(error as Error).message}`
+          : `❌ **Connection Error**<br><br>I'm having trouble processing your request right now. This could be due to:<br><br>• Network connectivity issues<br>• AI service temporarily unavailable<br>• Configuration problems<br><br>**Error details:** ${(error as Error).message}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -227,6 +185,174 @@ What would you like to know?`,
       setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  // Check if the message is requesting order information
+  const isOrderLookupRequest = async (message: string): Promise<boolean> => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Look for order-related keywords and potential identifiers
+    const orderKeywords = ['order', 'status', 'track', 'lookup', 'find', 'check'];
+    const hasOrderKeyword = orderKeywords.some(keyword => lowerMessage.includes(keyword));
+    
+    // Look for email patterns or order number patterns
+    const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+    const orderNumberPattern = /\b[A-Z0-9]{6,20}\b/;
+    const hasIdentifier = emailPattern.test(message) || orderNumberPattern.test(message);
+    
+    return hasOrderKeyword || hasIdentifier;
+  };
+
+  // Handle order lookup requests
+  const handleOrderLookup = async (message: string) => {
+    try {
+      // Extract potential identifiers from the message
+      const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+      const orderNumberPattern = /\b[A-Z0-9-]{6,20}\b/;
+      
+      const emailMatch = message.match(emailPattern);
+      const orderNumberMatch = message.match(orderNumberPattern);
+      
+      let identifier = '';
+      if (orderNumberMatch) {
+        identifier = orderNumberMatch[0];
+      } else if (emailMatch) {
+        identifier = emailMatch[0];
+      }
+
+      if (identifier) {
+        console.log('🔍 Looking up order for:', identifier);
+        
+        const lookupResult = await airtableService.lookupCustomerOrders(identifier);
+        
+        let responseContent = '';
+        
+        if (lookupResult.customer && lookupResult.orders.length > 0) {
+          // Found orders - format the response nicely
+          responseContent = `✅ **Order Information Found**\n\n`;
+          responseContent += airtableService.formatCustomerOrders(lookupResult.customer, lookupResult.orders);
+          
+          if (lookupResult.orders.length === 1) {
+            responseContent += '\n\nIs there anything specific about this order you\'d like to know more about?';
+          } else {
+            responseContent += '\n\nWould you like me to provide more details about any of these orders?';
+          }
+        } else {
+          // No orders found
+          responseContent = lookupResult.message + '\n\n';
+          responseContent += 'If you\'d like me to help you find your order, please provide:\n';
+          responseContent += '• Your order number (if you have it)\n';
+          responseContent += '• The email address used for the order\n';
+          responseContent += '• Or I can connect you with a human agent who can help';
+        }
+
+        const botResponse: Message = {
+          id: `bot_${Date.now()}`,
+          content: responseContent,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      } else {
+        // No identifier found, ask for one
+        const botResponse: Message = {
+          id: `bot_${Date.now()}`,
+          content: `📦 I'd be happy to help you check your order status! 
+
+To look up your order, I'll need either:
+• Your order number (usually starts with letters/numbers like HB-2024-001)
+• The email address you used when placing the order
+
+Please share whichever one you have, and I'll find your order information right away!`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, botResponse]);
+      }
+    } catch (error) {
+      console.error('Error in order lookup:', error);
+      
+      const botResponse: Message = {
+        id: `bot_${Date.now()}`,
+        content: `❌ I encountered an issue while looking up your order information. Please try again or I can connect you with a human agent who can help you directly.
+
+You can also contact our support team at support@heritagebox.com with your order details.`,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, botResponse]);
+    }
+  };
+
+  // Handle regular Claude AI conversations
+  const handleClaudeConversation = async (message: string) => {
+    try {
+      // Get conversation history for context
+      const conversationHistory: ChatHistory[] = messages.map(msg => ({
+        sender: msg.sender,
+        message: msg.content
+      }));
+
+      // Add the current user message
+      conversationHistory.push({
+        sender: 'user',
+        message: message
+      });
+
+      // Format for Claude API
+      const claudeMessages = claudeService.formatConversationHistory(conversationHistory);
+      
+      // Get enhanced system prompt with current pricing if needed
+      let systemPrompt = claudeService.getSystemPrompt();
+      
+      // If the message is about pricing, add current package pricing to context
+      if (message.toLowerCase().includes('price') || message.toLowerCase().includes('cost') || message.toLowerCase().includes('package')) {
+        try {
+          const packagePricing = await airtableService.getPackagePricing();
+          systemPrompt += '\n\nCURRENT PACKAGE PRICING:\n';
+          Object.entries(packagePricing).forEach(([pkg, price]) => {
+            systemPrompt += `• ${pkg}: $${price}\n`;
+          });
+        } catch (error) {
+          console.warn('Could not fetch current pricing:', error);
+        }
+      }
+
+      // Send to Claude
+      const claudeResponse = await claudeService.sendMessage(
+        claudeMessages,
+        systemPrompt,
+        1024
+      );
+
+      const botResponse: Message = {
+        id: `bot_${Date.now()}`,
+        content: claudeResponse,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, botResponse]);
+      
+    } catch (error) {
+      console.error('Error in Claude conversation:', error);
+      
+      const botResponse: Message = {
+        id: `bot_${Date.now()}`,
+        content: `I apologize, but I'm having trouble processing your request right now. This could be due to a temporary issue with our AI service.
+
+Please try again in a moment, or I can connect you with a human agent who can assist you directly.
+
+**Error:** ${(error as Error).message}`,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, botResponse]);
     }
   };
 
