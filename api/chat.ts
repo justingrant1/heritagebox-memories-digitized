@@ -21,6 +21,8 @@ interface ClaudeMessage {
   content: string;
 }
 
+import { addMessageToSession } from './state';
+
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
     console.log(JSON.stringify({
@@ -454,8 +456,6 @@ export default async function handler(request: Request) {
                     });
                     
                     // Fallback: store locally if Slack fails
-                    const { addMessageToSession } = await import('./state');
-                    
                     const userMessage = {
                         id: `user_${Date.now()}`,
                         content: message,
@@ -483,8 +483,6 @@ export default async function handler(request: Request) {
                 });
 
                 // Fallback: store locally if there's an error
-                const { addMessageToSession } = await import('./state');
-                
                 const userMessage = {
                     id: `user_${Date.now()}`,
                     content: message,
