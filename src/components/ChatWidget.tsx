@@ -119,44 +119,80 @@ What would you like to know?`,
     setIsTyping(true);
 
     try {
-      // Call Express server endpoint
-      const response = await fetch('http://localhost:3001/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          sessionId: sessionId,
-          conversationHistory: messages.slice(-6), // Send recent conversation history
-          humanHandoff: humanHandoff
-        }),
-      });
-
-      console.log('API Response status:', response.status);
-      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
-
-      // Check if response is OK before trying to parse JSON
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.error('API Error Response:', responseText);
-        throw new Error(`API returned ${response.status}: ${responseText.substring(0, 200)}`);
-      }
-
-      // Try to parse JSON, but handle cases where it's not JSON
+      let response;
       let result;
-      try {
+
+      if (humanHandoff) {
+        // Route to Slack when in human handoff mode
+        console.log('🔄 Sending message to Slack thread...', { sessionId, message: message.substring(0, 50) });
+        
+        response = await fetch('/api/send-to-slack', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: sessionId,
+            message: message,
+            sender: 'user'
+          }),
+        });
+
+        if (!response.ok) {
+          const responseText = await response.text();
+          console.error('Slack API Error Response:', responseText);
+          throw new Error(`Failed to send to Slack: ${response.status} - ${responseText.substring(0, 200)}`);
+        }
+
         const responseText = await response.text();
-        console.log('Raw API Response:', responseText.substring(0, 500));
         result = JSON.parse(responseText);
-      } catch (jsonError) {
-        console.error('JSON Parse Error:', jsonError);
-        throw new Error(`Server returned invalid JSON response. This usually means there's a server configuration issue.`);
-      }
-      
-      if (result.success) {
-        // If in human handoff mode, don't expect an AI response
-        if (!humanHandoff) {
+        
+        if (result.success) {
+          console.log('✅ Message sent to Slack successfully', { messageId: result.messageId });
+          // No bot response needed - human agents will respond via Slack
+        } else {
+          throw new Error(result.error || 'Failed to send message to Slack');
+        }
+
+      } else {
+        // Route to AI when in normal mode
+        console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
+        
+        response = await fetch('http://localhost:3001/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message,
+            sessionId: sessionId,
+            conversationHistory: messages.slice(-6), // Send recent conversation history
+            humanHandoff: false
+          }),
+        });
+
+        console.log('AI API Response status:', response.status);
+        console.log('AI API Response headers:', Object.fromEntries(response.headers.entries()));
+
+        // Check if response is OK before trying to parse JSON
+        if (!response.ok) {
+          const responseText = await response.text();
+          console.error('AI API Error Response:', responseText);
+          throw new Error(`AI API returned ${response.status}: ${responseText.substring(0, 200)}`);
+        }
+
+        // Try to parse JSON, but handle cases where it's not JSON
+        try {
+          const responseText = await response.text();
+          console.log('Raw AI API Response:', responseText.substring(0, 500));
+          result = JSON.parse(responseText);
+        } catch (jsonError) {
+          console.error('JSON Parse Error:', jsonError);
+          throw new Error(`Server returned invalid JSON response. This usually means there's a server configuration issue.`);
+        }
+        
+        if (result.success) {
+          // Add AI response to chat
           const botResponse: Message = {
             id: `bot_${Date.now()}`,
             content: result.response,
@@ -165,33 +201,32 @@ What would you like to know?`,
           };
           
           setMessages(prev => [...prev, botResponse]);
+        } else {
+          // AI API returned an error in the result
+          const errorResponse: Message = {
+            id: `bot_${Date.now()}`,
+            content: `❌ **API Error**<br><br>${result.error || 'Unknown API error'}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
+            sender: 'bot',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, errorResponse]);
         }
-        // If human handoff, the message was stored in session for agents to see
-      } else {
-        // API returned an error in the result
-        const errorResponse: Message = {
-          id: `bot_${Date.now()}`,
-          content: `❌ **API Error**<br><br>${result.error || 'Unknown API error'}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
-          sender: 'bot',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, errorResponse]);
       }
     } catch (error) {
       console.error('Chat error:', error);
       
-      // Show real error instead of fallback response
-      if (!humanHandoff) {
-        const errorResponse: Message = {
-          id: `bot_${Date.now()}`,
-          content: `❌ **Connection Error**<br><br>I'm having trouble connecting to our AI service right now. This could be due to:<br><br>• Network connectivity issues<br>• API service temporarily unavailable<br>• Configuration problems<br><br>**Error details:** ${error.message}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
-          sender: 'bot',
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, errorResponse]);
-      }
+      // Show appropriate error based on mode
+      const errorResponse: Message = {
+        id: `bot_${Date.now()}`,
+        content: humanHandoff 
+          ? `❌ **Unable to send message to support team**<br><br>There was a problem forwarding your message. Please try again or contact us directly at support@heritagebox.com<br><br>**Error:** ${error.message}`
+          : `❌ **Connection Error**<br><br>I'm having trouble connecting to our AI service right now. This could be due to:<br><br>• Network connectivity issues<br>• API service temporarily unavailable<br>• Configuration problems<br><br>**Error details:** ${error.message}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsTyping(false);
     }
