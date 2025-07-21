@@ -101,10 +101,23 @@ export default async function handler(request: Request) {
         });
 
     } catch (error) {
-        logEvent('chat_messages_error', {
-            error: error.message,
-            stack: error.stack
-        });
+        let errorDetails: any = {
+            message: 'An unknown error occurred',
+            name: 'UnknownError',
+            stack: 'No stack trace available'
+        };
+
+        if (error instanceof Error) {
+            errorDetails.message = error.message;
+            errorDetails.name = error.name;
+            errorDetails.stack = error.stack;
+        } else if (typeof error === 'object' && error !== null) {
+            errorDetails = { ...errorDetails, ...error };
+        } else {
+            errorDetails.message = String(error);
+        }
+
+        console.error('CHAT_MESSAGES_FATAL_ERROR:', JSON.stringify(errorDetails, null, 2));
         
         return new Response(JSON.stringify({
             success: false,
