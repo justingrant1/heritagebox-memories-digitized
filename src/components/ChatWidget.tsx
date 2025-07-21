@@ -119,17 +119,15 @@ What would you like to know?`,
     setIsTyping(true);
 
     try {
-      // Call simple test backend first
-      const response = await fetch('/api/chat-simple', {
+      // Call simple Express server
+      const response = await fetch('http://localhost:3001/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message,
-          sessionId: sessionId,
-          conversationHistory: messages,
-          humanHandoff: humanHandoff
+          sessionId: sessionId
         }),
       });
 
