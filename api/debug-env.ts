@@ -12,8 +12,8 @@ export default async function handler(request: Request) {
     };
 
     const envStatus = {
-        UPSTASH_REDIS_REST_URL: checkEnv('UPSTASH_REDIS_REST_URL'),
-        UPSTASH_REDIS_REST_TOKEN: checkEnv('UPSTASH_REDIS_REST_TOKEN'),
+        KV_REST_API_URL: checkEnv('KV_REST_API_URL'),
+        KV_REST_API_TOKEN: checkEnv('KV_REST_API_TOKEN'),
         SLACK_BOT_TOKEN: checkEnv('SLACK_BOT_TOKEN'),
         SLACK_SUPPORT_CHANNEL: { status: '✅ Set', valuePreview: process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales (default)' },
         CLAUDE_API_KEY: checkEnv('CLAUDE_API_KEY'),
