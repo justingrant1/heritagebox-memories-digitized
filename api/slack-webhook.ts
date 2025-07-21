@@ -100,49 +100,17 @@ export default async function handler(request: Request) {
                 messagePreview: event.text?.substring(0, 50)
             });
             
-            // Process message events in threads OR recent channel messages (for when agents don't thread)
-            if (event.type === 'message' && event.user && event.user !== 'USLACKBOT') {
-                // Check if this is a bot message by looking for subtype
-                if (event.subtype && event.subtype === 'bot_message') {
-                    logEvent('slack_bot_message_ignored', { 
-                        threadId: event.thread_ts,
-                        subtype: event.subtype
-                    });
-                    return new Response('OK', { status: 200 });
-                }
-
-                // Find the session associated with this Slack thread or recent message
-                let sessionId: string | undefined = undefined;
+            // We only care about messages from human agents inside a thread.
+            if (event.type === 'message' && event.thread_ts && event.user && !event.bot_id) {
                 
-                if (event.thread_ts) {
-                    // Threaded reply - direct lookup
-                    sessionId = slackThreadToSession.get(event.thread_ts);
-                } else {
-                    // Non-threaded message - check if it's a recent response to our bot message
-                    // Look for the most recent session in this channel
-                    const recentCutoff = Date.now() - (10 * 60 * 1000); // 10 minutes
-                    
-                    for (const [threadId, sessId] of slackThreadToSession.entries()) {
-                        const session = chatSessions.get(sessId);
-                        if (session && session.lastActivity > recentCutoff) {
-                            // Check if this message timestamp is after the session was created
-                            const messageTime = parseFloat(event.ts || '0') * 1000;
-                            const sessionTime = parseFloat(threadId) * 1000;
-                            
-                            // If message is after session creation, treat as response
-                            if (messageTime > sessionTime) {
-                                sessionId = sessId;
-                                logEvent('non_threaded_response_matched', {
-                                    sessionId: sessId,
-                                    threadId,
-                                    messageTime: new Date(messageTime).toISOString(),
-                                    sessionTime: new Date(sessionTime).toISOString()
-                                });
-                                break; // Use the first match
-                            }
-                        }
-                    }
-                }
+                // Use the thread_ts to find the corresponding customer session.
+                const sessionId = slackThreadToSession.get(event.thread_ts);
+                
+                logEvent('slack_thread_message_received', {
+                    threadId: event.thread_ts,
+                    foundSessionId: sessionId,
+                    mapContents: Array.from(slackThreadToSession.entries())
+                });
                 
                 if (sessionId) {
                     const session = chatSessions.get(sessionId);
@@ -200,14 +168,6 @@ export default async function handler(request: Request) {
                         availableThreads: Array.from(slackThreadToSession.keys())
                     });
                 }
-            } else {
-                logEvent('slack_event_ignored', { 
-                    reason: 'not_threaded_message_or_bot',
-                    type: event.type,
-                    hasThreadTs: !!event.thread_ts,
-                    user: event.user,
-                    subtype: event.subtype
-                });
             }
         }
 
