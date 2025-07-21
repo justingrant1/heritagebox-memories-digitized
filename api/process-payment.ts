@@ -2,7 +2,7 @@ export const config = {
     runtime: 'edge',
 };
 
-// Square Catalog Product Mapping - Production IDs (verified from your production catalog)
+// Square Catalog Product Mapping
 const SQUARE_CATALOG_MAPPING = {
   packages: {
     'Starter': 'GNQP4YZH57MGVR265N4QA7QH',
@@ -18,14 +18,6 @@ const SQUARE_CATALOG_MAPPING = {
     'expedited': '37LXAW3CQ7ONF7AGNCYDWRRT',
     'rush': 'HSMOF4CINCKHVWUPCEN5ZBOU'
   }
-};
-
-// Package pricing for manual line items (when catalog IDs not available)
-const PACKAGE_PRICING = {
-  'Starter': 99,
-  'Popular': 199,
-  'Dusty Rose': 299,
-  'Eternal': 499
 };
 
 // Helper function for structured logging
@@ -119,15 +111,37 @@ export default async function handler(request: Request) {
         let customerId = null;
         let orderId = null;
 
-        // Step 1: Create or find customer (make this optional to not block payment)
+        // Step 1: Create or find customer
         if (orderDetails?.customerInfo) {
             const customerInfo = orderDetails.customerInfo;
             
-            logEvent('attempting_customer_operations', { email: customerInfo.email });
+            logEvent('creating_customer', { email: customerInfo.email });
             
-            try {
-                // First, try to find existing customer by email
-                const searchCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers/search`, {
+            // First, try to find existing customer by email
+            const searchCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers/search`, {
+                method: 'POST',
+                headers: {
+                    'Square-Version': '2024-02-15',
+                    'Authorization': `Bearer ${squareAccessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    filter: {
+                        email_address: {
+                            exact: customerInfo.email
+                        }
+                    }
+                })
+            });
+
+            const searchResult = await searchCustomerResponse.json();
+            
+            if (searchResult.customers && searchResult.customers.length > 0) {
+                customerId = searchResult.customers[0].id;
+                logEvent('existing_customer_found', { customerId });
+            } else {
+                // Create new customer
+                const createCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers`, {
                     method: 'POST',
                     headers: {
                         'Square-Version': '2024-02-15',
@@ -135,99 +149,28 @@ export default async function handler(request: Request) {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        filter: {
-                            email_address: {
-                                exact: customerInfo.email
-                            }
+                        given_name: customerInfo.firstName,
+                        family_name: customerInfo.lastName,
+                        email_address: customerInfo.email,
+                        phone_number: customerInfo.phone,
+                        address: {
+                            address_line_1: customerInfo.address,
+                            locality: customerInfo.city,
+                            administrative_district_level_1: customerInfo.state,
+                            postal_code: customerInfo.zipCode,
+                            country: 'US'
                         }
                     })
                 });
 
-                let searchResult;
-                try {
-                    const responseText = await searchCustomerResponse.text();
-                    logEvent('customer_search_response', { 
-                        status: searchCustomerResponse.status, 
-                        responseLength: responseText.length,
-                        responsePreview: responseText.substring(0, 200),
-                        headers: Object.fromEntries(searchCustomerResponse.headers.entries())
-                    });
-                    
-                    if (!responseText.trim()) {
-                        logEvent('customer_search_empty_response', { status: searchCustomerResponse.status });
-                        // Don't throw error, just continue without customer
-                        searchResult = { customers: [] };
-                    } else {
-                        searchResult = JSON.parse(responseText);
-                    }
-                } catch (parseError) {
-                    logEvent('customer_search_parse_error', { error: parseError.message });
-                    // Don't throw error, just continue without customer
-                    searchResult = { customers: [] };
-                }
+                const customerResult = await createCustomerResponse.json();
                 
-                if (searchResult.customers && searchResult.customers.length > 0) {
-                    customerId = searchResult.customers[0].id;
-                    logEvent('existing_customer_found', { customerId });
+                if (customerResult.customer) {
+                    customerId = customerResult.customer.id;
+                    logEvent('new_customer_created', { customerId });
                 } else {
-                    // Try to create new customer, but don't fail if it doesn't work
-                    try {
-                        const createCustomerResponse = await fetch(`${SQUARE_API_URL}/v2/customers`, {
-                            method: 'POST',
-                            headers: {
-                                'Square-Version': '2024-02-15',
-                                'Authorization': `Bearer ${squareAccessToken}`,
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                given_name: customerInfo.firstName,
-                                family_name: customerInfo.lastName,
-                                email_address: customerInfo.email,
-                                phone_number: customerInfo.phone,
-                                address: {
-                                    address_line_1: customerInfo.address,
-                                    locality: customerInfo.city,
-                                    administrative_district_level_1: customerInfo.state,
-                                    postal_code: customerInfo.zipCode,
-                                    country: 'US'
-                                }
-                            })
-                        });
-
-                        let customerResult;
-                        try {
-                            const responseText = await createCustomerResponse.text();
-                            logEvent('customer_create_response', { 
-                                status: createCustomerResponse.status, 
-                                responseLength: responseText.length,
-                                responsePreview: responseText.substring(0, 200)
-                            });
-                            
-                            if (!responseText.trim()) {
-                                logEvent('customer_create_empty_response', { status: createCustomerResponse.status });
-                                customerResult = { errors: ['Empty response'] };
-                            } else {
-                                customerResult = JSON.parse(responseText);
-                            }
-                        } catch (parseError) {
-                            logEvent('customer_create_parse_error', { error: parseError.message });
-                            customerResult = { errors: ['Parse error'] };
-                        }
-                        
-                        if (customerResult.customer) {
-                            customerId = customerResult.customer.id;
-                            logEvent('new_customer_created', { customerId });
-                        } else {
-                            logEvent('customer_creation_failed', { errors: customerResult.errors });
-                        }
-                    } catch (createError) {
-                        logEvent('customer_creation_error', { error: createError.message });
-                        // Continue without customer - don't block payment
-                    }
+                    logEvent('customer_creation_failed', { errors: customerResult.errors });
                 }
-            } catch (customerError) {
-                logEvent('customer_operations_failed', { error: customerError.message });
-                // Continue without customer - don't block payment
             }
         }
 
@@ -237,16 +180,11 @@ export default async function handler(request: Request) {
             
             // Add main package as catalog line item
             const packageVariationId = SQUARE_CATALOG_MAPPING.packages[orderDetails.package];
-            logEvent('package_lookup', { 
-                requestedPackage: orderDetails.package,
-                foundCatalogId: packageVariationId,
-                allMappings: SQUARE_CATALOG_MAPPING.packages
-            });
-            
             if (packageVariationId) {
                 lineItems.push({
                     quantity: "1",
-                    catalog_object_id: packageVariationId
+                    catalog_object_id: packageVariationId,
+                    variation_name: orderDetails.package + " Package"
                 });
                 logEvent('package_line_item_added', { 
                     package: orderDetails.package, 
@@ -373,25 +311,7 @@ export default async function handler(request: Request) {
                     })
                 });
 
-                let discountResult;
-                try {
-                    const responseText = await searchDiscountResponse.text();
-                    logEvent('discount_search_response', { 
-                        status: searchDiscountResponse.status, 
-                        responseLength: responseText.length,
-                        responsePreview: responseText.substring(0, 200)
-                    });
-                    
-                    if (!responseText.trim()) {
-                        throw new Error('Empty response from Square discount search API');
-                    }
-                    
-                    discountResult = JSON.parse(responseText);
-                } catch (parseError) {
-                    logEvent('discount_search_parse_error', { error: parseError.message });
-                    // Don't throw here, just continue without discount
-                    discountResult = { objects: [] };
-                }
+                const discountResult = await searchDiscountResponse.json();
                 if (discountResult.objects && discountResult.objects.length > 0) {
                     discounts.push({
                         catalog_object_id: discountResult.objects[0].id,
@@ -426,46 +346,23 @@ export default async function handler(request: Request) {
                 }];
             }
 
-            try {
-                const createOrderResponse = await fetch(`${SQUARE_API_URL}/v2/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Square-Version': '2024-02-15',
-                        'Authorization': `Bearer ${squareAccessToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderBody)
-                });
+            const createOrderResponse = await fetch(`${SQUARE_API_URL}/v2/orders`, {
+                method: 'POST',
+                headers: {
+                    'Square-Version': '2024-02-15',
+                    'Authorization': `Bearer ${squareAccessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderBody)
+            });
 
-                let orderResult;
-                try {
-                    const responseText = await createOrderResponse.text();
-                    logEvent('order_create_response', { 
-                        status: createOrderResponse.status, 
-                        responseLength: responseText.length,
-                        responsePreview: responseText.substring(0, 200)
-                    });
-                    
-                    if (!responseText.trim()) {
-                        logEvent('order_create_empty_response', { status: createOrderResponse.status });
-                        orderResult = { errors: ['Empty response'] };
-                    } else {
-                        orderResult = JSON.parse(responseText);
-                    }
-                } catch (parseError) {
-                    logEvent('order_create_parse_error', { error: parseError.message });
-                    orderResult = { errors: ['Parse error'] };
-                }
-                
-                if (orderResult.order) {
-                    orderId = orderResult.order.id;
-                    logEvent('order_created', { orderId });
-                } else {
-                    logEvent('order_creation_failed', { errors: orderResult.errors });
-                }
-            } catch (orderError) {
-                logEvent('order_creation_error', { error: orderError.message });
-                // Continue without order - don't block payment
+            const orderResult = await createOrderResponse.json();
+            
+            if (orderResult.order) {
+                orderId = orderResult.order.id;
+                logEvent('order_created', { orderId });
+            } else {
+                logEvent('order_creation_failed', { errors: orderResult.errors });
             }
         }
 
@@ -503,30 +400,7 @@ export default async function handler(request: Request) {
             body: JSON.stringify(paymentBody)
         });
 
-        let result;
-        try {
-            const responseText = await response.text();
-            logEvent('payment_response_raw', { 
-                status: response.status, 
-                responseLength: responseText.length,
-                responsePreview: responseText.substring(0, 500),
-                headers: Object.fromEntries(response.headers.entries())
-            });
-            
-            if (!responseText.trim()) {
-                throw new Error('Empty response from Square payments API');
-            }
-            
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            logEvent('payment_parse_error', { 
-                error: parseError.message,
-                status: response.status,
-                statusText: response.statusText
-            });
-            throw new Error(`Failed to parse payment response: ${parseError.message}`);
-        }
-
+        const result = await response.json();
         logEvent('square_response_received', {
             status: response.status,
             ok: response.ok,
