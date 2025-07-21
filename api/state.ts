@@ -57,12 +57,11 @@ async function logEvent(event: string, data: any, session?: ChatSession | null) 
 
 // Get a session from Redis
 export async function getChatSession(sessionId: string): Promise<ChatSession | null> {
-    const sessionJson = await redis.get(`session:${sessionId}`);
-    if (!sessionJson) {
+    const session = await redis.get<ChatSession>(`session:${sessionId}`);
+    if (!session) {
         await logEvent('get_chat_session_failed', { sessionId, reason: 'not_found' });
         return null;
     }
-    const session: ChatSession = JSON.parse(sessionJson as string);
     await logEvent('get_chat_session_success', { sessionId }, session);
     return session;
 }
