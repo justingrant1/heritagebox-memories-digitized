@@ -1,4 +1,8 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+export const config = {
+    runtime: 'edge',
+};
+
+import { getChatSession, addMessageToSession } from './state';
 
 interface SendToSlackRequest {
     sessionId: string;
@@ -14,30 +18,7 @@ function logEvent(event: string, data: any) {
     }));
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Max-Age', '86400');
-
-    // Handle preflight OPTIONS request
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({
-            success: false, 
-            error: 'Method not allowed'
-        });
-    }
-
-    const request = {
-        method: req.method,
-        url: req.url,
-        json: async () => req.body
-    };
+export default async function handler(request: Request) {
     logEvent('send_to_slack_request_received', {
         method: request.method,
         url: request.url
@@ -78,13 +59,117 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
         }
 
-        // For now, return an error indicating this feature needs Redis setup
-        logEvent('send_to_slack_not_available', { sessionId });
+        // Get the chat session to find the Slack thread ID
+        const session = await getChatSession(sessionId);
         
-        return res.status(501).json({
-            success: false,
-            error: 'Direct message forwarding is not available without session storage configured',
-            message: 'Please use the "Request Human Support" button to connect with our team.'
+        if (!session) {
+            logEvent('session_not_found', { sessionId });
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Chat session not found. Please request human support again.'
+            }), {
+                status: 404,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        if (!session.slackThreadId) {
+            logEvent('no_slack_thread', { sessionId });
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'No Slack thread associated with this session'
+            }), {
+                status: 400,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        // Format message for Slack (convert HTML to plain text/markdown)
+        const formattedMessage = formatMessageForSlack(message, sender);
+
+        // Send message to Slack thread
+        const slackBotToken = process.env.SLACK_BOT_TOKEN;
+        const slackChannelId = process.env.SLACK_SUPPORT_CHANNEL || '#vip-sales';
+
+        if (!slackBotToken) {
+            logEvent('slack_bot_token_missing', { sessionId });
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Slack integration not configured'
+            }), {
+                status: 500,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        logEvent('sending_to_slack', {
+            sessionId,
+            threadId: session.slackThreadId,
+            channel: slackChannelId,
+            messagePreview: formattedMessage.substring(0, 100)
+        });
+
+        const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${slackBotToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                channel: slackChannelId.replace('#', ''),
+                text: `📧 *Session: ${sessionId}*\n${formattedMessage}`,
+                thread_ts: session.slackThreadId, // This keeps it in the customer's thread
+                unfurl_links: false,
+                unfurl_media: false
+            })
+        });
+
+        const slackResult = await slackResponse.json();
+
+        if (!slackResult.ok) {
+            logEvent('slack_send_failed', {
+                sessionId,
+                error: slackResult.error,
+                warning: slackResult.warning
+            });
+            return new Response(JSON.stringify({
+                success: false,
+                error: `Failed to send message to Slack: ${slackResult.error}`
+            }), {
+                status: 500,
+                headers: {'Content-Type': 'application/json'}
+            });
+        }
+
+        logEvent('slack_message_sent', {
+            sessionId,
+            threadId: session.slackThreadId,
+            messageTs: slackResult.ts
+        });
+
+        // Store the message in the session
+        const sessionMessage = {
+            id: `${sender}_${Date.now()}`,
+            content: message,
+            sender: sender,
+            timestamp: new Date().toISOString()
+        };
+
+        await addMessageToSession(sessionId, sessionMessage);
+
+        logEvent('message_stored_in_session', {
+            sessionId,
+            messageId: sessionMessage.id
+        });
+
+        return new Response(JSON.stringify({
+            success: true,
+            messageId: sessionMessage.id,
+            slackMessageId: slackResult.ts,
+            timestamp: sessionMessage.timestamp
+        }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
         });
 
     } catch (error) {
