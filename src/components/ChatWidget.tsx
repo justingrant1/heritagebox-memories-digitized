@@ -45,16 +45,12 @@ What would you like to know?`,
     if (humanHandoff && sessionId && isOpen) {
       const interval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
+          const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}&lastMessageId=${lastPolledMessageId}`);
           
           const result = await response.json();
           
           if (result.success && result.messages && result.messages.length > 0) {
-            // Get messages newer than our last polled message
-            const currentMessageIds = messages.map(m => m.id);
-            const newMessages = result.messages.filter((msg: any) => 
-              !currentMessageIds.includes(msg.id) && msg.sender === 'agent'
-            );
+            const newMessages = result.messages;
             
             if (newMessages.length > 0) {
               // Add new messages from agents
@@ -66,6 +62,7 @@ What would you like to know?`,
               }));
               
               setMessages(prev => [...prev, ...formattedNewMessages]);
+              setLastPolledMessageId(newMessages[newMessages.length - 1].id);
               console.log('Added new agent messages:', formattedNewMessages.length);
             }
           }
@@ -80,7 +77,7 @@ What would you like to know?`,
         if (interval) clearInterval(interval);
       };
     }
-  }, [humanHandoff, sessionId, isOpen, messages]);
+  }, [humanHandoff, sessionId, isOpen, lastPolledMessageId]);
 
   // Cleanup polling when component unmounts or chat closes
   useEffect(() => {
