@@ -158,7 +158,7 @@ What would you like to know?`,
         // Route to AI when in normal mode
         console.log('🤖 Sending message to AI service...', { sessionId, message: message.substring(0, 50) });
         
-        response = await fetch('/api/chat', {
+        response = await fetch('/api/chat-simple', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
