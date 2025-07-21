@@ -119,7 +119,7 @@ What would you like to know?`,
     setIsTyping(true);
 
     try {
-      // Call simple Express server
+      // Call Express server endpoint
       const response = await fetch('http://localhost:3001/chat', {
         method: 'POST',
         headers: {
@@ -127,7 +127,9 @@ What would you like to know?`,
         },
         body: JSON.stringify({
           message,
-          sessionId: sessionId
+          sessionId: sessionId,
+          conversationHistory: messages.slice(-6), // Send recent conversation history
+          humanHandoff: humanHandoff
         }),
       });
 

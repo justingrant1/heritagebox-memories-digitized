@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import EmailPopup from '@/components/EmailPopup';
 import EmailSignup from '@/components/EmailSignup';
 import SEOHelmet from '@/components/SEOHelmet';
+import ChatWidget from '@/components/ChatWidget';
 
 const Index = () => {
   // Handle scrolling to sections when coming from other pages
@@ -98,6 +99,7 @@ const Index = () => {
         <CTA />
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 };
