@@ -460,10 +460,10 @@ export default async function handler(request: Request) {
                         id: `user_${Date.now()}`,
                         content: message,
                         sender: 'user' as const,
-                        timestamp: new Date()
+                        timestamp: new Date().toISOString()
                     };
 
-                    addMessageToSession(sessionId, userMessage);
+                    await addMessageToSession(sessionId, userMessage);
 
                     return new Response(JSON.stringify({
                         success: true,
@@ -489,10 +489,10 @@ export default async function handler(request: Request) {
                     id: `user_${Date.now()}`,
                     content: message,
                     sender: 'user' as const,
-                    timestamp: new Date()
+                    timestamp: new Date().toISOString()
                 };
 
-                addMessageToSession(sessionId, userMessage);
+                await addMessageToSession(sessionId, userMessage);
 
                 return new Response(JSON.stringify({
                     success: true,

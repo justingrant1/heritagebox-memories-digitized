@@ -1,6 +1,13 @@
-// In-memory session storage (in a real production environment, this should be replaced with Vercel KV or another persistent store)
+import { Redis } from '@upstash/redis';
 
-interface ChatSession {
+// Initialize Redis client from environment variables
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// Define the session structure
+export interface ChatSession {
     sessionId: string;
     slackThreadId: string;
     userId?: string;
@@ -9,42 +16,51 @@ interface ChatSession {
         id: string;
         content: string;
         sender: 'user' | 'bot' | 'agent';
-        timestamp: Date;
+        timestamp: string; // Use ISO string for JSON compatibility
     }>;
     debugLog: string[];
 }
 
-// These maps will be shared across all API routes in the local dev environment.
-const chatSessions = new Map<string, ChatSession>();
-const slackThreadToSession = new Map<string, string>();
+const SESSION_TTL_SECONDS = 86400; // 24 hours
 
-function logEvent(event: string, data: any, session?: ChatSession) {
-    const logMessage = `[${new Date().toLocaleTimeString()}] ${event}: ${JSON.stringify(data)}`;
+// Helper to log events and optionally update the session in Redis
+async function logEvent(event: string, data: any, session?: ChatSession | null) {
+    const logMessage = `[${new Date().toISOString()}] ${event}: ${JSON.stringify(data)}`;
     console.log(logMessage);
     if (session) {
         session.debugLog.push(logMessage);
+        // Update the session in Redis with the new log
+        await redis.set(`session:${session.sessionId}`, JSON.stringify(session), { ex: SESSION_TTL_SECONDS });
     }
 }
 
-// Export functions to manage the shared state
-export function getChatSession(sessionId: string): ChatSession | undefined {
-    const session = chatSessions.get(sessionId);
-    logEvent('get_chat_session_called', { sessionId, found: !!session }, session);
+// Get a session from Redis
+export async function getChatSession(sessionId: string): Promise<ChatSession | null> {
+    const sessionJson = await redis.get(`session:${sessionId}`);
+    if (!sessionJson) {
+        await logEvent('get_chat_session_failed', { sessionId, reason: 'not_found' });
+        return null;
+    }
+    const session: ChatSession = JSON.parse(sessionJson as string);
+    await logEvent('get_chat_session_success', { sessionId }, session);
     return session;
 }
 
-export function getSessionBySlackThread(thread_ts: string): ChatSession | undefined {
-    const sessionId = slackThreadToSession.get(thread_ts);
-    const session = sessionId ? chatSessions.get(sessionId) : undefined;
-    logEvent('get_session_by_slack_thread_called', { 
-        thread_ts, 
-        foundSessionId: sessionId,
-        map: Array.from(slackThreadToSession.entries()) 
-    }, session);
+// Get a session by its corresponding Slack thread ID
+export async function getSessionBySlackThread(thread_ts: string): Promise<ChatSession | null> {
+    const sessionId = await redis.get(`thread:${thread_ts}`);
+    if (!sessionId) {
+        await logEvent('get_session_by_slack_thread_failed', { thread_ts, reason: 'session_id_not_found' });
+        return null;
+    }
+    const session = await getChatSession(sessionId as string);
+    // The logEvent in getChatSession already covers this. No need to double log.
+    // await logEvent('get_session_by_slack_thread_success', { thread_ts, sessionId }, session);
     return session;
 }
 
-export function createChatSession(sessionId: string, slackThreadId: string): ChatSession {
+// Create a new session in Redis
+export async function createChatSession(sessionId: string, slackThreadId: string): Promise<ChatSession> {
     const session: ChatSession = {
         sessionId,
         slackThreadId,
@@ -53,30 +69,26 @@ export function createChatSession(sessionId: string, slackThreadId: string): Cha
         debugLog: []
     };
     
-    chatSessions.set(sessionId, session);
-    slackThreadToSession.set(slackThreadId, sessionId);
-    
-    logEvent('chat_session_created', { 
-        sessionId, 
-        slackThreadId, 
-        sessionMapSize: chatSessions.size,
-        threadMapSize: slackThreadToSession.size
-    }, session);
+    const multi = redis.multi();
+    multi.set(`session:${sessionId}`, JSON.stringify(session), { ex: SESSION_TTL_SECONDS });
+    multi.set(`thread:${slackThreadId}`, sessionId, { ex: SESSION_TTL_SECONDS });
+    await multi.exec();
+
+    await logEvent('chat_session_created', { sessionId, slackThreadId }, session);
     return session;
 }
 
-export function addMessageToSession(sessionId: string, message: any) {
-    const session = getChatSession(sessionId);
+// Add a message to an existing session
+export async function addMessageToSession(sessionId: string, message: { id: string; content: string; sender: 'user' | 'bot' | 'agent'; timestamp: string; }) {
+    const session = await getChatSession(sessionId);
     if (session) {
         session.messages.push(message);
         session.lastActivity = Date.now();
-        logEvent('message_added_to_session', { 
-            sessionId, 
-            messageId: message.id,
-            newMessageCount: session.messages.length
-        }, session);
+        
+        await redis.set(`session:${sessionId}`, JSON.stringify(session), { ex: SESSION_TTL_SECONDS });
+        
+        await logEvent('message_added_to_session', { sessionId, messageId: message.id }, session);
     } else {
-        // Cannot log to a session that doesn't exist
-        logEvent('add_message_failed_session_not_found', { sessionId }, undefined);
+        await logEvent('add_message_to_session_failed', { sessionId, reason: 'session_not_found' });
     }
 }

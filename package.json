@@ -41,6 +41,7 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@square/web-sdk": "^2.1.0",
     "@tanstack/react-query": "^5.56.2",
+    "@upstash/redis": "^1.35.1",
     "airtable": "^0.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

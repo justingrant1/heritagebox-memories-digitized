@@ -69,7 +69,7 @@ export default async function handler(request: Request) {
             // We only care about messages from human agents inside a thread.
             if (event.type === 'message' && event.thread_ts && event.user && !event.bot_id) {
                 
-                const session = getSessionBySlackThread(event.thread_ts);
+                const session = await getSessionBySlackThread(event.thread_ts);
                 
                 logEvent('slack_thread_message_received', {
                     threadId: event.thread_ts,
@@ -88,10 +88,10 @@ export default async function handler(request: Request) {
                         id: `agent_${event.ts || Date.now()}`,
                         content: cleanText,
                         sender: 'agent' as const,
-                        timestamp: new Date()
+                        timestamp: new Date().toISOString()
                     };
                     
-                    addMessageToSession(session.sessionId, agentMessage);
+                    await addMessageToSession(session.sessionId, agentMessage);
                     
                 } else {
                     logEvent('slack_thread_not_mapped_or_empty_message', { 

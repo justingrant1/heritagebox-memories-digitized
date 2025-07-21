@@ -60,7 +60,7 @@ export default async function handler(request: Request) {
         }
 
         // Get the chat session to find the Slack thread ID
-        const session = getChatSession(sessionId);
+        const session = await getChatSession(sessionId);
         
         if (!session) {
             logEvent('session_not_found', { sessionId });
@@ -152,10 +152,10 @@ export default async function handler(request: Request) {
             id: `${sender}_${Date.now()}`,
             content: message,
             sender: sender,
-            timestamp: new Date()
+            timestamp: new Date().toISOString()
         };
 
-        addMessageToSession(sessionId, sessionMessage);
+        await addMessageToSession(sessionId, sessionMessage);
 
         logEvent('message_stored_in_session', {
             sessionId,
@@ -166,7 +166,7 @@ export default async function handler(request: Request) {
             success: true,
             messageId: sessionMessage.id,
             slackMessageId: slackResult.ts,
-            timestamp: sessionMessage.timestamp.toISOString()
+            timestamp: sessionMessage.timestamp
         }), {
             status: 200,
             headers: {'Content-Type': 'application/json'}

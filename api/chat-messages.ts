@@ -50,7 +50,7 @@ export default async function handler(request: Request) {
         }
 
         // Get the chat session
-        const session = getChatSession(sessionId);
+        const session = await getChatSession(sessionId);
         
         if (!session) {
             logEvent('session_not_found', { sessionId });
@@ -90,7 +90,7 @@ export default async function handler(request: Request) {
                 id: msg.id,
                 content: msg.content,
                 sender: msg.sender,
-                timestamp: msg.timestamp.toISOString()
+                timestamp: msg.timestamp 
             })),
             debugLog: session.debugLog, // Send debug logs to the client
             sessionExists: true,
