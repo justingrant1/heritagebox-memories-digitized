@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import claudeService from '../services/claudeService';
+import openaiService from '../services/openaiService';
 import airtableService from '../services/airtableService';
 
 interface Message {
@@ -158,15 +158,15 @@ What would you like to know?`,
         }
 
       } else {
-        // Use Claude directly for AI responses
-        console.log('🤖 Processing message with Claude AI...');
+        // Use OpenAI directly for AI responses
+        console.log('🤖 Processing message with OpenAI...');
         
         // Check if this looks like an order lookup request
         if (await isOrderLookupRequest(message)) {
           await handleOrderLookup(message);
         } else {
           // Regular AI conversation
-          await handleClaudeConversation(message);
+          await handleOpenAIConversation(message);
         }
       }
     } catch (error) {
@@ -288,8 +288,8 @@ You can also contact our support team at support@heritagebox.com with your order
     }
   };
 
-  // Handle regular Claude AI conversations
-  const handleClaudeConversation = async (message: string) => {
+  // Handle regular OpenAI conversations
+  const handleOpenAIConversation = async (message: string) => {
     try {
       // Get conversation history for context
       const conversationHistory: ChatHistory[] = messages.map(msg => ({
@@ -303,11 +303,11 @@ You can also contact our support team at support@heritagebox.com with your order
         message: message
       });
 
-      // Format for Claude API
-      const claudeMessages = claudeService.formatConversationHistory(conversationHistory);
+      // Format for OpenAI API
+      const openaiMessages = openaiService.formatConversationHistory(conversationHistory);
       
       // Get enhanced system prompt with current pricing if needed
-      let systemPrompt = claudeService.getSystemPrompt();
+      let systemPrompt = openaiService.getSystemPrompt();
       
       // If the message is about pricing, add current package pricing to context
       if (message.toLowerCase().includes('price') || message.toLowerCase().includes('cost') || message.toLowerCase().includes('package')) {
@@ -322,16 +322,16 @@ You can also contact our support team at support@heritagebox.com with your order
         }
       }
 
-      // Send to Claude
-      const claudeResponse = await claudeService.sendMessage(
-        claudeMessages,
+      // Send to OpenAI
+      const openaiResponse = await openaiService.sendMessage(
+        openaiMessages,
         systemPrompt,
         1024
       );
 
       const botResponse: Message = {
         id: `bot_${Date.now()}`,
-        content: claudeResponse,
+        content: openaiResponse,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -339,7 +339,7 @@ You can also contact our support team at support@heritagebox.com with your order
       setMessages(prev => [...prev, botResponse]);
       
     } catch (error) {
-      console.error('Error in Claude conversation:', error);
+      console.error('Error in OpenAI conversation:', error);
       
       const botResponse: Message = {
         id: `bot_${Date.now()}`,
