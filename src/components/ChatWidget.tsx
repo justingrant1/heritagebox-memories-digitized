@@ -162,16 +162,16 @@ What would you like to know?`,
     } catch (error) {
       console.error('Chat error:', error);
       
-      // Fallback to mock response if API is unavailable (only if not in human handoff)
+      // Show real error instead of fallback response
       if (!humanHandoff) {
-        const fallbackResponse: Message = {
+        const errorResponse: Message = {
           id: `bot_${Date.now()}`,
-          content: getAIResponse(message),
+          content: `❌ **Connection Error**<br><br>I'm having trouble connecting to our AI service right now. This could be due to:<br><br>• Network connectivity issues<br>• API service temporarily unavailable<br>• Configuration problems<br><br>**Error details:** ${error.message}<br><br>Please try again in a moment or contact support@heritagebox.com if this persists.`,
           sender: 'bot',
           timestamp: new Date()
         };
         
-        setMessages(prev => [...prev, fallbackResponse]);
+        setMessages(prev => [...prev, errorResponse]);
       }
     } finally {
       setIsTyping(false);

@@ -1,6 +1,4 @@
-export const config = {
-    runtime: 'edge',
-};
+// Remove edge runtime to use standard Node.js serverless functions for better env variable support
 
 interface ChatMessage {
   id: string;
@@ -378,17 +376,40 @@ function formatResponseAsHTML(text: string): string {
 }
 
 export default async function handler(request: Request) {
+    // Common CORS headers for all responses
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400',
+    };
+
     logEvent('chat_request_received', {
         method: request.method,
         url: request.url,
         headers: Object.fromEntries(request.headers.entries())
     });
 
+    // Handle preflight OPTIONS request
+    if (request.method === 'OPTIONS') {
+        return new Response(null, {
+            status: 200,
+            headers: corsHeaders
+        });
+    }
+
     if (request.method !== 'POST') {
         logEvent('method_not_allowed', {method: request.method});
-        return new Response(JSON.stringify({success: false, error: 'Method not allowed'}), {
+        return new Response(JSON.stringify({
+            success: false, 
+            error: `Method ${request.method} not allowed. Use POST.`,
+            allowedMethods: ['POST', 'OPTIONS']
+        }), {
             status: 405,
-            headers: {'Content-Type': 'application/json'}
+            headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders
+            }
         });
     }
 
@@ -589,7 +610,10 @@ export default async function handler(request: Request) {
             success: true
         }), {
             status: 200,
-            headers: {'Content-Type': 'application/json'}
+            headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders
+            }
         });
 
     } catch (error) {
@@ -605,7 +629,10 @@ export default async function handler(request: Request) {
             success: false
         }), {
             status: 500,
-            headers: {'Content-Type': 'application/json'}
+            headers: {
+                'Content-Type': 'application/json',
+                ...corsHeaders
+            }
         });
     }
 }
