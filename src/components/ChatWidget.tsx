@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useChat } from '../contexts/ChatContext';
 
 interface Message {
   id: string;
@@ -9,10 +8,26 @@ interface Message {
 }
 
 const ChatWidget: React.FC = () => {
-  const { messages, setMessages, humanHandoff, setHumanHandoff, sessionId } = useChat();
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      content: `Hi! I'm your Heritagebox AI assistant. I can help you with:
+      
+📸 Photo digitization pricing
+🎬 Video transfer options  
+📦 Project status updates
+⏱️ Turnaround times
+
+What would you like to know?`,
+      sender: 'bot',
+      timestamp: new Date()
+    }
+  ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [humanHandoff, setHumanHandoff] = useState(false);
+  const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [lastPolledMessageId, setLastPolledMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -30,12 +45,16 @@ const ChatWidget: React.FC = () => {
     if (humanHandoff && sessionId && isOpen) {
       const interval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}&lastMessageId=${lastPolledMessageId}`);
+          const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
           
           const result = await response.json();
           
           if (result.success && result.messages && result.messages.length > 0) {
-            const newMessages = result.messages;
+            // Get messages newer than our last polled message
+            const currentMessageIds = messages.map(m => m.id);
+            const newMessages = result.messages.filter((msg: any) => 
+              !currentMessageIds.includes(msg.id) && msg.sender === 'agent'
+            );
             
             if (newMessages.length > 0) {
               // Add new messages from agents
@@ -47,7 +66,6 @@ const ChatWidget: React.FC = () => {
               }));
               
               setMessages(prev => [...prev, ...formattedNewMessages]);
-              setLastPolledMessageId(newMessages[newMessages.length - 1].id);
               console.log('Added new agent messages:', formattedNewMessages.length);
             }
           }
@@ -62,7 +80,7 @@ const ChatWidget: React.FC = () => {
         if (interval) clearInterval(interval);
       };
     }
-  }, [humanHandoff, sessionId, isOpen, lastPolledMessageId]);
+  }, [humanHandoff, sessionId, isOpen, messages]);
 
   // Cleanup polling when component unmounts or chat closes
   useEffect(() => {
