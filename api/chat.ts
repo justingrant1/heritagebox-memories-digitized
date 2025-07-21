@@ -512,39 +512,63 @@ export default async function handler(request: Request) {
         // Check if this is an order status query
         const orderInfo = await checkOrderStatus(message);
 
-        // Prepare conversation context for Claude
-        const messages: ClaudeMessage[] = [];
-        
-        // Add conversation history if available
-        if (conversationHistory && conversationHistory.length > 0) {
-            conversationHistory.slice(-6).forEach(msg => {
-                messages.push({
-                    role: msg.sender === 'user' ? 'user' : 'assistant',
-                    content: msg.content
-                });
-            });
-        }
-
-        // Add current message
-        messages.push({
-            role: 'user',
-            content: message
-        });
-
-        // Get response from Claude AI
         let responseText;
-        try {
-            responseText = await callClaudeAPI(messages);
-            logEvent('claude_response_received', { 
-                responseLength: responseText.length,
-                hasOrderInfo: !!orderInfo 
+
+        // If we found order information, use it directly
+        if (orderInfo && orderInfo.found) {
+            logEvent('order_info_found', { 
+                hasMessage: !!orderInfo.message,
+                messageLength: orderInfo.message.length 
             });
-        } catch (error) {
-            logEvent('claude_api_error', { 
-                error: error.message,
-                fallbackUsed: true 
+            responseText = orderInfo.message;
+        } else if (orderInfo && !orderInfo.found) {
+            // Order query but no results found
+            logEvent('order_not_found', { 
+                hasMessage: !!orderInfo.message,
+                messageLength: orderInfo.message.length 
             });
-            responseText = getFallbackResponse(message);
+            responseText = orderInfo.message;
+        } else {
+            // Not an order query, or Airtable not available - use Claude AI
+            // Prepare conversation context for Claude
+            const messages: ClaudeMessage[] = [];
+            
+            // Add conversation history if available
+            if (conversationHistory && conversationHistory.length > 0) {
+                conversationHistory.slice(-6).forEach(msg => {
+                    messages.push({
+                        role: msg.sender === 'user' ? 'user' : 'assistant',
+                        content: msg.content
+                    });
+                });
+            }
+
+            // Add current message with Airtable context if available
+            let enhancedMessage = message;
+            if (orderInfo === null) {
+                // Airtable lookup failed, inform Claude
+                enhancedMessage += '\n\n[System note: Airtable connection unavailable for order lookups]';
+            }
+
+            messages.push({
+                role: 'user',
+                content: enhancedMessage
+            });
+
+            // Get response from Claude AI
+            try {
+                responseText = await callClaudeAPI(messages);
+                logEvent('claude_response_received', { 
+                    responseLength: responseText.length,
+                    hadAirtableContext: orderInfo === null 
+                });
+            } catch (error) {
+                logEvent('claude_api_error', { 
+                    error: error.message,
+                    fallbackUsed: true 
+                });
+                responseText = getFallbackResponse(message);
+            }
         }
 
         // Format the response
