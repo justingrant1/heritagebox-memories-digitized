@@ -464,6 +464,8 @@ const Checkout = () => {
         throw new Error('Missing customer information - form data not validated');
       }
       
+      console.log('💳 PAYMENT - Making API call to process-payment...');
+      
       const response = await fetch('/api/process-payment', {
         method: 'POST',
         headers: {
@@ -483,9 +485,36 @@ const Checkout = () => {
         }),
       });
 
-      const result = await response.json();
+      console.log('💳 PAYMENT - Response status:', response.status);
+      console.log('💳 PAYMENT - Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Check if response is ok and has content
+      if (!response.ok) {
+        console.error('💳 PAYMENT ERROR - API call failed with status:', response.status);
+        const errorText = await response.text();
+        console.error('💳 PAYMENT ERROR - Response body:', errorText);
+        throw new Error(`Payment processing failed (${response.status}): ${errorText || 'Server error'}`);
+      }
+
+      // Try to parse JSON response with better error handling
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('💳 PAYMENT - Raw response text:', responseText);
+        
+        if (!responseText.trim()) {
+          throw new Error('Empty response from payment processor');
+        }
+        
+        result = JSON.parse(responseText);
+        console.log('💳 PAYMENT - Parsed result:', result);
+      } catch (parseError) {
+        console.error('💳 PAYMENT ERROR - Failed to parse JSON response:', parseError);
+        throw new Error('Invalid response from payment processor');
+      }
 
       if (!result.success) {
+        console.error('💳 PAYMENT ERROR - Payment failed:', result.error);
         throw new Error(result.error || 'Payment failed');
       }
 
