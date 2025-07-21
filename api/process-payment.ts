@@ -188,11 +188,16 @@ export default async function handler(request: Request) {
             
             // Add main package as catalog line item
             const packageVariationId = SQUARE_CATALOG_MAPPING.packages[orderDetails.package];
+            logEvent('package_lookup', { 
+                requestedPackage: orderDetails.package,
+                foundCatalogId: packageVariationId,
+                allMappings: SQUARE_CATALOG_MAPPING.packages
+            });
+            
             if (packageVariationId) {
                 lineItems.push({
                     quantity: "1",
-                    catalog_object_id: packageVariationId,
-                    variation_name: orderDetails.package + " Package"
+                    catalog_object_id: packageVariationId
                 });
                 logEvent('package_line_item_added', { 
                     package: orderDetails.package, 
