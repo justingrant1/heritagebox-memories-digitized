@@ -418,8 +418,11 @@ export default async function handler(request: Request) {
             });
 
             try {
-                // Send message to Slack thread using the new endpoint
-                const slackResponse = await fetch(`${process.env.VERCEL_URL || 'http://localhost:3000'}/api/send-to-slack`, {
+                // Import the send-to-slack handler directly for internal use
+                const sendToSlackHandler = (await import('./send-to-slack')).default;
+                
+                // Create a mock request for the internal call
+                const mockRequest = new Request('http://localhost/api/send-to-slack', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -431,6 +434,7 @@ export default async function handler(request: Request) {
                     })
                 });
 
+                const slackResponse = await sendToSlackHandler(mockRequest);
                 const slackResult = await slackResponse.json();
                 
                 if (slackResult.success) {
