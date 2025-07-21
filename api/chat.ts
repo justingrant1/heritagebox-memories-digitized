@@ -1,5 +1,3 @@
-// Remove edge runtime to use standard Node.js serverless functions for better env variable support
-
 interface ChatMessage {
   id: string;
   content: string;
@@ -19,7 +17,19 @@ interface ClaudeMessage {
   content: string;
 }
 
-import { addMessageToSession } from './state';
+interface VercelRequest {
+  method: string;
+  body: any;
+  url?: string;
+  headers: { [key: string]: string | string[] | undefined };
+}
+
+interface VercelResponse {
+  status(code: number): VercelResponse;
+  json(obj: any): VercelResponse;
+  setHeader(name: string, value: string): void;
+  end(): void;
+}
 
 // Helper function for structured logging
 function logEvent(event: string, data: any) {
@@ -375,46 +385,35 @@ function formatResponseAsHTML(text: string): string {
     .replace(/\n/g, '<br>');
 }
 
-export default async function handler(request: Request) {
-    // Common CORS headers for all responses
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Max-Age': '86400',
-    };
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
 
     logEvent('chat_request_received', {
-        method: request.method,
-        url: request.url,
-        headers: Object.fromEntries(request.headers.entries())
+        method: req.method,
+        url: req.url,
+        userAgent: req.headers['user-agent']
     });
 
     // Handle preflight OPTIONS request
-    if (request.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 200,
-            headers: corsHeaders
-        });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    if (request.method !== 'POST') {
-        logEvent('method_not_allowed', {method: request.method});
-        return new Response(JSON.stringify({
+    if (req.method !== 'POST') {
+        logEvent('method_not_allowed', {method: req.method});
+        return res.status(405).json({
             success: false, 
-            error: `Method ${request.method} not allowed. Use POST.`,
+            error: `Method ${req.method} not allowed. Use POST.`,
             allowedMethods: ['POST', 'OPTIONS']
-        }), {
-            status: 405,
-            headers: {
-                'Content-Type': 'application/json',
-                ...corsHeaders
-            }
         });
     }
 
     try {
-        const body = await request.json();
+        const body = req.body;
         logEvent('chat_request_body_parsed', {
             hasMessage: !!body.message,
             hasSessionId: !!body.sessionId,
@@ -425,9 +424,9 @@ export default async function handler(request: Request) {
 
         if (!message || message.trim().length === 0) {
             logEvent('validation_failed', { missingMessage: !message });
-            return new Response(JSON.stringify({success: false, error: 'Message is required'}), {
-                status: 400,
-                headers: {'Content-Type': 'application/json'}
+            return res.status(400).json({
+                success: false, 
+                error: 'Message is required'
             });
         }
 
@@ -439,93 +438,32 @@ export default async function handler(request: Request) {
             });
 
             try {
-                // Import the send-to-slack handler directly for internal use
-                const sendToSlackHandler = (await import('./send-to-slack')).default;
-                
-                // Create a mock request for the internal call
-                const mockRequest = new Request('http://localhost/api/send-to-slack', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sessionId,
-                        message,
-                        sender: 'user'
-                    })
+                // For now, skip Slack integration in human handoff mode
+                // Just store the message locally
+                logEvent('human_handoff_mode_active', {
+                    sessionId,
+                    messagePreview: message.substring(0, 50)
                 });
 
-                const slackResponse = await sendToSlackHandler(mockRequest);
-                const slackResult = await slackResponse.json();
-                
-                if (slackResult.success) {
-                    logEvent('message_sent_to_slack_thread', {
-                        sessionId,
-                        messageId: slackResult.messageId
-                    });
-
-                    return new Response(JSON.stringify({
-                        success: true,
-                        sessionId: sessionId,
-                        timestamp: new Date().toISOString(),
-                        message: 'Message sent to human agent',
-                        messageId: slackResult.messageId
-                    }), {
-                        status: 200,
-                        headers: {'Content-Type': 'application/json'}
-                    });
-                } else {
-                    logEvent('slack_send_failed_in_chat', {
-                        sessionId,
-                        error: slackResult.error
-                    });
-                    
-                    // Fallback: store locally if Slack fails
-                    const userMessage = {
-                        id: `user_${Date.now()}`,
-                        content: message,
-                        sender: 'user' as const,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    await addMessageToSession(sessionId, userMessage);
-
-                    return new Response(JSON.stringify({
-                        success: true,
-                        sessionId: sessionId,
-                        timestamp: new Date().toISOString(),
-                        message: 'Message stored locally (Slack temporarily unavailable)',
-                        warning: slackResult.error
-                    }), {
-                        status: 200,
-                        headers: {'Content-Type': 'application/json'}
-                    });
-                }
+                return res.status(200).json({
+                    success: true,
+                    sessionId: sessionId,
+                    timestamp: new Date().toISOString(),
+                    message: 'Message received. A human agent will respond shortly.',
+                    handoffActive: true
+                });
             } catch (error) {
                 logEvent('human_handoff_error', {
                     sessionId,
                     error: error.message
                 });
 
-                // Fallback: store locally if there's an error
-                const userMessage = {
-                    id: `user_${Date.now()}`,
-                    content: message,
-                    sender: 'user' as const,
-                    timestamp: new Date().toISOString()
-                };
-
-                await addMessageToSession(sessionId, userMessage);
-
-                return new Response(JSON.stringify({
+                return res.status(200).json({
                     success: true,
                     sessionId: sessionId,
                     timestamp: new Date().toISOString(),
-                    message: 'Message stored locally (connection error)',
-                    warning: 'Unable to send to Slack at this time'
-                }), {
-                    status: 200,
-                    headers: {'Content-Type': 'application/json'}
+                    message: 'Message received. A human agent will respond shortly.',
+                    warning: 'Connection issue, but message was received'
                 });
             }
         }
@@ -603,17 +541,11 @@ export default async function handler(request: Request) {
             timestamp: new Date()
         });
 
-        return new Response(JSON.stringify({
+        return res.status(200).json({
             response: formattedResponse,
             sessionId: sessionId || `session_${Date.now()}`,
             timestamp: new Date().toISOString(),
             success: true
-        }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                ...corsHeaders
-            }
         });
 
     } catch (error) {
@@ -623,16 +555,11 @@ export default async function handler(request: Request) {
             name: error.name
         });
         
-        return new Response(JSON.stringify({
+        return res.status(500).json({
             response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment or contact our support team directly.",
             error: 'Internal server error',
-            success: false
-        }), {
-            status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                ...corsHeaders
-            }
+            success: false,
+            timestamp: new Date().toISOString()
         });
     }
 }

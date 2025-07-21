@@ -1,25 +1,35 @@
+interface VercelRequest {
+  method: string;
+  body?: any;
+  url?: string;
+  headers: { [key: string]: string | string[] | undefined };
+}
+
+interface VercelResponse {
+  status(code: number): VercelResponse;
+  json(obj: any): VercelResponse;
+  setHeader(name: string, value: string): void;
+  end(): void;
+}
+
 // Simple debug endpoint to test API connectivity
-export default async function handler(request: Request) {
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Max-Age': '86400',
-    };
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
 
     // Handle preflight OPTIONS request
-    if (request.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 200,
-            headers: corsHeaders
-        });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
     const debugInfo: any = {
         timestamp: new Date().toISOString(),
-        method: request.method,
-        url: request.url,
-        headers: Object.fromEntries(request.headers.entries()),
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
         environment: {
             CLAUDE_API_KEY: process.env.CLAUDE_API_KEY ? 'SET (' + process.env.CLAUDE_API_KEY.length + ' chars)' : 'NOT SET',
             AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY ? 'SET (' + process.env.AIRTABLE_API_KEY.length + ' chars)' : 'NOT SET',
@@ -46,11 +56,5 @@ export default async function handler(request: Request) {
         };
     }
 
-    return new Response(JSON.stringify(debugInfo, null, 2), {
-        status: 200,
-        headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-        }
-    });
+    return res.status(200).json(debugInfo);
 }
