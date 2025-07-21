@@ -119,8 +119,8 @@ What would you like to know?`,
     setIsTyping(true);
 
     try {
-      // Call real Claude AI + Airtable backend
-      const response = await fetch('/api/chat', {
+      // Call simple test backend first
+      const response = await fetch('/api/chat-simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -320,7 +320,7 @@ What specific information can I help you with today?`;
         // Session ID is already set and consistent
         const successMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: "✅ " + result.message + "\n\nA team member has been notified via Slack and will assist you shortly. You can continue chatting here or expect a call/email if you provided contact details.",
+          content: "✅ " + result.message + "\n\nA team member has been notified and will assist you shortly. You can continue chatting here or expect a call/email if you provided contact details.",
           sender: 'bot',
           timestamp: new Date()
         };
@@ -338,7 +338,7 @@ What specific information can I help you with today?`;
       console.error('Error requesting human handoff:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "❌ Sorry, I was unable to connect you to a human agent at this time. Please try again later or contact us directly at support@heritagebox.com",
+        content: "❌ Sorry, I was unable to connect you to a human agent at this time. Please try again later or contact us directly at info@heritagebox.com",
         sender: 'bot',
         timestamp: new Date()
       };
