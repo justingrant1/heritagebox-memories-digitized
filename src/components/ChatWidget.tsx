@@ -43,44 +43,57 @@ What would you like to know?`,
   // Polling effect to check for new messages from Slack
   useEffect(() => {
     if (humanHandoff && sessionId && isOpen) {
+      console.log('🔄 Starting message polling...', { sessionId, humanHandoff, isOpen });
+      
       const interval = setInterval(async () => {
         try {
+          console.log('📡 Polling for new messages...', { sessionId });
           const response = await fetch(`/api/chat-messages?sessionId=${encodeURIComponent(sessionId)}`);
           
           const result = await response.json();
+          console.log('📨 Polling response:', result);
           
           if (result.success && result.messages && result.messages.length > 0) {
-            // Get messages newer than our last polled message
-            const currentMessageIds = messages.map(m => m.id);
-            const newMessages = result.messages.filter((msg: any) => 
-              !currentMessageIds.includes(msg.id) && msg.sender === 'agent'
-            );
-            
-            if (newMessages.length > 0) {
-              // Add new messages from agents
-              const formattedNewMessages: Message[] = newMessages.map((msg: any) => ({
-                id: msg.id,
-                content: msg.content,
-                sender: 'bot', // Display agent messages as bot messages in the UI
-                timestamp: new Date(msg.timestamp)
-              }));
+            // Get current message IDs to avoid duplicates
+            setMessages(currentMessages => {
+              const currentMessageIds = currentMessages.map(m => m.id);
+              const newMessages = result.messages.filter((msg: any) => 
+                !currentMessageIds.includes(msg.id) && msg.sender === 'agent'
+              );
               
-              setMessages(prev => [...prev, ...formattedNewMessages]);
-              console.log('Added new agent messages:', formattedNewMessages.length);
-            }
+              console.log('🆕 Found new messages:', newMessages.length, newMessages);
+              
+              if (newMessages.length > 0) {
+                // Add new messages from agents
+                const formattedNewMessages: Message[] = newMessages.map((msg: any) => ({
+                  id: msg.id,
+                  content: msg.content,
+                  sender: 'bot', // Display agent messages as bot messages in the UI
+                  timestamp: new Date(msg.timestamp)
+                }));
+                
+                console.log('✅ Adding agent messages to chat:', formattedNewMessages);
+                return [...currentMessages, ...formattedNewMessages];
+              }
+              
+              return currentMessages;
+            });
           }
         } catch (error) {
-          console.error('Error polling for messages:', error);
+          console.error('❌ Error polling for messages:', error);
         }
       }, 2000); // Poll every 2 seconds for better responsiveness
       
       setPollingInterval(interval);
       
       return () => {
+        console.log('🛑 Stopping message polling...');
         if (interval) clearInterval(interval);
       };
+    } else {
+      console.log('⏸️ Polling not started:', { humanHandoff, sessionId, isOpen });
     }
-  }, [humanHandoff, sessionId, isOpen, messages]);
+  }, [humanHandoff, sessionId, isOpen]); // Removed 'messages' dependency to prevent interval recreation
 
   // Cleanup polling when component unmounts or chat closes
   useEffect(() => {
