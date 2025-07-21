@@ -117,8 +117,8 @@ export default async function handler(request: Request) {
             },
             body: JSON.stringify({
                 channel: slackChannelId.replace('#', ''),
-                text: formattedMessage,
-                thread_ts: session.slackThreadId, // This is crucial for threading
+                text: `📧 *Session: ${sessionId}*\n${formattedMessage}`,
+                thread_ts: session.slackThreadId, // This keeps it in the customer's thread
                 unfurl_links: false,
                 unfurl_media: false
             })

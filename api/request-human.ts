@@ -115,6 +115,28 @@ ${messages && messages.length > 0
             const slackBotToken = process.env.SLACK_BOT_TOKEN;
             
             if (slackBotToken) {
+                // Step 1: Post initial message to #vip-sales
+                const initialSlackResponse = await fetch('https://slack.com/api/chat.postMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${slackBotToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        channel: slackChannelId.replace('#', ''),
+                        text: `🚨 *NEW CUSTOMER SUPPORT REQUEST*\n\nCustomer: ${customerInfo?.name || 'Anonymous'}\nEmail: ${customerInfo?.email || 'Not provided'}\nSession: \`${sessionId}\`\n\n_Click thread below to start conversation_ 👇`,
+                        unfurl_links: false,
+                        unfurl_media: false
+                    })
+                });
+
+                const initialResult = await initialSlackResponse.json();
+                
+                if (!initialResult.ok) {
+                    throw new Error(`Slack API error: ${initialResult.error}`);
+                }
+
+                // Step 2: Create thread with full customer details
                 const slackResponse = await fetch('https://slack.com/api/chat.postMessage', {
                     method: 'POST',
                     headers: {
@@ -123,6 +145,7 @@ ${messages && messages.length > 0
                     },
                     body: JSON.stringify({
                         channel: slackChannelId.replace('#', ''),
+                        thread_ts: initialResult.ts, // This creates the thread!
                         text: slackMessage,
                         unfurl_links: false,
                         unfurl_media: false
@@ -133,7 +156,7 @@ ${messages && messages.length > 0
                 
                 if (slackResult.ok) {
                     slackSuccess = true;
-                    slackThreadId = slackResult.ts; // This is the thread timestamp we need!
+                    slackThreadId = initialResult.ts; // Use the initial message timestamp as thread ID
                     
                     logEvent('slack_notification_sent', {
                         success: true,
