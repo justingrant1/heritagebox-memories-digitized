@@ -16,14 +16,19 @@ const EmailPopup = () => {
   useEffect(() => {
     // Check if the user has seen the popup before
     const hasSeenPopup = localStorage.getItem('hasSeenEmailPopup');
+    console.log('EmailPopup: hasSeenPopup =', hasSeenPopup);
     
     if (!hasSeenPopup) {
+      console.log('EmailPopup: Setting timer to show popup in 2 seconds');
       // Wait a moment before showing the popup
       const timer = setTimeout(() => {
+        console.log('EmailPopup: Showing popup now');
         setOpen(true);
       }, 2000);
       
       return () => clearTimeout(timer);
+    } else {
+      console.log('EmailPopup: User has already seen popup, not showing');
     }
   }, []);
 
