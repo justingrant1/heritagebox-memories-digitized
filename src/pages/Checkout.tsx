@@ -29,32 +29,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-// Declare gtag function for TypeScript
-declare global {
-  interface Window {
-    gtag: (...args: any[]) => void;
-  }
-}
-
-// Google Ads conversion tracking function (Click tracking)
-function gtag_report_conversion(url?: string) {
-  var callback = function () {
-    if (typeof(url) != 'undefined') {
-      window.location.href = url;
-    }
-  };
-  
-  if (window.gtag) {
-    window.gtag('event', 'conversion', {
-      'send_to': 'AW-754907361/hOtZCNj4iMMBEOHx--cC',
-      'transaction_id': '',
-      'event_callback': callback
-    });
-  }
-  
-  return false;
-}
-
 // Form validation schema
 const shippingFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -1218,10 +1192,6 @@ const Checkout = () => {
                           buttonColorClass={getButtonClass()}
                           isProcessing={isProcessing}
                           amount={`$${calculateTotal()}`}
-                          onPaymentAttempt={() => {
-                            // Track Google Ads conversion when payment is attempted
-                            gtag_report_conversion();
-                          }}
                         />
                         
                         <div className="flex items-center justify-center gap-2 text-sm text-gray-500 pt-4 border-t border-gray-100">

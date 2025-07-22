@@ -52,7 +52,6 @@ interface SquarePaymentProps {
   buttonColorClass: string;
   isProcessing: boolean;
   amount: string;
-  onPaymentAttempt?: () => void;
 }
 
 declare global {
@@ -97,7 +96,7 @@ const isMobileDevice = () => {
          (window.innerWidth <= 768);
 };
 
-const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount, onPaymentAttempt }: SquarePaymentProps) => {
+const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount }: SquarePaymentProps) => {
   const [loaded, setLoaded] = useState(false);
   const [card, setCard] = useState<SquareCard | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
@@ -259,9 +258,6 @@ const SquarePayment = ({ onSuccess, buttonColorClass, isProcessing, amount, onPa
   }, [loaded, card, config, isMobile]);
 
   const handlePaymentSubmit = async () => {
-    // Call the payment attempt callback for tracking
-    onPaymentAttempt?.();
-    
     if (!card) {
       toast.error("Payment form not ready", {
         description: "Please wait for the payment form to load and try again",
