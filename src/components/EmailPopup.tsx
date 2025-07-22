@@ -77,7 +77,11 @@ const EmailPopup = () => {
       {/* Popup Content */}
       {open && (
         <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+          <div className="relative bg-gradient-to-br from-cream to-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden animate-scale-in">
+            {/* Decorative Background Elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-secondary/20 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-rose/30 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
+            
             {/* Close Button */}
             <button
               type="button"
@@ -85,55 +89,78 @@ const EmailPopup = () => {
                 localStorage.setItem('hasSeenEmailPopup', 'true');
                 setOpen(false);
               }}
-              className="absolute right-3 top-3 rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="absolute right-4 top-4 rounded-full p-2 text-primary/60 hover:text-primary hover:bg-white/80 transition-all duration-200 z-50 min-w-[44px] min-h-[44px] flex items-center justify-center backdrop-blur-sm"
               aria-label="Close popup"
             >
               <X className="h-5 w-5" />
             </button>
 
-            <div className="p-6 pr-12">
-              <h2 className="text-xl sm:text-2xl font-serif text-primary leading-tight mb-2">
-                Save 15% on Your First Order
-              </h2>
-              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6">
-                Sign up for updates and receive a 15% discount code for your first order.
-              </p>
+            <div className="relative p-8 pt-12">
+              {/* Header Section */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/20 rounded-full mb-4">
+                  <span className="text-2xl">🎁</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-serif text-primary leading-tight mb-3">
+                  Exclusive 15% Off
+                </h2>
+                <p className="text-base text-primary/70 leading-relaxed max-w-sm mx-auto">
+                  Join our heritage community and receive an instant discount on your first order
+                </p>
+              </div>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="popup-email">Email</Label>
+                  <Label htmlFor="popup-email" className="text-primary font-medium">Email Address</Label>
                   <Input 
                     id="popup-email"
                     type="email" 
-                    placeholder="Enter your email" 
+                    placeholder="your@email.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full"
+                    className="w-full h-12 px-4 border-2 border-primary/20 rounded-xl focus:border-secondary focus:ring-0 bg-white/80 backdrop-blur-sm transition-all duration-200"
                     disabled={isSubmitting}
                   />
                 </div>
                 
-                <div className="flex flex-col space-y-2">
+                <div className="space-y-4">
                   <Button 
                     type="submit" 
-                    className="w-full bg-secondary text-primary hover:bg-secondary-light"
+                    className="w-full h-12 bg-gradient-to-r from-secondary to-secondary-light text-primary font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:transform-none"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Submitting..." : "Get My 15% Off"}
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                        Claiming Discount...
+                      </div>
+                    ) : (
+                      "Claim My 15% Discount"
+                    )}
                   </Button>
+                  
                   <button 
                     type="button"
                     onClick={() => {
                       localStorage.setItem('hasSeenEmailPopup', 'true');
                       setOpen(false);
                     }}
-                    className="text-sm text-gray-500 hover:text-gray-700 mt-2"
+                    className="w-full text-sm text-primary/60 hover:text-primary/80 transition-colors duration-200 py-2"
                     disabled={isSubmitting}
                   >
-                    No thanks, I'll pay full price
+                    Continue without discount
                   </button>
                 </div>
               </form>
+              
+              {/* Trust Indicators */}
+              <div className="mt-6 pt-6 border-t border-primary/10">
+                <div className="flex items-center justify-center gap-4 text-xs text-primary/50">
+                  <span>✓ No spam, ever</span>
+                  <span>✓ Unsubscribe anytime</span>
+                  <span>✓ Secure & private</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
